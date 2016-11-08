@@ -16,7 +16,7 @@ module type Board = sig
 	type piece
 
 	(* Create an instance of a board to be used for a stratego game *)
-	val instantiate_baord : unit -> t
+	val instantiate_board : unit -> t
 
 	(* [is_valid_move] takes in a board and two positions and is true 
 	 * iff the piece in the first position can be moved to the second 
