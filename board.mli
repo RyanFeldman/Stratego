@@ -2,11 +2,8 @@
  * to piece options. 
  *)
 module type Board = sig 
-	
-	(* Can we not abstract these types because the rest of the architecture
-	 * depends on them? *)
 
-	(* The type of the board*)
+	(* The type of the board *)
 	type t
 
 	(* Type representing a location on the stratego board*)

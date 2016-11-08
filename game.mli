@@ -6,7 +6,7 @@ val setup_game : unit -> board
 
 (*[play] handles the gameplay of stratego. It takes in a board, prompts the player
  * to input a move, executes that move, prompts the AI to make a move, executes
- * that move. Then this function recursively calls itself. )
+ * that move. Then this function recursively calls itself. *)
 val play : board -> board
 
 (*[make_move board pos1 pos2] takes in [board] and a command from the player/AI
