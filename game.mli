@@ -14,12 +14,3 @@ val setup_game : unit -> board
  * board. 
  *)
 val play : board -> board
-
-(** 
- * [make_move] takes in a board and a valid movement command from the player, 
- * and returns the resulting board. 
- * Requires: 
- * 		- the movement from position1 -> position2 is valid 
- * 		- position1 contains a piece that can execute the movement
- *)
-val make_move : board -> position -> position -> board
