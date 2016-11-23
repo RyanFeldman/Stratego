@@ -1,7 +1,7 @@
 (* A module type [Board] represents a stratego board with pieces
  * on tiles. 
  *)
-module Board = struct 
+module type Board = sig 
 
 	(* The type of the board *)
 	type t
@@ -33,6 +33,6 @@ module Board = struct
  	 * 		- the movement from position1 -> position2 is valid 
  	 * 		- position1 contains a piece that can execute the movement
  	 *)
-	val make_move : board -> position -> position -> board
+	val make_move : t -> position -> position -> t
 
 end

@@ -22,7 +22,7 @@ module type AI = sig
 	 * of possible boards that are valid from the current board. Used
 	 * only by the AI 
 	 *)
-	val get_valid_boards : t -> t list
+	val get_valid_boards : board -> board list
 
 	(** 
 	 * [choose_best_board] takes in a list of boards available to the AI 
