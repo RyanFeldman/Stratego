@@ -1,6 +1,6 @@
 module Board  = struct
 
-	type t
+	type t = ()
 	type position = char * int
 	type piece = { 
 		rank : int;
