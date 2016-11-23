@@ -1,7 +1,7 @@
 (* A module type [Board] represents a stratego board with pieces
  * on tiles. 
  *)
-module type Board = sig 
+module Board = struct 
 
 	(* The type of the board *)
 	type t
@@ -25,13 +25,6 @@ module type Board = sig
 	 * [is_valid_move] is false.
 	 *)
 	val is_valid_move : t -> position -> position -> bool
-
-	(** 
-	 * [get_valid_boards] takes in a board and returns a list 
-	 * of possible boards that are valid from the current board. Used
-	 * only by the AI 
-	 *)
-	val get_valid_boards : t -> t list
 
 	(** 
  	 * [make_move] takes in a board and a valid movement command from the player, 
