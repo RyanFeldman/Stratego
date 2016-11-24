@@ -1,17 +1,22 @@
 module CharIntTuple = struct
 	
-	type t = char * int 
+	type t = (char * int) option
 
-	let compare t1 t2 = 
-		match Pervasives.compare (fst t1) (fst t2) with 
-		| 0 -> Pervasives.compare (snd t1) (snd t2)
-		| c -> c
+	let compare (t1:t) (t2:t) = 
+        match (t1, t2) with 
+        | (None, None) -> 0
+        | (Some x, None) -> 1
+        | (None, Some x) -> -1
+        | (Some x, Some y) -> 
+            match Pervasives.compare (fst x) (fst y) with 
+            | 0 -> Pervasives.compare (snd x) (snd y)
+            | c -> c
 
 end
 
 module BoardMap = Map.Make(CharIntTuple)
 
-module Board  = struct
+module Board = struct
 
 	type t = CharIntTuple.t BoardMap.t
 
