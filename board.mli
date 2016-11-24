@@ -35,7 +35,7 @@ module type Board = sig
 	 *    |    |    |    |    |    |    |    |    |    |    | 
 	 *  A | US | US | US | US | US | US | US | US | US | US |
 	 *    |____|____|____|____|____|____|____|____|____|____|
-	 *      1     2    3    4    5    6    7    8    9   10
+	 *      0     1    2    3    4    5    6    7    8   9
 	 * 
 	 * This is the board upon instantiation.
 	 *)
