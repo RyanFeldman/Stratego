@@ -19,8 +19,10 @@ let choose_best_board board_lst =
 (*[get_value rank] returns the value of a given rank.
  *)
 let get_value = function
+  |0 -> 5
   |1 -> 6
   |3 -> 5
+  |11 -> 1000
   |n -> n
 
 (* [get_score_init board] returns the AI's net score on [board] by going through
@@ -52,18 +54,28 @@ let get_score_init board =
  *)
 let get_score_from_move board orig_score pos1 pos2 =
   let score = ref orig_score in
-  let made_move = make_move pos1 pos2 in
-  List.iter (fun x->if x.player = true then score := !score + x.rank else
-            score := !score - x.rank)
+  let (new_board, captured) = make_move pos1 pos2 in
+  List.iter (fun x-> if x.player = true then score := !score + x.rank else
+            score := !score - x.rank) captured
 
+(* [has_move piece] returns true iff there is 1 or more valid move that the
+ * piece at position [pos] can make on [board].
+ *)
+let has_move board pos =
+  failwith "unimplemented"
+
+(* [get_moveable_init board] returns the list of positions in [board] that
+ * contain a piece that can make 1 or more valid moves.
+ *)
+let get_moveable_init board =
+  let lst = [] in
+  let f k v = if (has_move board k) then lst := k::(!lst) else () in
+  Map.iter f board
 
 (*[get_moves_piece board p]
  *
  *)
 let get_moves_piece board piece =
-  failwith "unimplemented"
-
-let get_moveable_init board =
   failwith "unimplemented"
 
 (* [get_moveable_from_move board] returns
