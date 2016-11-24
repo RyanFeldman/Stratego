@@ -1,6 +1,6 @@
-module CharIntTuple = struct
+module IntTuple = struct
 	
-	type t = (char * int) option
+	type t = (int * int) option
 
 	let compare (t1:t) (t2:t) = 
         match (t1, t2) with 
@@ -14,13 +14,13 @@ module CharIntTuple = struct
 
 end
 
-module BoardMap = Map.Make(CharIntTuple)
+module BoardMap = Map.Make(IntTuple)
 
 module Board = struct
 
-	type t = CharIntTuple.t BoardMap.t
+	type t = IntTuple.t BoardMap.t
 
-	type position = char * int
+	type position = int * int
 	type piece = { 
 		rank : int;
 		player : bool;
