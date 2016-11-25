@@ -1,5 +1,5 @@
 default:
-	ocamlbuild ai.byte && board.byte
+	ocamlbuild board.byte && ai.byte
 
 test:
 	ocamlbuild -pkgs oUnit,str,unix test.byte && ./test.byte
