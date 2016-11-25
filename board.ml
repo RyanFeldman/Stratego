@@ -18,7 +18,7 @@ type piece = {
     rank : int;
     player : bool;
     hasBeenSeen : bool
-}   
+}
 
 module type Board = sig
     type t
@@ -27,7 +27,7 @@ module type Board = sig
     val make_move : t -> position -> position -> (t * piece list)
 end
 
-module GameBoard : Board = struct
+module Board = struct
 
 	type t = (piece option) BoardMap.t
 
