@@ -5,7 +5,7 @@ module type Tuple = sig
     val compare : t -> t -> int
 end
 
-module IntTuple : Tuple with type t = (int*int)
+module IntTuple : (Tuple with type t = (int * int))
 
 
 (* A module type [Board] represents a stratego board with pieces
@@ -49,10 +49,7 @@ module type Board = sig
 	 * This is the board upon instantiation.
 	 *)
 
-    module BoardMap : Map.S with type key = (int*int)
-
-	(* The type of the board *)
-	type t
+    module BoardMap : Map.S with type key = IntTuple.t
 
     (* Type representing a location on the stratego board *)
     type position = (int * int)
@@ -63,6 +60,9 @@ module type Board = sig
         player : bool;
         hasBeenSeen: bool
     }
+
+	(* The type of the board *)
+	type t
 
 	(**
 	 * [instantiate_board] is an instance of a board to be used for a

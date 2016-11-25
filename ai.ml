@@ -1,16 +1,11 @@
 open Board.GameBoard
+
 module type AI = sig
-
   type board
-
   val setup_board : board -> board
-
   val score_board : board -> int
-
   val get_valid_boards : board -> board list
-
   val choose_best_board : board list -> board
-
 end
 
 module GameAI : AI = struct
