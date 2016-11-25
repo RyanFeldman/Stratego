@@ -1,8 +1,12 @@
-(* Type representing a location on the stratego board *)
-type position
 
-(* Type representing a stratego piece on the board *)
-type piece
+
+module type Tuple = sig 
+    type t
+    val compare : t -> t -> bool
+end
+
+module IntTuple : Tuple
+
 
 (* A module type [Board] represents a stratego board with pieces
  * on tiles. 
@@ -46,8 +50,20 @@ module type Board = sig
 	 * This is the board upon instantiation.
 	 *)
 
+    module BoardMap : Map.S
+
 	(* The type of the board *)
 	type t
+
+    (* Type representing a location on the stratego board *)
+    type position = (int * int)
+
+    (* Type representing a stratego piece on the board *)
+    type piece = {
+        rank : int;
+        player : bool;
+        hasBeenSeen: bool
+    }
 
 	(**
 	 * [instantiate_board] is an instance of a board to be used for a 
@@ -59,7 +75,8 @@ module type Board = sig
 	 * [is_valid_move] takes in a board and two positions and is true iff the 
 	 * piece in the first position can be moved to the second position legally 
 	 * by the rules of stratego. If position1 does not contain a piece, 
-	 * [is_valid_move] is false.
+	 * [is_valid_move] is false. Returns an error string if [is_valid_move] is 
+     * false with the reason why to display to the user. Empty if true.
 	 *)
 	val is_valid_move : t -> position -> position -> (bool * string)
 
@@ -73,3 +90,5 @@ module type Board = sig
 	val make_move : t -> position -> position -> (t * piece list)
 
 end
+
+module GameBoard : Board
