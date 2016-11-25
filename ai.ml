@@ -53,31 +53,46 @@ let get_score_init board =
  *)
 let get_score_from_move board orig_score pos1 pos2 =
   let score = ref orig_score in
-  let (new_board, captured) = make_move pos1 pos2 in
-  List.iter (fun x-> if x.player = true then score := !score + x.rank else
-            score := !score - x.rank) captured
+  let (new_board, captured) = make_move board pos1 pos2 in
+  let () = List.iter
+              (fun x-> if x.player = true then score := !score + x.rank else
+              score := !score - x.rank) captured in
+  score
 
+(* [is_enemy piece] returns true iff [piece] belongs to the player, not the AI
+ *
+ * Requires: [piece] : piece
+ *)
+let is_enemy piece =
+  if piece.player = false then true else false
+
+let can_move_to board (x,y) =
+  try
+      match BoardMap.find (x,y) board with
+      |None -> true
+      |Some piece ->
+        if piece.player = true then true else false
+  with
+  |_ -> false
 (* [has_move piece] returns true iff there is 1 or more valid move that the
  * piece at position [pos] can make on [board].
  *)
+ (*Needs to be fixed...this would return true even if a piece is surrounded
+  *by friendly pieces.*)
 let has_move board pos =
-  let (x,y) = (Char.code (fst pos), snd pos) in
+  let (x,y) = pos in
   let can_up = (match (x,y+1) with
-               |(x,y) when y > 10 -> false
-               |(x,y) ->
-                  if Map.find (x,y) board <> None then false else true) in
+               |(x',y') when y' > 10 -> false
+               |(x',y') -> can_move_to board (x',y')) in
   let can_down = (match (x,y-1) with
-                 |(x,y) when y < 0 -> false
-                 |(x,y) ->
-                    if Map.find (x,y) board <> None then false else true) in
+                 |(x',y') when y' < 0 -> false
+                 |(x',y') -> can_move_to board (x',y')) in
   let can_left = (match (x-1,y) with
-                 |(x,y) when x < 0 -> false
-                 |(x,y) ->
-                    if Map.find (x,y) board <> None then true else false) in
+                 |(x',y') when x < 0 -> false
+                 |(x',y') -> can_move_to board (x',y')) in
   let can_right = (match (x+1,y) with
-                  |(x,y) when x > 10 -> false
-                  |(x,y) ->
-                    if Map.find (x,y) board <> None then true else false) in
+                  |(x',y') when x > 10 -> false
+                  |(x',y') -> can_move_to board (x',y')) in
   if (can_up || can_down || can_left || can_right) then true else false
 
 
@@ -85,9 +100,10 @@ let has_move board pos =
  * contain a piece that can make 1 or more valid moves.
  *)
 let get_moveable_init board =
-  let lst = [] in
-  let f k v = if (has_move board k) then lst := k::(!lst) else () in
-  Map.iter f board
+  let lst = ref [] in
+  let () = BoardMap.iter
+    (fun k v -> if (has_move board k) then (lst := k::(!lst)) else ()) board in
+  lst
 
 (*[get_moves_piece board p]
  *
