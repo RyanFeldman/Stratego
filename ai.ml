@@ -13,7 +13,7 @@ module type AI = sig
 
 end
 
-module AI : AI = struct
+module GameAI : AI = struct
   let setup_board board =
     failwith "unimplemented"
 
