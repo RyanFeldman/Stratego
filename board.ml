@@ -69,7 +69,8 @@ module GameBoard : Board = struct
         let lieut_list = [lieut; lieut; lieut; lieut] in 
         let serg_list = [serg; serg; serg; serg] in 
         let mine_list = [miner; miner; miner; miner; miner] in 
-        let sco_list = [scout; scout; scout; scout; scout; scout; scout; scout] in 
+        let sco_list = [scout; scout; scout; scout; scout; scout; 
+                        scout; scout] in 
         let spy_list = [{p with rank=1}] in 
         let flag_lst = [{p with rank=11}] in 
         bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @ cap_list @
@@ -81,9 +82,11 @@ module GameBoard : Board = struct
         let user_board = instantiate_user_board new_board full_pieces in 
         user_board
 
-	let is_valid_move (board:t) (pos_one:position) (pos_two:position) : bool * string =
+	let is_valid_move (board:t) (pos_one:position) (pos_two:position) 
+            : bool * string =
 		failwith "Unimplemented"
 
-	let make_move (board:t) (pos_one:position) (pos_two:position) : t * piece list =
+	let make_move (board:t) (pos_one:position) (pos_two:position) 
+            : t * piece list =
 		failwith "Unimplemented"
 end
