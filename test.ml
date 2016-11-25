@@ -1,8 +1,6 @@
 open OUnit2
 open Board
 
-type position = int * int
-
 (* piece.player = true -> AI
  * piece.player = false -> User *)
 type piece = {
