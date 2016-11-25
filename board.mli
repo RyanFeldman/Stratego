@@ -1,3 +1,9 @@
+(* Type representing a location on the stratego board *)
+type position
+
+(* Type representing a stratego piece on the board *)
+type piece
+
 (* A module type [Board] represents a stratego board with pieces
  * on tiles. 
  *)
@@ -43,12 +49,6 @@ module type Board = sig
 	(* The type of the board *)
 	type t
 
-	(* Type representing a location on the stratego board *)
-	type position
-
-	(* Type representing a stratego piece on the board *)
-	type piece
-
 	(**
 	 * [instantiate_board] is an instance of a board to be used for a 
 	 * stratego game 
@@ -61,7 +61,7 @@ module type Board = sig
 	 * by the rules of stratego. If position1 does not contain a piece, 
 	 * [is_valid_move] is false.
 	 *)
-	val is_valid_move : t -> position -> position -> bool
+	val is_valid_move : t -> position -> position -> (bool * string)
 
 	(** 
 	 * [make_move] takes in a board and a valid movement command from the player, 
