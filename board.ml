@@ -1,4 +1,4 @@
-module type Tuple = sig 
+module type Tuple = sig
     type t
     val compare : t -> t -> int
 end
@@ -37,19 +37,19 @@ module GameBoard : Board = struct
         rank : int;
         player : bool;
         hasBeenSeen : bool
-    }   
+    }
 
-    module BoardMap = Map.Make(IntTuple)
+    module BoardMap = Map.Make(IntTuple) with type t = int*int
 
 	type t = (piece option) BoardMap.t
 
     let rec get_user_input board = failwith "Unimplemented"
 
-    let rec instantiate_user_board board = function 
-    | [] -> board 
-    | h::t -> 
-        let new_board = get_user_input board in 
-        instantiate_user_board new_board t 
+    let rec instantiate_user_board board = function
+    | [] -> board
+    | h::t ->
+        let new_board = get_user_input board in
+        instantiate_user_board new_board t
 
     let get_list_all_pieces () = 
         let p       = {rank=0; player=false; hasBeenSeen=false} in 
@@ -77,9 +77,9 @@ module GameBoard : Board = struct
         lieut_list @ serg_list @ mine_list @ sco_list @ spy_list @ flag_lst
 
 	let instantiate_board () : t =
-		let new_board = BoardMap.empty in 
-        let full_pieces = get_list_all_pieces () in 
-        let user_board = instantiate_user_board new_board full_pieces in 
+		let new_board = BoardMap.empty in
+        let full_pieces = get_list_all_pieces () in
+        let user_board = instantiate_user_board new_board full_pieces in
         user_board
 
 	let is_valid_move (board:t) (pos_one:position) (pos_two:position) 

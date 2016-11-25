@@ -8,7 +8,7 @@ module type AI = sig
   val choose_best_board : board list -> board
 end
 
-module AI : AI = struct
+module GameAI : AI = struct
   let setup_board board =
     failwith "unimplemented"
 
