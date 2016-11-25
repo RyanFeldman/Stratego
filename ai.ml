@@ -1,5 +1,4 @@
 open Board
-open Game
 
 let setup_board board =
   failwith "unimplemented"
@@ -62,7 +61,25 @@ let get_score_from_move board orig_score pos1 pos2 =
  * piece at position [pos] can make on [board].
  *)
 let has_move board pos =
-  failwith "unimplemented"
+  let (x,y) = (Char.code (fst pos), snd pos) in
+  let can_up = (match (x,y+1) with
+               |(x,y) when y > 10 -> false
+               |(x,y) ->
+                  if Map.find (x,y) board <> None then false else true) in
+  let can_down = (match (x,y-1) with
+                 |(x,y) when y < 0 -> false
+                 |(x,y) ->
+                    if Map.find (x,y) board <> None then false else true) in
+  let can_left = (match (x-1,y) with
+                 |(x,y) when x < 0 -> false
+                 |(x,y) ->
+                    if Map.find (x,y) board <> None then true else false) in
+  let can_right = (match (x+1,y) with
+                  |(x,y) when x > 10 -> false
+                  |(x,y) ->
+                    if Map.find (x,y) board <> None then true else false) in
+  if (can_up || can_down || can_left || can_right) then true else false
+
 
 (* [get_moveable_init board] returns the list of positions in [board] that
  * contain a piece that can make 1 or more valid moves.
