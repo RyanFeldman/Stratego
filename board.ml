@@ -1,15 +1,10 @@
 module IntTuple = struct
 	
-	type t = (int * int) option
+	type t = (int * int)
 
 	let compare (t1:t) (t2:t) = 
-        match (t1, t2) with 
-        | (None, None) -> 0
-        | (Some x, None) -> 1
-        | (None, Some x) -> -1
-        | (Some x, Some y) -> 
-            match Pervasives.compare (fst x) (fst y) with 
-            | 0 -> Pervasives.compare (snd x) (snd y)
+        match Pervasives.compare (fst t1) (fst t2) with 
+            | 0 -> Pervasives.compare (snd t1) (snd t2)
             | c -> c
 
 end
@@ -18,15 +13,14 @@ module BoardMap = Map.Make(IntTuple)
 
 module Board = struct
 
-	type t = IntTuple.t BoardMap.t
+    type position = int * int
+    type piece = { 
+        rank : int;
+        player : bool;
+        hasBeenSeen : bool
+    }
 
-	type position = int * int
-	type piece = { 
-		rank : int;
-		player : bool;
-		hasBeenSeen : bool
-	}
-
+	type t = (piece option) BoardMap.t
 
 	let instantiate_board () = 
 		failwith "Unimplemented"
