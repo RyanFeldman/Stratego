@@ -23,7 +23,7 @@ module type Board = sig
     }
     module BoardMap : Map.S with type key = IntTuple.t
     val instantiate_board : unit -> t
-    val is_valid_move : t -> position -> position -> (bool * string)
+    val is_valid_move : t -> bool -> position -> position -> (bool * string)
     val make_move : t -> position -> position -> (t * piece list)
 end
 
@@ -39,7 +39,7 @@ module GameBoard : Board = struct
         hasBeenSeen : bool
     }
 
-    module BoardMap = Map.Make(IntTuple) with type t = int*int
+    module BoardMap = Map.Make(IntTuple)
 
 	type t = (piece option) BoardMap.t
 
@@ -82,7 +82,7 @@ module GameBoard : Board = struct
         let user_board = instantiate_user_board new_board full_pieces in
         user_board
 
-	let is_valid_move (board:t) (pos_one:position) (pos_two:position) 
+	let is_valid_move (board:t) (b:bool) (pos_one:position) (pos_two:position) 
             : bool * string =
 		failwith "Unimplemented"
 
