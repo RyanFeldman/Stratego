@@ -1,3 +1,5 @@
 #require "oUnit";;
 #use "board.ml";;
 #use "ai.ml";;
+open GameBoard
+open BoardMap
