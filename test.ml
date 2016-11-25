@@ -8,7 +8,7 @@ let corner_board =
     BoardMap.empty
 
 
-let ai_tests = "ai tests" >::: [
+let tests = "ai tests" >::: [
 
     "sample test" >:: (fun _ -> assert_equal 1 1)
 
@@ -20,4 +20,4 @@ let ai_tests = "ai tests" >::: [
 
     ]
 
-let _ = run_test_tt_main ai_tests
+let _ = run_test_tt_main tests
