@@ -1,9 +1,9 @@
 module type Tuple = sig 
     type t
-    val compare : t -> t -> bool
+    val compare : t -> t -> int
 end
 
-module IntTuple : Tuple = struct
+module IntTuple : (Tuple with type t = (int * int)) = struct
 
 	type t = (int * int)
 
@@ -15,15 +15,19 @@ end
 
 module type Board = sig
     type t
-    type position
-    type piece
-    module BoardMap : Map.S
+    type position = int * int
+    type piece = {
+        rank : int;
+        player : bool;
+        hasBeenSeen: bool
+    }
+    module BoardMap : Map.S with type key = IntTuple.t
     val instantiate_board : unit -> t
     val is_valid_move : t -> position -> position -> (bool * string)
     val make_move : t -> position -> position -> (t * piece list)
 end
 
-module Board = struct
+module GameBoard : Board = struct
 
     type position = int * int
 
