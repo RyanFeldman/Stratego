@@ -1,60 +1,37 @@
 open Board.GameBoard
 
-module type AI = sig 
-  
-  (* [board] is the type of a Board *)
+module type AI = sig
   type board
-
-  (**
-   * [setup_board] takes in a board and returns the same board with the AI's
-   * stratego pieces placed on its side of the board.
-   *)
   val setup_board : board -> board
-
-  (** 
-   * [score_board] takes in a board and assigns it a score based on 
-   * how desirable it is for the AI 
-   *)
   val score_board : board -> int
-
-  (** 
-   * [get_valid_boards] takes in a board and returns a list 
-   * of possible boards that are valid from the current board. Used
-   * only by the AI 
-   *)
   val get_valid_boards : board -> board list
-
-  (** 
-   * [choose_best_board] takes in a list of boards available to the AI 
-   * and returns the one with the highest score (relative to the AI). 
-   *)
   val choose_best_board : board list -> board
-
 end
 
-let setup_board board =
-  failwith "unimplemented"
+module AI : AI = struct
+  let setup_board board =
+    failwith "unimplemented"
 
 (* [score_board] takes in a board and assigns it a score based on
  * how desirable it is for the AI
  *)
-let score_board board =
-  failwith "unimplemented"
+  let score_board board =
+    failwith "unimplemented"
 
 (* [choose_best_board] takes in a list of boards available to the AI
  * and picks the one with the highest score (relative to the AI)
  *)
-let choose_best_board board_lst =
-  failwith "unimplemented"
+  let choose_best_board board_lst =
+    failwith "unimplemented"
 
 (*[get_value rank] returns the value of a given rank.
  *)
-let get_value = function
-  |0 -> 5
-  |1 -> 6
-  |3 -> 5
-  |11 -> 1000
-  |n -> n
+  let get_value = function
+    |0 -> 5
+    |1 -> 6
+    |3 -> 5
+    |11 -> 1000
+    |n -> n
 
 (* [get_score_init board] returns the AI's net score on [board] by going through
  * the AI's pieces, summing their values, doing the same for the player's pieces,
@@ -71,8 +48,8 @@ let get_value = function
  *
  * Requires: [board] : board
  *)
-let get_score_init board =
-  failwith "unimplemented"
+  let get_score_init board =
+    failwith "unimplemented"
 
 
 (* [get_score_from_move board move] gets the score of [board], which initially
@@ -148,3 +125,4 @@ let get_moves_piece board piece =
  *)
 let get_moveable_from_move board =
   failwith "unimplemented"
+end
