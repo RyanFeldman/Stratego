@@ -23,7 +23,7 @@ module type Board = sig
     val make_move : t -> position -> position -> (t * piece list)
 end
 
-module GameBoard : Board = struct
+module Board = struct
 
     type position = int * int
 
