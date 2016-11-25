@@ -1,6 +1,19 @@
-open Board
+open Board.GameBoard
+module type AI = sig
 
-module type AI = struct
+  type board
+
+  val setup_board : board -> board
+
+  val score_board : board -> int
+
+  val get_valid_boards : board -> board list
+
+  val choose_best_board : board list -> board
+
+end
+
+module AI : AI = struct
   let setup_board board =
     failwith "unimplemented"
 
@@ -117,5 +130,4 @@ let get_moves_piece board piece =
  *)
 let get_moveable_from_move board =
   failwith "unimplemented"
-
 end
