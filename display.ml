@@ -24,7 +24,7 @@ module TextDisplay : Display = struct
   |x when x < 10 -> " "^(string_of_int x)
   |x -> string_of_int x
 
-  let print_row b row =
+  let print_row (b:board) row =
     for col = 0 to 9 do
       let p = BoardMap.find (col, row) b in ();
       (match p with
@@ -35,7 +35,7 @@ module TextDisplay : Display = struct
     done;
     print_endline ""
 
-  let display_board b =
+  let display_board (b:board) =
     print_endline "     _________________________________________________";
     for row = 0 to 9 do
 
