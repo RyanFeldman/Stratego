@@ -1,13 +1,7 @@
 open Board.GameBoard
 
-module Game = struct
+type board = t
 
-type board = Board.t
+let setup_game () = instantiate_board ()
 
-(*Just so shit runs, not implemented yet*)
-let setup_game () = Board.instantiate_board ()
-
-(*Just so shit runs, not implemented yet*)
-let play a = a
-
-end
+let play board = failwith "Unimplemented"
