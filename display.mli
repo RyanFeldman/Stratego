@@ -19,4 +19,5 @@ end
 
 (* [TextDisplay] is a module that displays the board via ASCII characters in the
  * terminal *)
+
 module TextDisplay : Display
