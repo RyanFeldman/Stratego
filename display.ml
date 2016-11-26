@@ -1,6 +1,6 @@
 open Board.GameBoard
 
-type board = Board.GameBoard.t
+type board = t
 
 module type Display = sig
 
