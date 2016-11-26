@@ -21,7 +21,10 @@ module TextDisplay : Display = struct
   let print_message s = print_endline s
 
   let string_of_piece p = match p.rank with
+  |x when x = 0 -> " B"
+  |x when x = 1 -> " S"
   |x when x < 10 -> " "^(string_of_int x)
+  |x when x = 11 -> " F"
   |x -> string_of_int x
 
   let print_row (b:board) row =
