@@ -5,9 +5,9 @@ end
 
 module IntTuple : (Tuple with type t = (int * int)) = struct
 
-	type t = (int * int)
+    type t = (int * int)
 
-	let compare (t1:t) (t2:t) =
+    let compare (t1:t) (t2:t) =
         match Pervasives.compare (fst t1) (fst t2) with
             | 0 -> Pervasives.compare (snd t1) (snd t2)
             | c -> c
@@ -46,7 +46,7 @@ module GameBoard : Board = struct
         hasBeenSeen : bool
     }
 
-	type t = (piece option) BoardMap.t
+    type t = (piece option) BoardMap.t
 
     type dir = N | E | S | W
 
@@ -126,9 +126,9 @@ module GameBoard : Board = struct
                 if (not (x.player = b)) then (false, "That's not your piece!")
                 else (true, "")
 
-	let is_valid_move (board:t) (b:bool) (pos_one:position) (pos_two:position) 
+    let is_valid_move (board:t) (b:bool) (pos_one:position) (pos_two:position) 
             : bool * string =
-		let within_board = (in_board pos_one) && (in_board pos_two) in 
+        let within_board = (in_board pos_one) && (in_board pos_two) in 
         if (within_board = false) then (false, "Position outside of board") else
         let valid_pos_one = check_pos_one board b pos_one in 
         if (fst valid_pos_one) = false then valid_pos_one else 
@@ -147,7 +147,7 @@ module GameBoard : Board = struct
                     (true, "")
 
 
-	let make_move (board:t) (pos_one:position) (pos_two:position) 
+    let make_move (board:t) (pos_one:position) (pos_two:position) 
             : t * piece list =
-		failwith "Unimplemented"
+        failwith "Unimplemented"
 end
