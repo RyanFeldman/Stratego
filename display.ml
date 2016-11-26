@@ -8,7 +8,7 @@ end
 
 module TextDisplay : Display = struct
 
-  type board = (piece option) BoardMap.t
+  type board = t
 
   let print_message s = print_endline s
 

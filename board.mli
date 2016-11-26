@@ -62,7 +62,7 @@ module type Board = sig
     }
 
 	(* The type of the board *)
-	type t
+	type t = (piece option) BoardMap.t
 
 	(**
 	 * [instantiate_board] is an instance of a board to be used for a

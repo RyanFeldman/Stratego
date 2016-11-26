@@ -14,14 +14,14 @@ module IntTuple : (Tuple with type t = (int * int)) = struct
 end
 
 module type Board = sig
-    type t
+    module BoardMap : Map.S with type key = IntTuple.t
     type position = int * int
     type piece = {
         rank : int;
         player : bool;
         hasBeenSeen: bool
     }
-    module BoardMap : Map.S with type key = IntTuple.t
+    type t = (piece option) BoardMap.t
     val instantiate_board : unit -> t
     val get_possible_moves : t -> bool -> piece -> position -> position list
     val is_valid_move : t -> bool -> position -> position -> (bool * string)
