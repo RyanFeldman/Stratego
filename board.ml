@@ -23,6 +23,7 @@ module type Board = sig
     }
     module BoardMap : Map.S with type key = IntTuple.t
     val instantiate_board : unit -> t
+    val get_possible_moves : t -> bool -> piece -> position -> position list
     val is_valid_move : t -> bool -> position -> position -> (bool * string)
     val make_move : t -> position -> position -> (t * piece list)
 end

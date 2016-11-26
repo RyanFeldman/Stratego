@@ -70,6 +70,17 @@ module type Board = sig
 	 *)
 	val instantiate_board : unit -> t
 
+    (**
+     * [get_possible_moves] takes in a board, a bool, a piece, and a position
+     * and gives back a list of possible positions that piece can move.
+     * Requires:
+     *  - t : board 
+     *  - bool : true if AI, false otherwise
+     *  - piece : piece record that is on the board
+     *  - position : position of piece on the board
+     *)
+    val get_possible_moves : t -> bool -> piece -> position -> position list
+
 	(**
 	 * [is_valid_move] takes in a board and two positions and is true iff the
 	 * piece in the first position can be moved to the second position legally
