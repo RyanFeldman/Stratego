@@ -74,8 +74,14 @@ module type Board = sig
 	 * by the rules of stratego. If position1 does not contain a piece,
 	 * [is_valid_move] is false. Returns an error string if [is_valid_move] is
      * false with the reason why to display to the user. Empty if true.
+     * Requires:
+     *  - t : board object
+     *  - bool : true if AI, false otherwise
+     *  - pos1 : piece initial position
+     *  - pos2 : piece final position
 	 *)
-	val is_valid_move : b -> position -> position -> (bool * string)
+
+	val is_valid_move : t -> bool -> position -> position -> (bool * string)
 
 	(**
 	 * [make_move] takes in a board and a valid movement command from the player,
