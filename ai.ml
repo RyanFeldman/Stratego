@@ -10,7 +10,7 @@ end
 
 module GameAI : AI = struct
 
-  type board = Board.GameBoard.t
+  type board = t
 
   let get_valid_boards board =
     failwith "unimplemented"
@@ -83,7 +83,7 @@ let is_enemy piece =
 
 let can_move_to board (x,y) =
   try
-      match BoardMap.find (x,y) board with
+      match (BoardMap.find (x,y) board) with
       |None -> true
       |Some piece ->
         if piece.player = true then true else false
