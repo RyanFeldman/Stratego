@@ -9,6 +9,12 @@ module type AI = sig
 end
 
 module GameAI : AI = struct
+
+  type board = Board.GameBoard.t
+
+  let get_valid_boards board =
+    failwith "unimplemented"
+
   let setup_board board =
     failwith "unimplemented"
 
