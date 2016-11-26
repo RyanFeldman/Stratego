@@ -4,35 +4,35 @@ open Board.GameBoard
 let bomb = {rank=0; player=false; hasBeenSeen=false}
 
 let corner_board =
-    BoardMap.add (0,0) (Some {rank=5; player=false; hasBeenSeen = false})
-        BoardMap.empty
+    add_mapping (0,0) (Some {rank=5; player=false; hasBeenSeen = false})
+        (empty_board ())
 
 let flag_top_row = 
-    BoardMap.add (3, 5) (Some {bomb with rank=11}) BoardMap.empty
+    add_mapping (3, 5) (Some {bomb with rank=11}) (empty_board ())
 
 let cap_first_row = 
-    BoardMap.add (0, 3) (Some {bomb with rank=6}) BoardMap.empty
+    add_mapping (0, 3) (Some {bomb with rank=6}) (empty_board ())
 let cap_first_row_none = 
-    BoardMap.add (0, 4) (None) cap_first_row
+    add_mapping (0, 4) (None) cap_first_row
 let cap_first_row_ally = 
-    BoardMap.add (0, 4) (Some {bomb with rank=6}) cap_first_row_none
+    add_mapping (0, 4) (Some {bomb with rank=6}) cap_first_row_none
 let cap_first_row_enemy = 
-    BoardMap.add (0, 4) (Some {bomb with player=true}) cap_first_row_none
+    add_mapping (0, 4) (Some {bomb with player=true}) cap_first_row_none
 let cap_first_row_far =     
-    BoardMap.add (0, 5) (None) cap_first_row_none
+    add_mapping (0, 5) (None) cap_first_row_none
 
 let scout_first_row = 
-    BoardMap.add (9, 3) (Some {bomb with rank=2}) BoardMap.empty
+    add_mapping (9, 3) (Some {bomb with rank=2}) (empty_board ())
 let scout_first_row_none = 
-    BoardMap.add (9, 4) (None) scout_first_row
+    add_mapping (9, 4) (None) scout_first_row
 let scout_first_row_nonetwo = 
-    BoardMap.add (9, 5) None scout_first_row_none
+    add_mapping (9, 5) None scout_first_row_none
 let scout_first_row_topp = 
-    BoardMap.add (9, 6) (Some {bomb with rank=4}) scout_first_row_nonetwo
+    add_mapping (9, 6) (Some {bomb with rank=4}) scout_first_row_nonetwo
 let scout_first_row_leftp = 
-    BoardMap.add (8, 3) (Some {bomb with rank=4}) scout_first_row_topp
+    add_mapping (8, 3) (Some {bomb with rank=4}) scout_first_row_topp
 let scout_first_row_botp = 
-    BoardMap.add (9, 2) (Some {bomb with rank=4}) scout_first_row_leftp
+    add_mapping (9, 2) (Some {bomb with rank=4}) scout_first_row_leftp
 
 let tests = "ai tests" >::: [
 
@@ -40,7 +40,7 @@ let tests = "ai tests" >::: [
 
     "making board 1" >:: (fun _ -> assert_equal
         (Some {rank=5; player=false; hasBeenSeen = false})
-        (BoardMap.find (0,0) corner_board));
+        (search (0,0) corner_board));
 
     "is_valid_move_flag" >:: (fun _ -> assert_equal 
         (false, "That piece can't move there!")
