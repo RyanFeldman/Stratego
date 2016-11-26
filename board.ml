@@ -5,38 +5,31 @@ end
 
 module IntTuple : (Tuple with type t = (int * int)) = struct
 
-	type t = (int * int)
+    type t = (int * int)
 
-	let compare (t1:t) (t2:t) =
+    let compare (t1:t) (t2:t) =
         match Pervasives.compare (fst t1) (fst t2) with
             | 0 -> Pervasives.compare (snd t1) (snd t2)
             | c -> c
 end
 
 module type Board = sig
-    include Map.S
+    type t
     type position = int * int
     type piece = {
         rank : int;
         player : bool;
         hasBeenSeen: bool
     }
-
     module BoardMap : Map.S with type key = IntTuple.t
     val instantiate_board : unit -> t
     val is_valid_move : t -> bool -> position -> position -> (bool * string)
     val make_move : t -> position -> position -> (t * piece list)
 end
 
-
-module BoardMap : Map.S = Map.Make(IntTuple)
-
 module GameBoard : Board = struct
 
-    include BoardMap
-
     type position = int * int
-
 
     (* piece.player = true -> AI
      * piece.player = false -> User *)
@@ -48,7 +41,7 @@ module GameBoard : Board = struct
 
     module BoardMap = Map.Make(IntTuple)
 
-	(*type t = (piece option) BoardMap.t*)
+    type t = (piece option) BoardMap.t
 
     type dir = N | E | S | W
 
@@ -85,8 +78,8 @@ module GameBoard : Board = struct
         bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @ cap_list @
         lieut_list @ serg_list @ mine_list @ sco_list @ spy_list @ flag_lst
 
-	let instantiate_board () : t =
-		let new_board = BoardMap.empty in
+    let instantiate_board () : t =
+        let new_board = BoardMap.empty in
         let full_pieces = get_list_all_pieces () in
         let user_board = instantiate_user_board new_board full_pieces in
         user_board
@@ -157,9 +150,9 @@ module GameBoard : Board = struct
                 if (not (x.player = b)) then (false, "That's not your piece!")
                 else (true, "")
 
-	let is_valid_move (board:t) (b:bool) (pos_one:position) (pos_two:position)
+    let is_valid_move (board:t) (b:bool) (pos_one:position) (pos_two:position)
             : bool * string =
-		let within_board = (in_board pos_one) && (in_board pos_two) in
+        let within_board = (in_board pos_one) && (in_board pos_two) in
         if (within_board = false) then (false, "Position outside of board") else
         let valid_pos_one = check_pos_one board b pos_one in
         if (fst valid_pos_one) = false then valid_pos_one else
@@ -178,7 +171,7 @@ module GameBoard : Board = struct
                     (true, "")
 
 
-	let make_move (board:t) (pos_one:position) (pos_two:position)
+    let make_move (board:t) (pos_one:position) (pos_two:position)
             : t * piece list =
-		failwith "Unimplemented"
+        failwith "Unimplemented"
 end

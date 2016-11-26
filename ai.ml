@@ -10,7 +10,10 @@ end
 
 module GameAI : AI = struct
 
-  type board = b
+  type board = Board.GameBoard.t
+
+  let get_valid_boards board =
+    failwith "unimplemented"
 
   let setup_board board =
     failwith "unimplemented"
@@ -42,7 +45,6 @@ module GameAI : AI = struct
  *
  * The scoring heuristic assigns each piece an integer value based on its rank.
  * The value of each piece is its rank except for the following exceptions:
-
  * A rank 1 piece (Spy) has a value of 6
  * A rank 3 piece (miner) has a value of 5
  * A bomb has a value of 5
@@ -80,7 +82,7 @@ let is_enemy piece =
 
 let can_move_to board (x,y) =
   try
-      match find (x,y) board with
+      match BoardMap.find (x,y) board with
       |None -> true
       |Some piece ->
         if piece.player = true then true else false
@@ -113,7 +115,7 @@ let has_move board pos =
  *)
 let get_moveable_init board =
   let lst = ref [] in
-  let () = iter
+  let () = BoardMap.iter
     (fun k v -> if (has_move board k) then (lst := k::(!lst)) else ()) board in
   lst
 
@@ -127,8 +129,5 @@ let get_moves_piece board piece =
  *
  *)
 let get_moveable_from_move board =
-  failwith "unimplemented"
-
-let get_valid_boards board =
   failwith "unimplemented"
 end
