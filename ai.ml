@@ -1,7 +1,7 @@
 open Board.GameBoard
 
 module type AI = sig
-  type board
+  type board = Board.GameBoard.t
   val setup_board : board -> board
   val score_board : board -> int
   val get_valid_boards : board -> board list

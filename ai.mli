@@ -3,7 +3,7 @@
 module type AI = sig 
 	
 	(* [board] is the type of a Board *)
-	type board
+	type board = Board.GameBoard.t
 
 	(**
 	 * [setup_board] takes in a board and returns the same board with the AI's
@@ -31,3 +31,5 @@ module type AI = sig
 	val choose_best_board : board list -> board
 
 end
+
+module GameAI : AI
