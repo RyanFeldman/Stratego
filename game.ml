@@ -54,14 +54,15 @@ let rec get_user_input (board:board) (piece:piece) : board =
 let rec instantiate_user_board board = function
 | [] -> board
 | h::t ->
-    let new_board = (try (get_user_input board h) with 
-                    | _ -> 
-                        let _ = print_message ("Sorry, your input must be in the" 
-                                ^" form 'xy' to place your piece at (x, y)!"
-                                ^" As a reminder, you must place your pieces "
-                                ^"in the first 4 rows and two pieces cannot be "
-                                ^"placed on top of each other to start.") in 
-                        get_user_input board h) in
+    let new_board = 
+        (try (get_user_input board h) with 
+            | _ -> 
+                let _ = print_message ("Sorry, your input must be in the" 
+                    ^" form 'xy' to place your piece at (x, y)! As a reminder,"
+                    ^" you must place your pieces in the first 4 rows and two "
+                    ^"pieces cannot be placed on top of each other to start."
+                    ^"\n\n\n") in
+                    instantiate_user_board board (h::t)) in
     instantiate_user_board new_board t
 
 let get_list_all_pieces () = 
