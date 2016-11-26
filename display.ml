@@ -1,6 +1,6 @@
 open Board.GameBoard
 
-type board = Board.t
+type board = Board.GameBoard.t
 
 module type Display = sig
 
@@ -34,7 +34,5 @@ module TextDisplay : Display = struct
       print_string "    | ";
       print_row b row
     done
-
-
 
 end
