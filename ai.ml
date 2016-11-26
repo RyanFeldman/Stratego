@@ -54,8 +54,13 @@ module GameAI : AI = struct
  *
  * Requires: [board] : board
  *)
+
   let get_score_init board =
-    failwith "unimplemented"
+    let f piece a = (match piece with
+        |None -> a
+        |Some p when p.player -> a+(get_value p.rank)
+        |Some p -> a-(get_value p.rank)) in
+    BoardMap.fold (fun k v ac -> f v ac) board 0
 
 
 (* [get_score_from_move board move] gets the score of [board], which initially
@@ -123,9 +128,9 @@ let get_moveable_init board =
 (*[get_moves_piece board p]
  *
  *)
-let get_moves_piece board piece =
+let get_moves_piece board pos p =
+  (* 1) this is the same thing as get_possible_moves, we just also need to pass in pos*)
   failwith "unimplemented"
-
 (* [get_moveable_from_move board] returns
  *
  *)
