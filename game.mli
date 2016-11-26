@@ -1,9 +1,10 @@
 (* [board] represents the type of a Board *)
-type board
+type board = Board.GameBoard.t
 
 (**
  * [setup_game] creates the board that exists at the start of gameplay; it
- * allows the user to choose the start position of each of his/her pieces
+ * allows the user to choose the start position of each of his/her pieces.
+ * Returns a board with both the user's pieces and the AI's pieces
  *)
 val setup_game : unit -> board
 

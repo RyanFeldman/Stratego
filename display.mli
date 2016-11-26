@@ -3,7 +3,7 @@
 module type Display = sig
 
 	(* [board] is the type of a Board *)
-	type board
+	type board = Board.GameBoard.t
 
 	(**
 	 * [print_message] takes in a string message to the user and displays it

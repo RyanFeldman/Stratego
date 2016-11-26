@@ -22,7 +22,6 @@ module type Board = sig
         hasBeenSeen: bool
     }
     type t = (piece option) BoardMap.t
-    val instantiate_board : unit -> t
     val get_possible_moves : t -> bool -> piece -> position -> position list
     val is_valid_move : t -> bool -> position -> position -> (bool * string)
     val make_move : t -> position -> position -> (t * piece list)
@@ -45,45 +44,6 @@ module GameBoard : Board = struct
 	type t = (piece option) BoardMap.t
 
     type dir = N | E | S | W
-
-    let rec get_user_input board = failwith "Unimplemented"
-
-    let rec instantiate_user_board board = function
-    | [] -> board
-    | h::t ->
-        let new_board = get_user_input board in
-        instantiate_user_board new_board t
-
-    let get_list_all_pieces () = 
-        let p       = {rank=0; player=false; hasBeenSeen=false} in 
-        let col     = {p with rank=8} in 
-        let major   = {p with rank=7} in 
-        let cap     = {p with rank=6} in 
-        let lieut   = {p with rank=5} in 
-        let serg    = {p with rank=4} in 
-        let miner   = {p with rank=3} in 
-        let scout   = {p with rank=2} in 
-        let bomb_list = [p; p; p; p; p; p] in 
-        let marsh_list = [{p with rank=10}] in 
-        let gen_list = [{p with rank=9}] in 
-        let col_list = [col; col] in 
-        let maj_list = [major; major; major] in 
-        let cap_list = [cap; cap; cap; cap] in 
-        let lieut_list = [lieut; lieut; lieut; lieut] in 
-        let serg_list = [serg; serg; serg; serg] in 
-        let mine_list = [miner; miner; miner; miner; miner] in 
-        let sco_list = [scout; scout; scout; scout; scout; scout; 
-                        scout; scout] in 
-        let spy_list = [{p with rank=1}] in 
-        let flag_lst = [{p with rank=11}] in 
-        bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @ cap_list @
-        lieut_list @ serg_list @ mine_list @ sco_list @ spy_list @ flag_lst
-
-	let instantiate_board () : t =
-		let new_board = BoardMap.empty in
-        let full_pieces = get_list_all_pieces () in
-        let user_board = instantiate_user_board new_board full_pieces in
-        user_board
 
     let rec step board b pos dir = 
         match dir with 
@@ -116,7 +76,6 @@ module GameBoard : Board = struct
             | Some piece -> 
                 if (piece.player = b) then [] else [(x-1, y)])
 
-
     let get_scout_moves board b pos = 
         let up_list = step board b pos N in 
         let right_list = step board b pos E in 
@@ -135,7 +94,6 @@ module GameBoard : Board = struct
             let top = if y=9 then [] else [(x, y+1)] in 
             let bot = if y=0 then [] else [(x, y-1)] in 
             left @ right @ top @ bot
-
 
     let in_board pos = 
         if (fst pos) < 0 || (fst pos) > 9 then false

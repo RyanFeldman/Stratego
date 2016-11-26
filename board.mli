@@ -64,12 +64,6 @@ module type Board = sig
 	(* The type of the board *)
 	type t = (piece option) BoardMap.t
 
-	(**
-	 * [instantiate_board] is an instance of a board to be used for a
-	 * stratego game
-	 *)
-	val instantiate_board : unit -> t
-
     (**
      * [get_possible_moves] takes in a board, a bool, a piece, and a position
      * and gives back a list of possible positions that piece can move.

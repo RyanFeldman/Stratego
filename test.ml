@@ -21,6 +21,19 @@ let cap_first_row_enemy =
 let cap_first_row_far =     
     BoardMap.add (0, 5) (None) cap_first_row_none
 
+let scout_first_row = 
+    BoardMap.add (9, 3) (Some {bomb with rank=2}) BoardMap.empty
+let scout_first_row_none = 
+    BoardMap.add (9, 4) (None) scout_first_row
+let scout_first_row_nonetwo = 
+    BoardMap.add (9, 5) None scout_first_row_none
+let scout_first_row_topp = 
+    BoardMap.add (9, 6) (Some {bomb with rank=4}) scout_first_row_nonetwo
+let scout_first_row_leftp = 
+    BoardMap.add (8, 3) (Some {bomb with rank=4}) scout_first_row_topp
+let scout_first_row_botp = 
+    BoardMap.add (9, 2) (Some {bomb with rank=4}) scout_first_row_leftp
+
 let tests = "ai tests" >::: [
 
     "sample test" >:: (fun _ -> assert_equal 1 1);
@@ -52,6 +65,22 @@ let tests = "ai tests" >::: [
     "is_valid_move_too_far" >:: (fun _ -> assert_equal
         (false, "That piece can't move there!")
         (is_valid_move cap_first_row_far false (0, 3) (0, 5)));
+
+    "is_valid_move_scout_right" >:: (fun _ -> assert_equal
+        (false, "Position outside of board")
+        (is_valid_move scout_first_row false (9, 3) (10, 3)));
+
+    "is_valid_move_scout_one" >:: (fun _ -> assert_equal
+        (true, "")
+        (is_valid_move scout_first_row_botp false (9, 3) (9, 4)));
+
+    "is_valid_move_scout_two" >:: (fun _ -> assert_equal
+        (true, "")
+        (is_valid_move scout_first_row_botp false (9, 3) (9, 5)));
+
+
+
+
     
 
     ]

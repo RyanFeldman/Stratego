@@ -1,7 +1,7 @@
 open Board.GameBoard
 
 module type Display = sig
-  type board
+  type board = t
   val print_message : string -> unit
   val display_board : board -> unit
 end
