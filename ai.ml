@@ -10,7 +10,7 @@ end
 
 module GameAI : AI = struct
 
-  type board = Board.GameBoard.t
+  type board = t
 
   let ai_move board move =
     failwith "unimplemented"
@@ -59,7 +59,7 @@ module GameAI : AI = struct
         |None -> a
         |Some p when p.player -> a+(get_value p.rank)
         |Some p -> a-(get_value p.rank)) in
-    BoardMap.fold (fun k v ac -> f v ac) board 0
+    board_fold (fun k v ac -> f v ac) board 0
 
 
   (* [get_score_from_move board move] gets the score of [board], which initially
@@ -87,7 +87,7 @@ module GameAI : AI = struct
 
   let can_move_to board (x,y) =
     try
-      match BoardMap.find (x,y) board with
+      match search (x,y) board with
       |None -> true
       |Some piece ->
         if piece.player = true then true else false
@@ -120,7 +120,7 @@ module GameAI : AI = struct
    *)
   let get_moveable_init board =
     let lst = ref [] in
-    let () = BoardMap.iter
+    let () = board_iter
       (fun k v -> if (has_move board k) then (lst := k::(!lst)) else ()) board in
     lst
 
@@ -128,7 +128,7 @@ module GameAI : AI = struct
    * can go to on the given board board
    *)
   let get_moves_piece (board:board) pos =
-    match BoardMap.find pos board with
+    match search pos board with
     | None -> failwith "there's no piece here"
     | Some p -> Board.GameBoard.get_possible_moves board p.player p pos
   

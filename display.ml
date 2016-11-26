@@ -21,7 +21,7 @@ module TextDisplay : Display = struct
 
   let print_row (board:board) (row:int) =
     for col = 0 to 9 do
-      let p = (BoardMap.find (col,row) board) in ();
+      let p = (search (col,row) board) in ();
       (match p with
       |None -> print_string "  ";
       |Some x -> if x.player then print_string "  "

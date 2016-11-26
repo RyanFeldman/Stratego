@@ -1,13 +1,3 @@
-
-
-module type Tuple = sig
-    type t
-    val compare : t -> t -> int
-end
-
-module IntTuple : (Tuple with type t = (int * int))
-
-
 (* A module type [Board] represents a stratego board with pieces
  * on tiles.
  *)
@@ -49,8 +39,6 @@ module type Board = sig
 	 * This is the board upon instantiation.
 	 *)
 
-    module BoardMap : Map.S with type key = IntTuple.t
-
     (* Type representing a location on the stratego board *)
     type position = (int * int)
 
@@ -62,8 +50,19 @@ module type Board = sig
     }
 
 	(* The type of the board *)
-	type t = (piece option) BoardMap.t
+	type t
 
+    val empty_board : unit -> t
+
+    val search : position -> t -> (piece option)
+
+    val is_member : position -> t -> bool
+
+    val add_mapping : position -> (piece option) -> t -> t
+
+    val board_fold : (position -> piece option -> 'a -> 'a) -> t -> 'a -> 'a
+
+    val board_iter : (position -> piece option -> unit) -> t -> unit
     (**
      * [get_possible_moves] takes in a board, a bool, a piece, and a position
      * and gives back a list of possible positions that piece can move.

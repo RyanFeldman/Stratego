@@ -3,9 +3,16 @@ open Display.TextDisplay
 
 type board = t
 
+let parse_user_input (c:string) : position * position= 
+	let trimmed_c = c |> String.trim in 
+	let space_ind = trimmed_c |> String.index in 
+	((0, 0),(0, 0))
+
 let rec get_user_input board = 
     let _ = Display.TextDisplay.display_board board in 
-    failwith "Unimplemented"
+    let user_input = read_line () in 
+    let (pos_one, pos_two) = parse_user_input user_input in 
+    board
 
 let rec instantiate_user_board board = function
 | [] -> board
@@ -39,7 +46,7 @@ let get_list_all_pieces () =
     lieut_list @ serg_list @ mine_list @ sco_list @ spy_list @ flag_lst
 
 let setup_game () = 
-	let new_board = BoardMap.empty in
+	let new_board = empty_board () in
     let full_pieces = get_list_all_pieces () in
     let user_board = instantiate_user_board new_board full_pieces in
     user_board

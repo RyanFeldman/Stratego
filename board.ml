@@ -14,18 +14,25 @@ module IntTuple : (Tuple with type t = (int * int)) = struct
 end
 
 module type Board = sig
-    module BoardMap : Map.S with type key = IntTuple.t
     type position = int * int
     type piece = {
         rank : int;
         player : bool;
         hasBeenSeen: bool
     }
-    type t = (piece option) BoardMap.t
+    type t
+    val empty_board : unit -> t
+    val search : position -> t -> (piece option)
+    val is_member : position -> t -> bool
+    val add_mapping : position -> (piece option) -> t -> t
+    val board_fold : (position -> piece option -> 'a -> 'a) -> t -> 'a -> 'a
+    val board_iter : (position -> piece option -> unit) -> t -> unit
     val get_possible_moves : t -> bool -> piece -> position -> position list
     val is_valid_move : t -> bool -> position -> position -> (bool * string)
     val make_move : t -> position -> position -> (t * piece list)
 end
+
+module BoardMap = Map.Make(IntTuple)
 
 module GameBoard : Board = struct
 
@@ -39,11 +46,21 @@ module GameBoard : Board = struct
         hasBeenSeen : bool
     }
 
-    module BoardMap = Map.Make(IntTuple)
-
 	type t = (piece option) BoardMap.t
 
     type dir = N | E | S | W
+
+    let empty_board () = BoardMap.empty
+
+    let search pos board = BoardMap.find pos board
+
+    let is_member pos board = BoardMap.mem pos board
+
+    let add_mapping pos piece board = BoardMap.add pos piece board 
+
+    let board_fold f board acc = BoardMap.fold f board acc
+
+    let board_iter f board = BoardMap.iter f board
 
     let rec step board b pos dir = 
         match dir with 
