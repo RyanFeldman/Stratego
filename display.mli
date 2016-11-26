@@ -1,9 +1,9 @@
-(* [board] is the type of a Board *)
-type board
-
 (* [Display] handles the task of showing the player the board and interacting
  * with the user visually through the user interface *)
 module type Display = sig
+
+	(* [board] is the type of a Board *)
+	type board
 
 	(**
 	 * [print_message] takes in a string message to the user and displays it
