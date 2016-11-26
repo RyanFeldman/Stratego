@@ -4,7 +4,7 @@ module type AI = sig
   type board = Board.GameBoard.t
   val setup_board : board -> board
   val score_board : board -> int
-  val get_valid_boards : board -> board list
+  val get_valid_boards : board -> bool -> board list
   val choose_best_board : board list -> board
 end
 
@@ -12,7 +12,7 @@ module GameAI : AI = struct
 
   type board = t
 
-  let ai_move board move =
+  let ai_move board pos1 pos2 =
     failwith "unimplemented"
 
 
@@ -93,6 +93,7 @@ module GameAI : AI = struct
         if piece.player = true then true else false
     with
     |_ -> false
+
   (* [has_move piece] returns true iff there is 1 or more valid move that the
    * piece at position [pos] can make on [board].
    *)
@@ -122,27 +123,32 @@ module GameAI : AI = struct
     let lst = ref [] in
     let () = board_iter
       (fun k v -> if (has_move board k) then (lst := k::(!lst)) else ()) board in
-    lst
+    !lst
 
-  (*[get_moves_piece board p] is a list of positions that piece p in position pos
-   * can go to on the given board board
+  (*[get_moves_piece board pos] is an (pos1,pos2) association list that
+   *represents all of the posistions the piece at position pos can move to.  The
+   * starting move is the first in the association list.
    *)
-  let get_moves_piece (board:board) pos =
-    match search pos board with
+  let get_moves_piece board pos  =
+    let moves = (match search pos board with
     | None -> failwith "there's no piece here"
-    | Some p -> Board.GameBoard.get_possible_moves board p.player p pos
-  
+    | Some p -> Board.GameBoard.get_possible_moves board p.player p pos) in
+    List.fold_left (fun a x -> (pos, x)::a) [] moves
+
 (* [get_moveable_from_move board] returns
  *
  *)
 let get_moveable_from_move board =
   failwith "unimplemented"
 
-let get_valid_boards board = failwith "unimplemented"
-(*     let moveable = get_moveable_init board in
-    let moves = List.fold_left (fun x a -> ((get_moves_piece board x) @ a)) moveable [] in
-    if max then List.fold_left (fun a x -> a::(ai_move board x)) [] moves
-    else List.fold_left (fun a x -> a::(GameBoard.make_move x)) [] moves  *)
+let get_valid_boards board player =
+    let moveable = get_moveable_init board in
+    let moves = List.fold_left
+        (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
+    if player then List.fold_left
+        (fun a (pos1,pos2) -> (ai_move board pos1 pos2)::a) [] moves
+    else List.fold_left
+        (fun a (pos1,pos2) -> (fst (make_move board pos1 pos2))::a) [] moves
 
 (* [minimax board max depth] : (int, board) is the resulting (score, board) from
  * the minimax algorithm
@@ -152,13 +158,13 @@ let get_valid_boards board = failwith "unimplemented"
       depth : int
  * Likely will need to be changed to keep track of move as well
  *)
-  let rec minimax board max depth =
+ let rec minimax board max depth =
       if depth = 0 then (get_score_init board, board) else
       let fmax (score, _) b = let (s, b') = minimax b false (depth-1) in
           if score > s then (score, board) else (s,board) in
       let fmin (score, _) b = let (s, _) = minimax b true (depth-1) in
           if score < s then (score, board) else (s,board) in
-      match get_valid_boards board with
+      match get_valid_boards board max with
       | [] -> failwith "there are no possible boards"
       | h::t when max ->
           List.fold_left (fun a x -> fmax a x) (minimax h false (depth-1)) t
