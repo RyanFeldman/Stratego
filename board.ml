@@ -14,22 +14,28 @@ module IntTuple : (Tuple with type t = (int * int)) = struct
 end
 
 module type Board = sig
-    type t
+    include Map.S
     type position = int * int
     type piece = {
         rank : int;
         player : bool;
         hasBeenSeen: bool
     }
-    module BoardMap : Map.S with type key = IntTuple.t
-    val instantiate_board : unit -> t
-    val is_valid_move : t -> position -> position -> (bool * string)
-    val make_move : t -> position -> position -> (t * piece list)
+    (*module BoardMap : Map.S with type key = IntTuple.t*)
+    val instantiate_board : unit -> 'a t
+    val is_valid_move : 'a t -> position -> position -> (bool * string)
+    val make_move : 'a t -> position -> position -> ('a t * piece list)
 end
+
+
+module BoardMap : Map.S = Map.Make(IntTuple)
 
 module GameBoard : Board = struct
 
+    include BoardMap
+
     type position = int * int
+
 
     (* piece.player = true -> AI
      * piece.player = false -> User *)
@@ -39,9 +45,9 @@ module GameBoard : Board = struct
         hasBeenSeen : bool
     }
 
-    module BoardMap = Map.Make(IntTuple) with type t = int*int
+    (*module BoardMap = Map.Make(IntTuple)*)
 
-	type t = (piece option) BoardMap.t
+	(*type t = (piece option) BoardMap.t*)
 
     let rec get_user_input board = failwith "Unimplemented"
 

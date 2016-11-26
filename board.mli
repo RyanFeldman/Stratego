@@ -49,7 +49,7 @@ module type Board = sig
 	 * This is the board upon instantiation.
 	 *)
 
-    module BoardMap : Map.S with type key = IntTuple.t
+    (*module BoardMap : Map.S with type key = IntTuple.t*)
 
     (* Type representing a location on the stratego board *)
     type position = (int * int)
@@ -61,14 +61,12 @@ module type Board = sig
         hasBeenSeen: bool
     }
 
-	(* The type of the board *)
-	type t
-
+	include Map.S
 	(**
 	 * [instantiate_board] is an instance of a board to be used for a
 	 * stratego game
 	 *)
-	val instantiate_board : unit -> t
+	val instantiate_board : unit -> b
 
 	(**
 	 * [is_valid_move] takes in a board and two positions and is true iff the
@@ -77,7 +75,7 @@ module type Board = sig
 	 * [is_valid_move] is false. Returns an error string if [is_valid_move] is
      * false with the reason why to display to the user. Empty if true.
 	 *)
-	val is_valid_move : t -> position -> position -> (bool * string)
+	val is_valid_move : b -> position -> position -> (bool * string)
 
 	(**
 	 * [make_move] takes in a board and a valid movement command from the player,
@@ -86,7 +84,7 @@ module type Board = sig
 	 * 		- the movement from position1 -> position2 is valid
 	 * 		- position1 contains a piece that can execute the movement
 	 *)
-	val make_move : t -> position -> position -> (t * piece list)
+	val make_move : b -> position -> position -> (b * piece list)
 
 end
 

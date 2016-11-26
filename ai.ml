@@ -9,6 +9,9 @@ module type AI = sig
 end
 
 module GameAI : AI = struct
+
+  type board = b
+
   let setup_board board =
     failwith "unimplemented"
 
@@ -77,7 +80,7 @@ let is_enemy piece =
 
 let can_move_to board (x,y) =
   try
-      match BoardMap.find (x,y) board with
+      match find (x,y) board with
       |None -> true
       |Some piece ->
         if piece.player = true then true else false
@@ -110,7 +113,7 @@ let has_move board pos =
  *)
 let get_moveable_init board =
   let lst = ref [] in
-  let () = BoardMap.iter
+  let () = iter
     (fun k v -> if (has_move board k) then (lst := k::(!lst)) else ()) board in
   lst
 
@@ -124,5 +127,8 @@ let get_moves_piece board piece =
  *
  *)
 let get_moveable_from_move board =
+  failwith "unimplemented"
+
+let get_valid_boards board =
   failwith "unimplemented"
 end
