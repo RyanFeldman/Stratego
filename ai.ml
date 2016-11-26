@@ -12,8 +12,9 @@ module GameAI : AI = struct
 
   type board = Board.GameBoard.t
 
-  let get_valid_boards board =
+  let ai_move board move =
     failwith "unimplemented"
+
 
   let setup_board board =
     failwith "unimplemented"
@@ -23,6 +24,9 @@ module GameAI : AI = struct
  *)
   let score_board board =
     failwith "unimplemented"
+
+
+
 
 (* [choose_best_board] takes in a list of boards available to the AI
  * and picks the one with the highest score (relative to the AI)
@@ -125,15 +129,46 @@ let get_moveable_init board =
     (fun k v -> if (has_move board k) then (lst := k::(!lst)) else ()) board in
   lst
 
-(*[get_moves_piece board p]
- *
+(*[get_moves_piece board p] is a list of positions that piece p in position pos
+ * can go to on the given board board
  *)
-let get_moves_piece board pos p =
-  (* 1) this is the same thing as get_possible_moves, we just also need to pass in pos*)
+let get_moves_piece (board:board) pos =
+ (* match BoardMap.find pos board with
+  | None -> failwith "there's no piece here"
+  | Some p -> Board.GameBoard.get_possible_moves board p.player p pos
+  *)
   failwith "unimplemented"
 (* [get_moveable_from_move board] returns
  *
  *)
 let get_moveable_from_move board =
   failwith "unimplemented"
+
+let get_valid_boards board =
+    failwith "unimplemented"
+    (*let moveable = get_moveable_init board in
+    let moves = List.fold_left (fun a x -> (get_moves_piece board x)@a) [] moveable in
+    if max then List.fold_left (fun a x -> a::(ai_move board x)) [] moves
+    else List.fold_left (fun a x -> a::(GameBoard.make_move x)) [] moves *)
+
+(* [minimax board max depth] : (int, board) is the resulting (score, board) from
+ * the minimax algorithm
+ * Requires:
+ *    max : bool,true when you want the maximum score
+      board: board
+      depth : int
+ * Likely will need to be changed to keep track of move as well
+ *)
+  let rec minimax board max depth =
+      if depth = 0 then (get_score_init board, board) else
+      let fmax (score, _) b = let (s, b') = minimax b false (depth-1) in
+          if score > s then (score, board) else (s,board) in
+      let fmin (score, _) b = let (s, _) = minimax b true (depth-1) in
+          if score < s then (score, board) else (s,board) in
+      match get_valid_boards board with
+      | [] -> failwith "there are no possible boards"
+      | h::t when max ->
+          List.fold_left (fun a x -> fmax a x) (minimax h false (depth-1)) t
+      | h::t -> List.fold_left (fun a x -> fmin a x)(minimax h true (depth-1)) t
+
 end
