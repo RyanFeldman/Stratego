@@ -12,22 +12,10 @@ module type AI = sig
 	val setup_board : board -> board
 
 	(**
-	 * [score_board] takes in a board and assigns it a score based on
-	 * how desirable it is for the AI
-	 *)
-	val score_board : board -> int
-
-	(**
-	 * [get_valid_boards board player] is all the possible boards that are valid
-	 * from the current board [board] when [player] moves.
-	 *)
-	val get_valid_boards : board -> bool -> board list
-
-	(**
 	 * [choose_best_board] takes in a list of boards available to the AI
 	 * and returns the one with the highest score (relative to the AI).
 	 *)
-	val choose_best_board : board list -> board
+	val choose_best_board : board -> board
 
 end
 
