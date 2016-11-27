@@ -3,7 +3,7 @@
 module type AI = sig
 
 	(* [board] is the type of a Board *)
-	type board
+	type board = Board.GameBoard.t
 
 	(**
 	 * [setup_board] takes in a board and returns the same board with the AI's
@@ -18,11 +18,10 @@ module type AI = sig
 	val score_board : board -> int
 
 	(**
-	 * [get_valid_boards] takes in a board and returns a list
-	 * of possible boards that are valid from the current board. Used
-	 * only by the AI
+	 * [get_valid_boards board player] is all the possible boards that are valid
+	 * from the current board [board] when [player] moves.
 	 *)
-	val get_valid_boards : board -> board list
+	val get_valid_boards : board -> bool -> board list
 
 	(**
 	 * [choose_best_board] takes in a list of boards available to the AI
@@ -31,3 +30,5 @@ module type AI = sig
 	val choose_best_board : board list -> board
 
 end
+
+module GameAI : AI
