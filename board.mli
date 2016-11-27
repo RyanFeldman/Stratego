@@ -92,6 +92,12 @@ module type Board = sig
     val board_iter : (position -> piece option -> unit) -> t -> unit
 
     (**
+     * [string_from_piece] is the corresponding name for the given piece
+     * according to its rank.
+     *)
+    val string_from_piece : piece -> string
+
+    (**
      * [get_possible_moves] takes in a board, a bool, a piece, and a position
      * and gives back a list of possible positions that piece can move.
      * Requires:

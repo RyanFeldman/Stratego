@@ -12,23 +12,6 @@ let rec fill_rows board acc =
         let board_five = add_mapping (5, acc) None board_four in 
         fill_rows board_five (acc+1)
 
-
-let string_from_piece piece = 
-    match piece.rank with 
-    | 0 -> "Bomb"
-    | 1 -> "Spy"
-    | 2 -> "Scout"
-    | 3 -> "Miner"
-    | 4 -> "Sergeant"
-    | 5 -> "Lieutenant"
-    | 6 -> "Captain"
-    | 7 -> "Major"
-    | 8 -> "Colonel"
-    | 9 -> "General"
-    | 10 -> "Marshal"
-    | 11 -> "Flag"
-    | _ -> failwith "Not a valid piece"
-
 let parse_user_input (c:string) : position = 
     let trimmed_c = c |> String.trim in 
     let x_one = (String.get trimmed_c 0) |> int_of_char in 

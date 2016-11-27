@@ -27,6 +27,7 @@ module type Board = sig
     val add_mapping : position -> (piece option) -> t -> t
     val board_fold : (position -> piece option -> 'a -> 'a) -> t -> 'a -> 'a
     val board_iter : (position -> piece option -> unit) -> t -> unit
+    val string_from_piece : piece -> string
     val get_possible_moves : t -> bool -> piece -> position -> position list
     val is_valid_move : t -> bool -> position -> position -> (bool * string)
     val make_move : t -> position -> position -> (t * piece list)
@@ -61,6 +62,22 @@ module GameBoard : Board = struct
     let board_fold f board acc = BoardMap.fold f board acc
 
     let board_iter f board = BoardMap.iter f board
+
+    let string_from_piece piece = 
+    match piece.rank with 
+    | 0 -> "Bomb"
+    | 1 -> "Spy"
+    | 2 -> "Scout"
+    | 3 -> "Miner"
+    | 4 -> "Sergeant"
+    | 5 -> "Lieutenant"
+    | 6 -> "Captain"
+    | 7 -> "Major"
+    | 8 -> "Colonel"
+    | 9 -> "General"
+    | 10 -> "Marshal"
+    | 11 -> "Flag"
+    | _ -> failwith "Not a valid piece"
 
     let rec step board b pos dir = 
         match dir with 
@@ -146,8 +163,78 @@ module GameBoard : Board = struct
                 else
                     (true, "")
 
+    let remove_optional piece = 
+        match piece with 
+        | None -> failwith "None"
+        | Some p -> p
+
+    let execute_conflict board p_two pos_one pos_two = 
+        let p_one = remove_optional (search pos_one board) in 
+        match (p_one.rank - p_two.rank) with 
+        | p_one_worse when p_one_worse < 0 -> 
+            let temp_board = add_mapping pos_one None board in 
+            let p = remove_optional (search pos_two temp_board) in 
+            let seen_p = {p with hasBeenSeen=true} in
+            let new_board = add_mapping pos_two (Some seen_p) temp_board in 
+            (new_board, [p_one])
+        | p_one_equal when p_one_equal = 0 -> 
+            let temp_board = add_mapping pos_one None board in 
+            let new_board = add_mapping pos_two None temp_board in 
+            (new_board, [p_one; p_two])
+        | p_one_better when p_one_better > 0 ->
+            let temp_board = add_mapping pos_one None board in 
+            let seen_piece = {p_one with hasBeenSeen=true} in 
+            let new_board = add_mapping pos_two (Some seen_piece) temp_board in 
+            (new_board, [p_two])
+        | _ -> failwith "invalid math"
+
+    let string_from_tuple t = 
+        let (x, y) = t in 
+        "("^(string_of_int x)^", "^(string_of_int y)^")"
+
+    let get_msg pos_one pos_two tup = 
+        match (snd tup) with  
+        | [] -> ""
+        | h::[] -> 
+            if h.player then 
+                let p_win = remove_optional (search pos_two (fst tup)) in 
+                "User's "^(string_from_piece p_win)^" defeated the AI's"
+                ^(string_from_piece h)^"! User's piece is at "
+                ^(string_from_tuple pos_two)^" and AI's piece has been taken"
+                ^" from the baord."
+            else
+                let p_win = remove_optional (search pos_two (fst tup)) in 
+                "AI's "^(string_from_piece p_win)^" defeated the User's"
+                ^(string_from_piece h)^"! AI's piece is at "
+                ^(string_from_tuple pos_two)^" and User's piece has been taken"
+                ^" from the board."
+        | h1::h2::[] -> 
+            "Both the user and the AI's "^(string_from_piece h1)^" have been"
+            ^" taken from the board."
+        | _ -> failwith "Invalid captured pieces list given"
 
     let make_move (board:t) (pos_one:position) (pos_two:position) 
             : t * piece list =
-        failwith "Unimplemented"
+        let changed_tuple = 
+            (match (search pos_two board) with 
+            | None -> 
+                let temp_board = 
+                            add_mapping pos_two (search pos_one board) board in 
+                ((add_mapping pos_one None temp_board), [])
+            | Some piece -> execute_conflict board piece pos_one pos_two) in 
+        let msg = get_msg pos_one pos_two changed_tuple in 
+        let p_one = remove_optional (search pos_two (fst changed_tuple)) in
+        let _ = print_endline ("Moved "
+                                ^(string_from_piece p_one)^"from "
+                                ^(string_from_tuple pos_one)
+                                ^" to "^(string_from_tuple pos_two)^"with no "
+                                ^"conflicts!") in 
+        let _ = print_endline msg in
+        changed_tuple
+
+
+
+
+
+
 end
