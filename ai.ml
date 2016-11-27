@@ -3,9 +3,7 @@ open Board.GameBoard
 module type AI = sig
   type board = Board.GameBoard.t
   val setup_board : board -> board
-  val score_board : board -> int
-  val get_valid_boards : board -> bool -> board list
-  val choose_best_board : board list -> board
+  val choose_best_board : board -> board
 end
 
 module GameAI : AI = struct
@@ -22,7 +20,8 @@ module GameAI : AI = struct
   * updated the one given *)
   let replace_pos board lst =
     let newb = ref (empty_board ()) in
-    let f k v = newb := add_mapping k (try List.assoc k lst with | _ -> v) !newb in
+    let f k v =
+        newb := (add_mapping k (try List.assoc k lst with _ -> v) !newb) in
     let () = board_iter (fun k v -> f k v) board in
     !newb
 
@@ -39,7 +38,7 @@ module GameAI : AI = struct
     | 1, 10 -> Some p1
     | p1r, p2r when p2.hasBeenSeen ->
           if p1r > p2r then Some p1 else if p1r < p2r then Some p2 else None
-    | p1r, p2r when p1r > p2r - 2 -> Some p1
+    | p1r, p2r when p1r >= p2r - 2 -> Some p1
     | _,_ -> Some p2
 
 
@@ -48,6 +47,7 @@ module GameAI : AI = struct
   * the winner of ai_battle
   *)
   let ai_move board pos1 pos2 =
+    if pos1 = pos2 then failwith "can't move to same position" else
     match search pos1 board, search pos2 board with
     | None, _ -> failwith "there's no piece here to move"
     | p1 , None -> replace_pos board [(pos1, None);(pos2, p1)]
@@ -113,7 +113,7 @@ module GameAI : AI = struct
     let score = ref orig_score in
     let (new_board, captured) = make_move board pos1 pos2 in
     let () = List.iter
-              (fun x-> if x.player = true then score := !score + x.rank else
+              (fun x-> if x.player then score := !score + x.rank else
               score := !score - x.rank) captured in
     score
 
@@ -128,8 +128,7 @@ module GameAI : AI = struct
     try
       match search (x,y) board with
       |None -> true
-      |Some piece ->
-        if piece.player = true then true else false
+      |Some piece -> piece.player
     with
     |_ -> false
 
@@ -152,16 +151,17 @@ module GameAI : AI = struct
     let can_right = (match (x+1,y) with
                   |(x',y') when x > 10 -> false
                   |(x',y') -> can_move_to board (x',y')) in
-    if (can_up || can_down || can_left || can_right) then true else false
+    (can_up || can_down || can_left || can_right)
 
 
   (* [get_moveable_init board] returns the list of positions in [board] that
    * contain a piece that can make 1 or more valid moves.
    *)
-  let get_moveable_init board =
+  let get_moveable_init board player =
     let lst = ref [] in
+    let f k = function | Some p when p.player = player -> true | _ -> false in
     let () = board_iter
-      (fun k v -> if (has_move board k) then (lst := k::(!lst)) else ()) board in
+      (fun k v -> if f k v then (lst := k::(!lst)) else ()) board in
     !lst
 
   (*[get_moves_piece board pos] is an (pos1,pos2) association list that
@@ -180,11 +180,12 @@ module GameAI : AI = struct
 let get_moveable_from_move board =
   failwith "unimplemented"
 
-(*
-*
-*)
+(**
+   * [get_valid_boards board player] is all the possible boards that are valid
+   * from the current board [board] when [player] moves.
+   *)
 let get_valid_boards board player =
-    let moveable = get_moveable_init board in
+    let moveable = get_moveable_init board player in
     let moves = List.fold_left
         (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
     if player then List.fold_left
@@ -203,10 +204,10 @@ let get_valid_boards board player =
  *)
  let rec minimax board max depth =
       if depth = 0 then (get_score_init board, board) else
-      let fmax (score, _) b = let (s, b') = minimax b false (depth-1) in
-          if score > s then (score, board) else (s,board) in
+      let fmax (score, _) b = let (s, _) = minimax b false (depth-1) in
+          if score > s then (score, b) else (s,b) in
       let fmin (score, _) b = let (s, _) = minimax b true (depth-1) in
-          if score < s then (score, board) else (s,board) in
+          if score < s then (score, b) else (s,b) in
       match get_valid_boards board max with
       | [] -> failwith "there are no possible boards"
       | h::t when max ->
