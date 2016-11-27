@@ -59,7 +59,7 @@ module type Board = sig
 
     (**
      * [search pos board] is the piece option mapped to [pos] on [board].
-     * Raises: 
+     * Raises:
      *  - Not_found is the mapping does not exist.
      *)
     val search : position -> t -> (piece option)
@@ -79,14 +79,14 @@ module type Board = sig
 
     (**
      * [board_fold f board acc] computes (f kN dN ... (f k1 d1 a)... ) where
-     * k1 ... kN are the positions of all the bindings in [board] in increasing 
+     * k1 ... kN are the positions of all the bindings in [board] in increasing
      * order, and d1 ... dN are the associated piece options
      *)
     val board_fold : (position -> piece option -> 'a -> 'a) -> t -> 'a -> 'a
 
     (**
-     * [board_iter f board] applies [f] to all bindings in [board]. f 
-     * receives the position as the first argument and the piece option as  
+     * [board_iter f board] applies [f] to all bindings in [board]. f
+     * receives the position as the first argument and the piece option as
      * the second argument.
      *)
     val board_iter : (position -> piece option -> unit) -> t -> unit
@@ -101,7 +101,7 @@ module type Board = sig
      * [get_possible_moves] takes in a board, a bool, a piece, and a position
      * and gives back a list of possible positions that piece can move.
      * Requires:
-     *  - t : board 
+     *  - t : board
      *  - bool : true if AI, false otherwise
      *  - piece : piece record that is on the board
      *  - position : position of piece on the board
@@ -114,7 +114,7 @@ module type Board = sig
      * by the rules of stratego. If position1 does not contain a piece,
      * [is_valid_move] is false. Returns an error string if [is_valid_move] is
      * false with the reason why to display to the user. Empty if true.
-     * Requires: 
+     * Requires:
      *  - t : board object
      *  - bool : true if AI, false otherwise
      *  - pos1 : piece initial position
@@ -130,6 +130,12 @@ module type Board = sig
      *  - position1 contains a piece that can execute the movement
      *)
     val make_move : t -> position -> position -> (t * piece list)
+
+    (**
+     * [equal_board b1 b2] is true when b1 are the same size and have the same
+     * positions and pieces binded to positions and false otherwise
+     *)
+    val equal_board: t -> t -> bool
 
 end
 
