@@ -12,8 +12,47 @@ module GameAI : AI = struct
 
   type board = t
 
+
+  (* [replace_pos board lst] is a new board with replacements made according
+   * to the (pos,piece option) association list [lst], where the first of every
+   * tuple is the pos that needs to be overwritten and the second is the piece
+   * that goes in that position
+    *)
+  (*I made this beacuse I wasn't sure if add_mapping created a new board or just
+  * updated the one given *)
+  let replace_pos board lst =
+    let newb = ref (empty_board ()) in
+    let f k v = newb := add_mapping k (try List.assoc k lst with | _ -> v) !newb in
+    let () = board_iter (fun k v -> f k v) board in
+    !newb
+
+  (* [ai_battle p1 p2] is the piece option that ai assumes will win if p1 and p2
+   * battle ai assumes p1, its own piece, will win if p1 would win in normal gameplay
+   * or if p1 is within 2 points of the rank of p2
+   *)
+  let ai_battle p1 p2 =
+    match p1.rank, p2.rank with
+    | _, _ when p2.player -> failwith "ai shouldn't battle it's own piece"
+    | 3,0 -> Some p1
+    | _ , 0 -> Some p2
+    | _ , 11 -> Some p1
+    | 1, 10 -> Some p1
+    | p1r, p2r when p2.hasBeenSeen ->
+          if p1r > p2r then Some p1 else if p1r < p2r then Some p2 else None
+    | p1r, p2r when p1r > p2r - 2 -> Some p1
+    | _,_ -> Some p2
+
+
+  (* [ai_move board pos1 pos 2] is a new board with the piece in pos1 moved to
+  * pos2.  If there is a piece in pos2, the piece in pos2 of the new board is
+  * the winner of ai_battle
+  *)
   let ai_move board pos1 pos2 =
-    failwith "unimplemented"
+    match search pos1 board, search pos2 board with
+    | None, _ -> failwith "there's no piece here to move"
+    | p1 , None -> replace_pos board [(pos1, None);(pos2, p1)]
+    | Some p1,Some p2 ->replace_pos board [(pos1, None);(pos2, ai_battle p1 p2)]
+
 
 
   let setup_board board =
@@ -126,7 +165,7 @@ module GameAI : AI = struct
     !lst
 
   (*[get_moves_piece board pos] is an (pos1,pos2) association list that
-   *represents all of the posistions the piece at position pos can move to.  The
+   *represents all of the posistions the piece at [pos] can move to. The
    * starting move is the first in the association list.
    *)
   let get_moves_piece board pos  =
@@ -135,12 +174,15 @@ module GameAI : AI = struct
     | Some p -> Board.GameBoard.get_possible_moves board p.player p pos) in
     List.fold_left (fun a x -> (pos, x)::a) [] moves
 
-(* [get_moveable_from_move board] returns
+(* [get_moveable_from_move board]
  *
  *)
 let get_moveable_from_move board =
   failwith "unimplemented"
 
+(*
+*
+*)
 let get_valid_boards board player =
     let moveable = get_moveable_init board in
     let moves = List.fold_left
@@ -150,13 +192,14 @@ let get_valid_boards board player =
     else List.fold_left
         (fun a (pos1,pos2) -> (fst (make_move board pos1 pos2))::a) [] moves
 
-(* [minimax board max depth] : (int, board) is the resulting (score, board) from
+(* [minimax board max depth] :(int, board) is the resulting (score, board) from
  * the minimax algorithm
  * Requires:
  *    max : bool,true when you want the maximum score
       board: board
       depth : int
- * Likely will need to be changed to keep track of move as well
+ * COMPLETE: minimax algorithm
+ * TODO: keep track of moves, figure out way to break ties?
  *)
  let rec minimax board max depth =
       if depth = 0 then (get_score_init board, board) else
