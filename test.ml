@@ -1,5 +1,10 @@
 open OUnit2
 open Board.GameBoard
+open Game
+open Ai
+open GameAI
+open Display
+open TextDisplay
 
 let bomb = {rank=0; player=false; hasBeenSeen=false}
 
@@ -7,32 +12,39 @@ let corner_board =
     add_mapping (0,0) (Some {rank=5; player=false; hasBeenSeen = false})
         (empty_board ())
 
-let flag_top_row = 
+let flag_top_row =
     add_mapping (3, 5) (Some {bomb with rank=11}) (empty_board ())
 
-let cap_first_row = 
+let cap_first_row =
     add_mapping (0, 3) (Some {bomb with rank=6}) (empty_board ())
-let cap_first_row_none = 
+let cap_first_row_none =
     add_mapping (0, 4) (None) cap_first_row
-let cap_first_row_ally = 
+let cap_first_row_ally =
     add_mapping (0, 4) (Some {bomb with rank=6}) cap_first_row_none
-let cap_first_row_enemy = 
+let cap_first_row_enemy =
     add_mapping (0, 4) (Some {bomb with player=true}) cap_first_row_none
-let cap_first_row_far =     
+let cap_first_row_far =
     add_mapping (0, 5) (None) cap_first_row_none
 
-let scout_first_row = 
+let scout_first_row =
     add_mapping (9, 3) (Some {bomb with rank=2}) (empty_board ())
-let scout_first_row_none = 
+let scout_first_row_none =
     add_mapping (9, 4) (None) scout_first_row
-let scout_first_row_nonetwo = 
+let scout_first_row_nonetwo =
     add_mapping (9, 5) None scout_first_row_none
-let scout_first_row_topp = 
+let scout_first_row_topp =
     add_mapping (9, 6) (Some {bomb with rank=4}) scout_first_row_nonetwo
-let scout_first_row_leftp = 
+let scout_first_row_leftp =
     add_mapping (8, 3) (Some {bomb with rank=4}) scout_first_row_topp
-let scout_first_row_botp = 
+let scout_first_row_botp =
     add_mapping (9, 2) (Some {bomb with rank=4}) scout_first_row_leftp
+
+let rec none_whole_board board pos=
+    match pos with
+    |(9,9) -> board
+    |(10,y) -> none_whole_board board (0, y+1)
+    |(x,y) -> let brd = add_mapping (x,y) None board
+                in none_whole_board brd (x+1,y)
 
 let tests = "ai tests" >::: [
 
@@ -42,7 +54,7 @@ let tests = "ai tests" >::: [
         (Some {rank=5; player=false; hasBeenSeen = false})
         (search (0,0) corner_board));
 
-    "is_valid_move_flag" >:: (fun _ -> assert_equal 
+    "is_valid_move_flag" >:: (fun _ -> assert_equal
         (false, "That piece can't move there!")
         (is_valid_move flag_top_row false (3, 5) (3, 6)));
 
@@ -78,10 +90,11 @@ let tests = "ai tests" >::: [
         (true, "")
         (is_valid_move scout_first_row_botp false (9, 3) (9, 5)));
 
+    "random board generation" >:: (fun _ -> assert_equal ()
+        (display_board (setup_board (none_whole_board (empty_board ()) (0,0)))));
 
 
 
-    
 
     ]
 

@@ -1,4 +1,5 @@
 open Board.GameBoard
+open Display.TextDisplay
 
 module type AI = sig
   type board = Board.GameBoard.t
@@ -14,9 +15,9 @@ module GameAI : AI = struct
   * [get_list_all_pieces] returns a piece list containing every piece that
   * the ai starts with.
   *)
-  let get_ai_pieces () =
-    let pieces = get_list_all_pieces () in
-    List.map (fun p -> {p with player=false}) pieces
+let get_ai_pieces () =
+  let pieces = get_list_all_pieces () in
+  List.map (fun p -> {p with player=false}) pieces
 
 
 let next_pos = function
