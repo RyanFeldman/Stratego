@@ -33,11 +33,11 @@ module TextDisplay : Display = struct
   let display_board (b:board) =
     print_endline "     _________________________________________________";
     for row = 9 downto 0 do
-
       print_endline "    |    |    |    |    |    |    |    |    |    |    | ";
-      print_string  "    | ";
+      print_string  (" "^(string_of_int row)^"  | ");
       (print_row b row);
       print_endline "    |____|____|____|____|____|____|____|____|____|____|";
-    done
+    done;
+    print_endline "      0     1    2    3    4    5    6    7    8   9"
 
 end
