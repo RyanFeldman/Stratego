@@ -41,8 +41,8 @@ module GameBoard : Board = struct
 
     type position = int * int
 
-    (* piece.player = true -> AI
-     * piece.player = false -> User *)
+    (* piece.player = true -> User
+     * piece.player = false -> AI *)
     type piece = {
         rank : int;
         player : bool;
@@ -223,16 +223,17 @@ module GameBoard : Board = struct
         | h::[] ->
             if h.player then
                 let p_win = remove_optional (search pos_two (fst tup)) in
-                "User's "^(string_from_piece p_win)^" defeated the AI's"
-                ^(string_from_piece h)^"! User's piece is at "
-                ^(string_from_tuple pos_two)^" and AI's piece has been taken"
-                ^" from the baord."
-            else
-                let p_win = remove_optional (search pos_two (fst tup)) in
                 "AI's "^(string_from_piece p_win)^" defeated the User's"
                 ^(string_from_piece h)^"! AI's piece is at "
                 ^(string_from_tuple pos_two)^" and User's piece has been taken"
                 ^" from the board."
+            else
+                let p_win = remove_optional (search pos_two (fst tup)) in
+                "User's "^(string_from_piece p_win)^" defeated the AI's"
+                ^(string_from_piece h)^"! User's piece is at "
+                ^(string_from_tuple pos_two)^" and AI's piece has been taken"
+                ^" from the board."
+                
         | h1::h2::[] ->
             "Both the user and the AI's "^(string_from_piece h1)^" have been"
             ^" taken from the board."
@@ -259,7 +260,7 @@ module GameBoard : Board = struct
         changed_tuple
 
     let get_list_all_pieces () =
-        let p       = {rank=0; player=false; hasBeenSeen=false} in
+        let p       = {rank=0; player=true; hasBeenSeen=false} in
         let col     = {p with rank=8} in
         let major   = {p with rank=7} in
         let cap     = {p with rank=6} in

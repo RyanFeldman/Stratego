@@ -105,12 +105,6 @@ let rec random_fill board filled remaining pos =
     | Some p1,Some p2 ->replace_pos board [(pos1, None);(pos2, ai_battle p1 p2)]
 
 
-  (* [choose_best_board] takes in a list of boards available to the AI
-   * and picks the one with the highest score (relative to the AI)
-   *)
-  let choose_best_board board_lst =
-    failwith "unimplemented"
-
   (*[get_value rank] returns the value of a given rank.
    *)
   let get_value = function
@@ -158,41 +152,46 @@ let rec random_fill board filled remaining pos =
               score := !score - x.rank) captured in
     score
 
-  (* [is_enemy piece] returns true iff [piece] belongs to the player, not the AI
-   *
-   * Requires: [piece] : piece
+  (* [can_move_to board (x,y) player)] returns true if a piece belonging to
+   * [player] can move to coordinate [(x,y)] on [board]. That is, either there
+   * is an enemy piece at [(x,y)] or no piece is at (x,y)
    *)
-  let is_enemy piece =
-    if piece.player = false then true else false
-
-  let can_move_to board (x,y) =
+  let can_move_to board (x,y) player =
     try
       match search (x,y) board with
       |None -> true
-      |Some piece -> piece.player
+      |Some piece -> player <> piece.player
     with
     |_ -> false
 
-  (* [has_move piece] returns true iff there is 1 or more valid move that the
-   * piece at position [pos] can make on [board].
+  (* [has_move piece] returns true if there is 1 or more valid move that the
+   * piece at position [pos] can make on [board when it is the turn of [player].
+   * i.e. [player] = true means it is the player's turn; [player] = false means
+   * it is the AI's turn.
    *)
-  (*Needs to be fixed...this would return true even if a piece is surrounded
-   *by friendly pieces.*)
-  let has_move board pos =
+  let has_move board pos player=
+    let piece = match search pos board with
+               |Some p -> p
+               | _ -> failwith "Should be a piece here" in
+    if (piece.rank = 0 || piece.rank = 11) then
+      let () = print_endline("bomb or flag in has_move") in
+      false
+    else
+    let () = print_endline("no bomb or flag") in
     let (x,y) = pos in
-    let can_up = (match (x,y+1) with
-               |(x',y') when y' > 10 -> false
-               |(x',y') -> can_move_to board (x',y')) in
-    let can_down = (match (x,y-1) with
-                 |(x',y') when y' < 0 -> false
-                 |(x',y') -> can_move_to board (x',y')) in
-    let can_left = (match (x-1,y) with
-                 |(x',y') when x < 0 -> false
-                 |(x',y') -> can_move_to board (x',y')) in
-    let can_right = (match (x+1,y) with
-                  |(x',y') when x > 10 -> false
-                  |(x',y') -> can_move_to board (x',y')) in
-    (can_up || can_down || can_left || can_right)
+      let can_up = (match (x,y+1) with
+                 |(x',y') when y' > 10 -> false
+                 |(x',y') -> can_move_to board (x',y') player) in
+      let can_down = (match (x,y-1) with
+                   |(x',y') when y' < 0 -> false
+                   |(x',y') -> can_move_to board (x',y') player) in
+      let can_left = (match (x-1,y) with
+                   |(x',y') when x < 0 -> false
+                   |(x',y') -> can_move_to board (x',y') player) in
+      let can_right = (match (x+1,y) with
+                    |(x',y') when x > 10 -> false
+                    |(x',y') -> can_move_to board (x',y') player) in
+      (can_up || can_down || can_left || can_right)
 
 
   (* [get_moveable_init board] returns the list of positions in [board] that
@@ -200,10 +199,12 @@ let rec random_fill board filled remaining pos =
    *)
   let get_moveable_init board player =
     let lst = ref [] in
-    let f k = function | Some p when p.player = player -> true | _ -> false in
+    let f k = function
+      | Some p when p.player = player -> has_move board k player
+      | _ -> false in
     let () = board_iter
       (fun k v -> if f k v then (lst := k::(!lst)) else ()) board in
-    !lst
+   !lst
 
   (*[get_moves_piece board pos] is an (pos1,pos2) association list that
    *represents all of the posistions the piece at [pos] can move to. The
@@ -236,43 +237,52 @@ let get_valid_boards board player =
 
 
 
-(* [minimax board max depth] :int*(board*((int*int)*(int*int))) is the resulting
- *(score, (board,move)) from the minimax algorithm. The move is either the move
+(* [minimax board max depth] (:int*(position*position)) is the resulting
+ *(score, move) from the minimax algorithm. The move is either the move
  * that minimaxes the board or ((-1,-1),(-1,-1)) if there are no valid moves
  * Requires:
  *    max : bool,true when you want the maximum score
-      board: board
-      depth : int
- * COMPLETE: minimax algorithm
- * TODO: keep track of moves, figure out way to break ties?
+ *    board: board
+ *    depth : int
+ * TODO: get rid of prints in make_move
  *)
   let rec minimax board max depth =
       let no_move = ((-1,-1), (-1,-1)) in
       let worst_min = (2000, no_move) in
       let worst_max = (-2000, no_move) in
+      let tie = (0, no_move) in
       if depth = 0 then (score board, no_move) else
       match get_valid_boards board max, max with
-      | [], true  -> worst_max
-      | [], false -> worst_min
+      | [], true  -> if get_valid_boards board false =[] then tie else worst_max
+      | [], false -> if get_valid_boards board true = [] then tie else worst_min
       | lst, true -> List.fold_left (fun a x -> get_max a x depth) worst_max lst
       | lst,false -> List.fold_left (fun a x -> get_min a x depth) worst_min lst
 
-  (* [get_max (s1, m1) (b2, m2) depth] is a (score:int,move:(int*int)*(int*int))
-   * tuple that is the move (m1 or m2) that gives the highest score (s1 or
-   * the score from minimax of b2 at depth [depth] -1)
-   * in the case of a tie, the second move is
-   * chosen *)
+
+  (* [get_max (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
+   * tuple that is the move ([m1] or [m2]) that gives the highest score ([s1] or
+   * the score from minimax of [b2] at depth [depth] -1)
+   * in the case of a tie, [m2] is chosen
+    *)
   and get_max (s1, m1) (b2, m2) depth =
-      let (s2, _) = minimax b2 false (depth-1) in
+      let (s2, _) = minimax b2 false (depth - 1) in
       if s1 > s2 then (s1, m1) else (s2, m2)
 
-  (* [get_min (s1, m1) (b2, m2) depth] is a (score:int,move:(int*int)*(int*int))
-   * tuple that is the move (m1 or m2) that gives the lowest score (s1 or
-   * the score from minimax of b2 at depth [depth] -1)
-   * in the case of a tie, the second move is
-   * chosen *)
+  (* [get_min (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
+   * tuple that is the move ([m1] or [m2]) that gives the lowest score ([s1] or
+   * the score from minimax of [b2] at depth [depth] -1)
+   * in the case of a tie, [m2] is chosen
+  *)
   and get_min (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 true (depth-1) in
       if s1 < s2 then (s1,m1) else (s2, m2)
+
+  (* [choose_best_board] takes in a list of boards available to the AI
+   * and picks the one with the highest score (relative to the AI)
+   *)
+  let choose_best_board board =
+    let move = snd (minimax board true 2) in
+    if move = ((-1,-1),  (-1,-1)) then failwith "something went wrong with ai"
+    else fst (make_move move)
 
 end

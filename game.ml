@@ -31,8 +31,8 @@ let parse_user_input (c:string) : position =
 
 let rec get_user_input (board:board) (piece:piece) : board =
     let _ = display_board board in
-    let _ = (print_message ("What would you like to do with your "
-                            ^(string_from_piece piece)^ "?"))  in
+    let _ = (print_message ("Where would you like to place your "
+                            ^(string_from_piece piece)^ "? (ex. 00)"))  in
     let user_input = read_line () in
     let (x, y) = parse_user_input user_input in
     if (y > 4 || y < 0)
@@ -43,7 +43,7 @@ let rec get_user_input (board:board) (piece:piece) : board =
         else
             match (search (x, y) board) with
             | None -> (add_mapping (x, y) (Some piece) board)
-            | Some p -> failwith "Something's there"
+            | Some p -> failwith "A piece is already there!"
 
 let rec instantiate_user_board board = function
 | [] -> board
