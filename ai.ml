@@ -105,12 +105,6 @@ let rec random_fill board filled remaining pos =
     | Some p1,Some p2 ->replace_pos board [(pos1, None);(pos2, ai_battle p1 p2)]
 
 
-  (* [choose_best_board] takes in a list of boards available to the AI
-   * and picks the one with the highest score (relative to the AI)
-   *)
-  let choose_best_board board_lst =
-    failwith "unimplemented"
-
   (*[get_value rank] returns the value of a given rank.
    *)
   let get_value = function
@@ -246,16 +240,17 @@ let get_valid_boards board player =
  * TODO: get rid of prints in make_move
  *)
   let rec minimax board max depth =
-      let () = if depth = 0 then print_endline "0 depth" else () in
       let no_move = ((-1,-1), (-1,-1)) in
       let worst_min = (2000, no_move) in
       let worst_max = (-2000, no_move) in
+      let tie = (0, no_move) in
       if depth = 0 then (score board, no_move) else
       match get_valid_boards board max, max with
-      | [], true  -> worst_max
-      | [], false -> worst_min
+      | [], true  -> if get_valid_boards board false =[] then tie else worst_max
+      | [], false -> if get_valid_boards board true = [] then tie else worst_min
       | lst, true -> List.fold_left (fun a x -> get_max a x depth) worst_max lst
       | lst,false -> List.fold_left (fun a x -> get_min a x depth) worst_min lst
+
 
   (* [get_max (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
    * tuple that is the move ([m1] or [m2]) that gives the highest score ([s1] or
@@ -274,5 +269,13 @@ let get_valid_boards board player =
   and get_min (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 true (depth-1) in
       if s1 < s2 then (s1,m1) else (s2, m2)
+
+  (* [choose_best_board] takes in a list of boards available to the AI
+   * and picks the one with the highest score (relative to the AI)
+   *)
+  let choose_best_board board =
+    let move = snd (minimax board true 2) in
+    if move = ((-1,-1),  (-1,-1)) then failwith "something went wrong with ai"
+    else fst (make_move move)
 
 end
