@@ -249,9 +249,9 @@ let get_valid_boards board player =
     let moves = List.fold_left
         (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
     if player then List.fold_left
-        (fun a (pos1,pos2) -> (ai_move board pos1 pos2)::a) [] moves
+        (fun a (p1,p2) -> (ai_move board p1 p2, (p1,p2))::a) [] moves
     else List.fold_left
-        (fun a (pos1,pos2) -> (fst (make_move board pos1 pos2))::a) [] moves
+        (fun a (p1,p2) -> (fst (make_move board p1 p2),(p1,p2))::a) [] moves
 
 (* [minimax board max depth] :(int, board) is the resulting (score, board) from
  * the minimax algorithm
@@ -262,16 +262,17 @@ let get_valid_boards board player =
  * COMPLETE: minimax algorithm
  * TODO: keep track of moves, figure out way to break ties?
  *)
- let rec minimax board max depth =
-      if depth = 0 then (get_score_init board, board) else
-      let fmax (score, _) b = let (s, _) = minimax b false (depth-1) in
-          if score > s then (score, b) else (s,b) in
-      let fmin (score, _) b = let (s, _) = minimax b true (depth-1) in
-          if score < s then (score, b) else (s,b) in
+  let rec minimax board max depth =
+      let dummy = ((0,0), (0,0)) in
+      if depth = 0 then (get_score_init board, (board, dummy)) else
+      let fmax (score, b') (b,m) = let (s, _) = minimax b false (depth-1) in
+          if score > s then (score, b') else (s,(b,m)) in
+      let fmin (score, b') (b,m) = let (s, _) = minimax b true (depth-1) in
+          if score < s then (score, b') else (s,(b,m)) in
       match get_valid_boards board max with
       | [] -> failwith "there are no possible boards"
-      | h::t when max ->
-          List.fold_left (fun a x -> fmax a x) (minimax h false (depth-1)) t
-      | h::t -> List.fold_left (fun a x -> fmin a x)(minimax h true (depth-1)) t
+      | (b,m)::t when max ->
+          List.fold_left (fun a x -> fmax a x) ((fst (minimax b false (depth-1))), (b,m)) t
+      | (b,m)::t -> List.fold_left (fun a x -> fmin a x)((fst (minimax b true (depth-1))), (b,m)) t
 
 end
