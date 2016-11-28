@@ -4,6 +4,7 @@ module type Display = sig
   type board = t
   val print_message : string -> unit
   val display_board : board -> unit
+  val print_list : piece list -> unit
 end
 
 module TextDisplay : Display = struct
@@ -24,13 +25,14 @@ module TextDisplay : Display = struct
       let p = (search (col,row) board) in ();
       (match p with
       |None -> print_string "  ";
-      |Some x -> if x.player then print_string "AI"
+      |Some x -> if not x.player then print_string "AI"
         else (print_string (string_of_piece x)));
       print_string " | "
     done;
     print_endline ""
 
   let display_board (b:board) =
+    print_endline "";
     print_endline "     _________________________________________________";
     for row = 9 downto 0 do
       print_endline "    |    |    |    |    |    |    |    |    |    |    | ";
@@ -38,11 +40,29 @@ module TextDisplay : Display = struct
       (print_row b row);
       print_endline "    |____|____|____|____|____|____|____|____|____|____|";
     done;
-    print_endline "      0     1    2    3    4    5    6    7    8   9"
+    print_endline "       0    1    2    3    4    5    6    7    8    9"
 
   let print_list (l:piece list) =
     print_string "Pieces: ";
     List.iter (fun x -> print_string ((string_of_piece x)^" | ")) l;
+    print_endline ""
+
+  let display_table () =
+    print_endline "   __________________";
+    print_endline "  |                  |";
+    print_endline "  |     F - Flag     |";
+    print_endline "  |     B - Bomb     |";
+    print_endline "  |     1 - Spy      |";
+    print_endline "  |     2 - Scout    |";
+    print_endline "  |     3 -      |";
+    print_endline "  |     4 - Bomb     |";
+    print_endline "  |     5 - Bomb     |";
+    print_endline "  |     6 - Bomb     |";
+    print_endline "  |     7 - Bomb     |";
+    print_endline "  |     8 - Bomb     |";
+    print_endline "  |     9 - Bomb     |";
+    print_endline "  |__________________|";
+
     print_endline ""
 
 end
