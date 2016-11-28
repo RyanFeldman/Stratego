@@ -1,8 +1,13 @@
 open Board.GameBoard
 open Display.TextDisplay
 open Ai.GameAI
+exception Illegal
 
 type board = t
+type game_piece = piece
+
+let user_pieces = failwith "Unimplemented"
+let ai_pieces = failwith "Unimplemented"
 
 let rec fill_rows board acc =
     if acc=10
@@ -48,34 +53,6 @@ let rec instantiate_user_board board = function
                     instantiate_user_board board (h::t)) in
     instantiate_user_board new_board t
 
-<<<<<<< HEAD
-let get_list_all_pieces () =
-    let p       = {rank=0; player=false; hasBeenSeen=false} in
-    let col     = {p with rank=8} in
-    let major   = {p with rank=7} in
-    let cap     = {p with rank=6} in
-    let lieut   = {p with rank=5} in
-    let serg    = {p with rank=4} in
-    let miner   = {p with rank=3} in
-    let scout   = {p with rank=2} in
-    let bomb_list = [p; p; p; p; p; p] in
-    let marsh_list = [{p with rank=10}] in
-    let gen_list = [{p with rank=9}] in
-    let col_list = [col; col] in
-    let maj_list = [major; major; major] in
-    let cap_list = [cap; cap; cap; cap] in
-    let lieut_list = [lieut; lieut; lieut; lieut] in
-    let serg_list = [serg; serg; serg; serg] in
-    let mine_list = [miner; miner; miner; miner; miner] in
-    let sco_list = [scout; scout; scout; scout; scout; scout;
-                    scout; scout] in
-    let spy_list = [{p with rank=1}] in
-    let flag_lst = [{p with rank=11}] in
-    flag_lst @ bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @ cap_list @
-    lieut_list @ serg_list @ mine_list @ sco_list @ spy_list
-
-=======
->>>>>>> fca8296d4f0096c0e637db6b4e8e1250f3286d47
 let setup_game () =
     let new_board = empty_board () in
     let full_pieces = get_list_all_pieces () in
@@ -90,7 +67,7 @@ let parse_user_input c =
         if (String.contains trim_c ' ') = false then (trim_c, "")
     else 
         let space_index = String.index trim_c ' ' in
-        let first_word = (String.sub trim_c 0 space_index_ |> String.trim in 
+        let first_word = (String.sub trim_c 0 space_index) |> String.trim in 
         let second_half_length = (String.length trim_c) - space_index in
         let second_half = String.sub trim_c space_index second_half_length in
         let trim_second_half = String.trim second_half in
@@ -104,16 +81,23 @@ let tuple_from_string str =
 let execute_movement board num1 num2 = 
     let pos_one = tuple_from_string num1 in 
     let pos_two = tuple_from_string num2 in 
-    failwith "Unimplemented"
+    let valid_move = is_valid_move board false pos_one pos_two in 
+    if (fst valid_move) then 
+        let board_tuple = make_move board pos_one pos_two in 
+        failwith "Unimplemented"
+    else
+        let _ = print_message (snd valid_move) in 
+        raise Illegal  
+
 
 let is_num pos_one pos_two = 
     if (String.length pos_one) = 2 then 
         if (String.length pos_two) = 2 then 
-            let _ = try (int_of_string pos_one) with 
+            let a = try (int_of_string pos_one)=(int_of_string pos_one) with 
                         | _ -> false in 
-            let _ = try (int_of_string pos_two) with 
+            let b = try (int_of_string pos_two)=(int_of_string pos_two) with 
                         | _ -> false in 
-            true
+            a && b
         else false
     else false
 
@@ -124,10 +108,11 @@ let handle_user_input cmd board =
     | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
     | _ -> failwith "Unimplemented"
 
-let play (board:board) = 
+let rec play (board:board) : board= 
     let _ = display_board board in 
-    let _ = print_message "It's your turn! What would you like to do?"
+    let _ = print_message "It's your turn! What would you like to do?" in 
     let user_input = read_line () in 
     let user_tuple = parse_user_input user_input in 
-    let user_board = handle_user_input user_tuple board in 
+    let user_board = try (handle_user_input user_tuple board) with 
+                            | Illegal -> (play board) in 
     user_board
