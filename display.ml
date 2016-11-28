@@ -5,6 +5,7 @@ module type Display = sig
   val print_message : string -> unit
   val display_board : board -> unit
   val print_list : piece list -> unit
+  val display_table : unit -> unit
 end
 
 module TextDisplay : Display = struct
@@ -49,20 +50,19 @@ module TextDisplay : Display = struct
   let display_table () =
     print_endline "   __________________";
     print_endline "  |                  |";
-    print_endline "  |    F - Flag      |";
-    print_endline "  |    B - Bomb      |";
-    print_endline "  |    1 - Spy       |";
-    print_endline "  |    2 - Scout     |";
-    print_endline "  |    3 - Miner     |";
-    print_endline "  |    4 - Sergeant  |";
-    print_endline "  |    5 - Lieutenant|";
-    print_endline "  |    6 - Captain   |";
-    print_endline "  |    7 - Major     |";
-    print_endline "  |    8 - Colonel   |";
-    print_endline "  |    9 - General   |";
-    print_endline "  |   10 - Marshall  |";
+    print_endline "  |   F - Flag       |";
+    print_endline "  |   B - Bomb       |";
+    print_endline "  |   1 - Spy        |";
+    print_endline "  |   2 - Scout      |";
+    print_endline "  |   3 - Miner      |";
+    print_endline "  |   4 - Sergeant   |";
+    print_endline "  |   5 - Lieutenant |";
+    print_endline "  |   6 - Captain    |";
+    print_endline "  |   7 - Major      |";
+    print_endline "  |   8 - Colonel    |";
+    print_endline "  |   9 - General    |";
+    print_endline "  |  10 - Marshall   |";
     print_endline "  |__________________|";
-
     print_endline ""
 
 end
