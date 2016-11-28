@@ -203,7 +203,7 @@ let rec random_fill board filled remaining pos =
     let f k = function | Some p when p.player = player -> true | _ -> false in
     let () = board_iter
       (fun k v -> if f k v then (lst := k::(!lst)) else ()) board in
-    !lst
+   !lst
 
   (*[get_moves_piece board pos] is an (pos1,pos2) association list that
    *represents all of the posistions the piece at [pos] can move to. The
@@ -236,17 +236,17 @@ let get_valid_boards board player =
 
 
 
-(* [minimax board max depth] :int*(board*((int*int)*(int*int))) is the resulting
- *(score, (board,move)) from the minimax algorithm. The move is either the move
+(* [minimax board max depth] (:int*(position*position)) is the resulting
+ *(score, move) from the minimax algorithm. The move is either the move
  * that minimaxes the board or ((-1,-1),(-1,-1)) if there are no valid moves
  * Requires:
  *    max : bool,true when you want the maximum score
-      board: board
-      depth : int
- * COMPLETE: minimax algorithm
- * TODO: keep track of moves, figure out way to break ties?
+ *    board: board
+ *    depth : int
+ * TODO: get rid of prints in make_move
  *)
   let rec minimax board max depth =
+      let () = if depth = 0 then print_endline "0 depth" else () in
       let no_move = ((-1,-1), (-1,-1)) in
       let worst_min = (2000, no_move) in
       let worst_max = (-2000, no_move) in
@@ -257,20 +257,20 @@ let get_valid_boards board player =
       | lst, true -> List.fold_left (fun a x -> get_max a x depth) worst_max lst
       | lst,false -> List.fold_left (fun a x -> get_min a x depth) worst_min lst
 
-  (* [get_max (s1, m1) (b2, m2) depth] is a (score:int,move:(int*int)*(int*int))
-   * tuple that is the move (m1 or m2) that gives the highest score (s1 or
-   * the score from minimax of b2 at depth [depth] -1)
-   * in the case of a tie, the second move is
-   * chosen *)
+  (* [get_max (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
+   * tuple that is the move ([m1] or [m2]) that gives the highest score ([s1] or
+   * the score from minimax of [b2] at depth [depth] -1)
+   * in the case of a tie, [m2] is chosen
+    *)
   and get_max (s1, m1) (b2, m2) depth =
-      let (s2, _) = minimax b2 false (depth-1) in
+      let (s2, _) = minimax b2 false (depth - 1) in
       if s1 > s2 then (s1, m1) else (s2, m2)
 
-  (* [get_min (s1, m1) (b2, m2) depth] is a (score:int,move:(int*int)*(int*int))
-   * tuple that is the move (m1 or m2) that gives the lowest score (s1 or
-   * the score from minimax of b2 at depth [depth] -1)
-   * in the case of a tie, the second move is
-   * chosen *)
+  (* [get_min (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
+   * tuple that is the move ([m1] or [m2]) that gives the lowest score ([s1] or
+   * the score from minimax of [b2] at depth [depth] -1)
+   * in the case of a tie, [m2] is chosen
+  *)
   and get_min (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 true (depth-1) in
       if s1 < s2 then (s1,m1) else (s2, m2)
