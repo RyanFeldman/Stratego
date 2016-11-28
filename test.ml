@@ -58,10 +58,8 @@ let can_move_to board (x,y) player =
                |Some p -> p
                | _ -> failwith "Should be a piece here" in
     if (piece.rank = 0 || piece.rank = 11) then
-      let () = print_endline("bomb or flag in has_move") in
       false
     else
-    let () = print_endline("no bomb or flag") in
     let (x,y) = pos in
       let can_up = (match (x,y+1) with
                  |(x',y') when y' > 10 -> false

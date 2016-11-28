@@ -163,13 +163,6 @@ let rec random_fill board filled remaining pos =
               score := !score - x.rank) captured in
     score
 
-  (* [is_enemy piece] returns true iff [piece] belongs to the player, not the AI
-   *
-   * Requires: [piece] : piece
-   *)
-  let is_enemy piece =
-    if piece.player = false then true else false
-
   (* [can_move_to board (x,y) player)] returns true if a piece belonging to
    * [player] can move to coordinate [(x,y)] on [board]. That is, either there
    * is an enemy piece at [(x,y)] or no piece is at (x,y)
