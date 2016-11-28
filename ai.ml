@@ -2,7 +2,7 @@ open Board.GameBoard
 open Display.TextDisplay
 
 module type AI = sig
-  type board = Board.GameBoard.t
+  type board = t
   val setup_board : board -> board
   val choose_best_board : board -> board
 end
@@ -15,9 +15,9 @@ module GameAI : AI = struct
   * [get_list_all_pieces] returns a piece list containing every piece that
   * the ai starts with.
   *)
-  let get_ai_pieces () =
-    let pieces = get_list_all_pieces () in
-    List.map (fun p -> {p with player=false}) pieces
+let get_ai_pieces () =
+  let pieces = get_list_all_pieces () in
+  List.map (fun p -> {p with player=false}) pieces
 
 
 let next_pos = function
@@ -217,7 +217,7 @@ let rec random_fill board filled remaining pos =
   let get_moves_piece board pos  =
     let moves = (match search pos board with
     | None -> failwith "there's no piece here"
-    | Some p -> (*Board.GameBoard.*)get_possible_moves board p.player p pos) in
+    | Some p -> get_possible_moves board p.player p pos) in
     List.fold_left (fun a x -> (pos, x)::a) [] moves
 
 (* [get_moveable_from_move board]
@@ -235,7 +235,7 @@ let get_valid_boards board player =
     let moves = List.fold_left
         (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
     if player then List.fold_left
-        (fun a (p1,p2) -> let () = print_endline "called" in (ai_move board p1 p2, (p1,p2))::a) [] moves
+        (fun a (p1,p2) -> (ai_move board p1 p2, (p1,p2))::a) [] moves
     else List.fold_left
         (fun a (p1,p2) -> (fst (make_move board p1 p2),(p1,p2))::a) [] moves
 

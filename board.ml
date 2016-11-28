@@ -280,18 +280,17 @@ module GameBoard : Board = struct
                         scout; scout] in
         let spy_list = [{p with rank=1}] in
         let flag_lst = [{p with rank=11}] in
-        bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @ cap_list @
-        lieut_list @ serg_list @ mine_list @ sco_list @ spy_list @ flag_lst
+        flag_lst @ bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @ cap_list @
+        lieut_list @ serg_list @ mine_list @ sco_list @ spy_list
 
-end
     (*[equal_board b1 b2] is true when b1 are the same size and have the same
      * positions and pieces binded to positions and false otherwise
      *)
-    let equal_board b1 b2 =
-        let sizeb1 = board_fold (fun k v b -> b + 1) b1 0 in
+    let equal_board b1 b2 = BoardMap.equal (=) b1 b2
+        (* let sizeb1 = board_fold (fun k v b -> b + 1) b1 0 in
         let sizeb2 = board_fold (fun k v b -> b + 1) b2 0 in
         let same_map = board_fold
             (fun k v b -> (try v = search k b2 with _ -> false) && b) b1 true in
-        ((sizeb1 = sizeb2) && same_map)
+        ((sizeb1 = sizeb2) && same_map) *)
 
 end
