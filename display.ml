@@ -24,7 +24,7 @@ module TextDisplay : Display = struct
       let p = (search (col,row) board) in ();
       (match p with
       |None -> print_string "  ";
-      |Some x -> if x.player then print_string "  "
+      |Some x -> if x.player then print_string "AI"
         else (print_string (string_of_piece x)));
       print_string " | "
     done;
@@ -32,7 +32,7 @@ module TextDisplay : Display = struct
 
   let display_board (b:board) =
     print_endline "     _________________________________________________";
-    for row = 0 to 9 do
+    for row = 9 downto 0 do
 
       print_endline "    |    |    |    |    |    |    |    |    |    |    | ";
       print_string  "    | ";
