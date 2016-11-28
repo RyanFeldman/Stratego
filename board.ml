@@ -32,6 +32,7 @@ module type Board = sig
     val is_valid_move : t -> bool -> position -> position -> (bool * string)
     val make_move : t -> position -> position -> (t * piece list)
     val get_list_all_pieces: unit -> piece list
+    val equal_board : t -> t -> bool
 end
 
 module BoardMap = Map.Make(IntTuple)
@@ -281,5 +282,16 @@ module GameBoard : Board = struct
         let flag_lst = [{p with rank=11}] in
         bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @ cap_list @
         lieut_list @ serg_list @ mine_list @ sco_list @ spy_list @ flag_lst
+
+end
+    (*[equal_board b1 b2] is true when b1 are the same size and have the same
+     * positions and pieces binded to positions and false otherwise
+     *)
+    let equal_board b1 b2 =
+        let sizeb1 = board_fold (fun k v b -> b + 1) b1 0 in
+        let sizeb2 = board_fold (fun k v b -> b + 1) b2 0 in
+        let same_map = board_fold
+            (fun k v b -> (try v = search k b2 with _ -> false) && b) b1 true in
+        ((sizeb1 = sizeb2) && same_map)
 
 end
