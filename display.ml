@@ -15,7 +15,6 @@ module TextDisplay : Display = struct
 
   let string_of_piece p = match p.rank with
   |x when x = 0 -> " B"
-  |x when x = 1 -> " S"
   |x when x < 10 -> " "^(string_of_int x)
   |x when x = 11 -> " F"
   |x -> string_of_int x
@@ -50,17 +49,18 @@ module TextDisplay : Display = struct
   let display_table () =
     print_endline "   __________________";
     print_endline "  |                  |";
-    print_endline "  |     F - Flag     |";
-    print_endline "  |     B - Bomb     |";
-    print_endline "  |     1 - Spy      |";
-    print_endline "  |     2 - Scout    |";
-    print_endline "  |     3 -      |";
-    print_endline "  |     4 - Bomb     |";
-    print_endline "  |     5 - Bomb     |";
-    print_endline "  |     6 - Bomb     |";
-    print_endline "  |     7 - Bomb     |";
-    print_endline "  |     8 - Bomb     |";
-    print_endline "  |     9 - Bomb     |";
+    print_endline "  |    F - Flag      |";
+    print_endline "  |    B - Bomb      |";
+    print_endline "  |    1 - Spy       |";
+    print_endline "  |    2 - Scout     |";
+    print_endline "  |    3 - Miner     |";
+    print_endline "  |    4 - Sergeant  |";
+    print_endline "  |    5 - Lieutenant|";
+    print_endline "  |    6 - Captain   |";
+    print_endline "  |    7 - Major     |";
+    print_endline "  |    8 - Colonel   |";
+    print_endline "  |    9 - General   |";
+    print_endline "  |   10 - Marshall  |";
     print_endline "  |__________________|";
 
     print_endline ""
