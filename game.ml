@@ -56,6 +56,49 @@ let setup_game () =
     let start_board = setup_board gap_filled_board in
     start_board
 
+let parse_user_input c = 
+    let trim_c = c |> String.trim |> String.lowercase_ascii in
+        if (String.contains trim_c ' ') = false then (trim_c, "")
+    else 
+        let space_index = String.index trim_c ' ' in
+        let first_word = (String.sub trim_c 0 space_index_ |> String.trim in 
+        let second_half_length = (String.length trim_c) - space_index in
+        let second_half = String.sub trim_c space_index second_half_length in
+        let trim_second_half = String.trim second_half in
+        (first_word, trim_second_half)
 
+let tuple_from_string str = 
+    let x = int_of_char (String.get str 0) in
+    let y = int_of_char (String.get str 1) in 
+    (x, y)
 
-let play (board:board) = failwith "Unimplemented"
+let execute_movement board num1 num2 = 
+    let pos_one = tuple_from_string num1 in 
+    let pos_two = tuple_from_string num2 in 
+    failwith "Unimplemented"
+
+let is_num pos_one pos_two = 
+    if (String.length pos_one) = 2 then 
+        if (String.length pos_two) = 2 then 
+            let _ = try (int_of_string pos_one) with 
+                        | _ -> false in 
+            let _ = try (int_of_string pos_two) with 
+                        | _ -> false in 
+            true
+        else false
+    else false
+
+let handle_user_input cmd board = 
+    match cmd with 
+    | ("table", "") -> failwith "Unimplemented"
+    | ("captured", "") -> failwith "Unimplemented"
+    | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
+    | _ -> failwith "Unimplemented"
+
+let play (board:board) = 
+    let _ = display_board board in 
+    let _ = print_message "It's your turn! What would you like to do?"
+    let user_input = read_line () in 
+    let user_tuple = parse_user_input user_input in 
+    let user_board = handle_user_input user_tuple board in 
+    user_board
