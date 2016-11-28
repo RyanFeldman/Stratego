@@ -3,6 +3,7 @@ open Display.TextDisplay
 
 module type AI = sig
   type board = t
+  type victory = Board.GameBoard.victory
   val setup_board : board -> board
   val choose_best_board : board -> board
 end
@@ -10,6 +11,7 @@ end
 module GameAI : AI = struct
 
   type board = t
+  type victory = Board.GameBoard.victory
 
  (*
   * [get_list_all_pieces] returns a piece list containing every piece that
@@ -283,6 +285,6 @@ let get_valid_boards board player =
   let choose_best_board board =
     let move = snd (minimax board true 2) in
     if move = ((-1,-1),  (-1,-1)) then failwith "something went wrong with ai"
-    else fst (make_move board (fst move) (snd move))
+    else make_move board (fst move) (snd move)
 
 end

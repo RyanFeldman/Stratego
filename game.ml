@@ -112,9 +112,10 @@ let execute_movement board num1 num2 =
     let pos_two = tuple_from_string num2 in 
     let valid_move = is_valid_move board false pos_one pos_two in 
     if (fst valid_move) then 
-        let board_tuple = make_move board pos_one pos_two in 
-        let _ = append_to_cap (snd board_tuple) in 
-        fst board_tuple
+        let (new_board, captured, str) = make_move board pos_one pos_two in 
+        let _ = append_to_cap (captured) in 
+        let _ = print_message str in 
+        new_board
     else
         let _ = print_message (snd valid_move) in 
         raise Illegal  
@@ -137,12 +138,33 @@ let handle_user_input cmd board =
     | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
     | _ -> failwith "Unimplemented"
 
-let rec play (board:board) : board= 
+let check_winner b = 
+    match b with 
+    | Victory b -> true
+    | _ -> false
+
+let strip_variant var = 
+    match var with 
+    | Victory b -> failwith "Shouldn't be passing Victory"
+    | Active board -> board
+
+let rec play (board:board) : board = 
     let _ = display_board board in 
     let _ = print_message "It's your turn! What would you like to do?" in 
     let user_input = read_line () in 
     let user_tuple = parse_user_input user_input in 
     let user_board = try (handle_user_input user_tuple board) with 
-                            | Illegal -> (play board) in 
-    let ai_moved = choose_best_board user_board in 
-    (play ai_moved)
+                            | Illegal -> Active (play board) in 
+    let win = check_winner user_board in 
+    if win then 
+        board 
+    else 
+        let stripped_board = (strip_variant user_board) in 
+        let (ai_board, captured, msg) = choose_best_board stripped_board in 
+        let ai_win = check_winner ai_board in 
+        if ai_win then 
+            (strip_variant ai_board)
+        else        
+            let _ = append_to_cap captured in 
+            let _ = print_message msg in 
+            play (strip_variant ai_board)

@@ -191,23 +191,44 @@ module GameBoard : Board = struct
      *)
     let execute_conflict board p_two pos_one pos_two =
         let p_one = remove_optional (search pos_one board) in
-        match (p_one.rank - p_two.rank) with
-        | p_one_worse when p_one_worse < 0 ->
+        match (p_one.rank, p_two.rank) with 
+        | (1, 10) -> 
+            let temp_board = add_mapping pos_one None board in
+            let seen_piece = {p_one with hasBeenSeen=true} in
+            let new_board = add_mapping pos_two (Some seen_piece) temp_board in
+            (new_board, [p_two])
+        | (3, 0) -> 
+            let temp_board = add_mapping pos_one None board in
+            let seen_piece = {p_one with hasBeenSeen=true} in
+            let new_board = add_mapping pos_two (Some seen_piece) temp_board in
+            (new_board, [p_two])
+        | (_, 0) -> 
             let temp_board = add_mapping pos_one None board in
             let p = remove_optional (search pos_two temp_board) in
             let seen_p = {p with hasBeenSeen=true} in
             let new_board = add_mapping pos_two (Some seen_p) temp_board in
             (new_board, [p_one])
-        | p_one_equal when p_one_equal = 0 ->
-            let temp_board = add_mapping pos_one None board in
-            let new_board = add_mapping pos_two None temp_board in
-            (new_board, [p_one; p_two])
-        | p_one_better when p_one_better > 0 ->
+        | (_, 11) -> 
             let temp_board = add_mapping pos_one None board in
             let seen_piece = {p_one with hasBeenSeen=true} in
             let new_board = add_mapping pos_two (Some seen_piece) temp_board in
             (new_board, [p_two])
-        | _ -> failwith "invalid math"
+        | (r1, r2) when r1 < r2 -> 
+            let temp_board = add_mapping pos_one None board in
+            let p = remove_optional (search pos_two temp_board) in
+            let seen_p = {p with hasBeenSeen=true} in
+            let new_board = add_mapping pos_two (Some seen_p) temp_board in
+            (new_board, [p_one])
+        | (r1, r2) when r1 = r2 -> 
+            let temp_board = add_mapping pos_one None board in
+            let new_board = add_mapping pos_two None temp_board in
+            (new_board, [p_one; p_two])
+        | (r1, r2) when r1 > r2 -> 
+            let temp_board = add_mapping pos_one None board in
+            let seen_piece = {p_one with hasBeenSeen=true} in
+            let new_board = add_mapping pos_two (Some seen_piece) temp_board in
+            (new_board, [p_two])
+        | _ -> failwith "Invalid tuple passed"
 
     (**
      * [string_from_tuple t] is the string form of the tuple [t]. i.e. "(x, y)"
