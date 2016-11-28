@@ -40,4 +40,9 @@ module TextDisplay : Display = struct
     done;
     print_endline "      0     1    2    3    4    5    6    7    8   9"
 
+  let print_list (l:piece list) =
+    print_string "Pieces: ";
+    List.iter (fun x -> print_string ((string_of_piece x)^" | ")) l;
+    print_endline ""
+
 end
