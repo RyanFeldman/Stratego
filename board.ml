@@ -260,11 +260,11 @@ module GameBoard : Board = struct
     (*[equal_board b1 b2] is true when b1 are the same size and have the same
      * positions and pieces binded to positions and false otherwise
      *)
-    let equal_board b1 b2 =
-        let sizeb1 = board_fold (fun k v b -> b + 1) b1 0 in
+    let equal_board b1 b2 = BoardMap.equal (=) b1 b2
+        (* let sizeb1 = board_fold (fun k v b -> b + 1) b1 0 in
         let sizeb2 = board_fold (fun k v b -> b + 1) b2 0 in
         let same_map = board_fold
             (fun k v b -> (try v = search k b2 with _ -> false) && b) b1 true in
-        ((sizeb1 = sizeb2) && same_map)
+        ((sizeb1 = sizeb2) && same_map) *)
 
 end

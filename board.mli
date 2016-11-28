@@ -132,8 +132,8 @@ module type Board = sig
     val make_move : t -> position -> position -> (t * piece list)
 
     (**
-     * [equal_board b1 b2] is true when b1 are the same size and have the same
-     * positions and pieces binded to positions and false otherwise
+     * [equal_board b1 b2] is true iff b1 maps the same positions to the same 
+     * piece options as b2. False otherwise.
      *)
     val equal_board: t -> t -> bool
 
