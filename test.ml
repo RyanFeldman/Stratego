@@ -46,6 +46,16 @@ let rec none_whole_board board pos=
     |(x,y) -> let brd = add_mapping (x,y) None board
                 in none_whole_board brd (x+1,y)
 
+let map_one =
+    add_mapping (0, 0) (Some bomb) (empty_board ())
+let map_two =
+    add_mapping (1, 0) (None) (map_one)
+
+let map_a =
+    add_mapping (1, 0) (None) (empty_board ())
+let map_b =
+    add_mapping (0, 0) (Some bomb) (map_a)
+
 let tests = "ai tests" >::: [
 
     "sample test" >:: (fun _ -> assert_equal 1 1);
@@ -93,7 +103,13 @@ let tests = "ai tests" >::: [
     "random board generation" >:: (fun _ -> assert_equal ()
         (display_board (setup_board (none_whole_board (empty_board ()) (0,0)))));
 
+    "equal_boards" >:: (fun _ -> assert_equal
+        true
+        (equal_board map_two map_b));
 
+    "No_equal_boards" >:: (fun _ -> assert_equal
+        false
+        (equal_board map_a map_one));
 
 
     ]
