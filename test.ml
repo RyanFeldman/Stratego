@@ -34,6 +34,17 @@ let scout_first_row_leftp =
 let scout_first_row_botp = 
     add_mapping (9, 2) (Some {bomb with rank=4}) scout_first_row_leftp
 
+let map_one = 
+    add_mapping (0, 0) (Some bomb) (empty_board ())
+let map_two = 
+    add_mapping (1, 0) (None) (map_one)
+
+let map_a = 
+    add_mapping (1, 0) (None) (empty_board ())
+let map_b = 
+    add_mapping (0, 0) (Some bomb) (map_a)
+
+
 let tests = "ai tests" >::: [
 
     "sample test" >:: (fun _ -> assert_equal 1 1);
@@ -77,6 +88,14 @@ let tests = "ai tests" >::: [
     "is_valid_move_scout_two" >:: (fun _ -> assert_equal
         (true, "")
         (is_valid_move scout_first_row_botp false (9, 3) (9, 5)));
+
+    "equal_boards" >:: (fun _ -> assert_equal
+        true
+        (equal_board map_two map_b));
+
+    "No_equal_boards" >:: (fun _ -> assert_equal
+        false
+        (equal_board map_a map_one));
 
 
 

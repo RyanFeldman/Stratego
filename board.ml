@@ -283,7 +283,6 @@ module GameBoard : Board = struct
         bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @ cap_list @
         lieut_list @ serg_list @ mine_list @ sco_list @ spy_list @ flag_lst
 
-end
     (*[equal_board b1 b2] is true when b1 are the same size and have the same
      * positions and pieces binded to positions and false otherwise
      *)

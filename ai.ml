@@ -1,7 +1,7 @@
 open Board.GameBoard
 
 module type AI = sig
-  type board = Board.GameBoard.t
+  type board = t
   val setup_board : board -> board
   val choose_best_board : board -> board
 end
@@ -216,7 +216,7 @@ let rec random_fill board filled remaining pos =
   let get_moves_piece board pos  =
     let moves = (match search pos board with
     | None -> failwith "there's no piece here"
-    | Some p -> Board.GameBoard.get_possible_moves board p.player p pos) in
+    | Some p -> get_possible_moves board p.player p pos) in
     List.fold_left (fun a x -> (pos, x)::a) [] moves
 
 (* [get_moveable_from_move board]
