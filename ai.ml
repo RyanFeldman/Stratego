@@ -10,6 +10,56 @@ module GameAI : AI = struct
 
   type board = t
 
+ (*
+  * [get_list_all_pieces] returns a piece list containing every piece that
+  * the ai starts with.
+  *)
+  let get_ai_pieces () =
+    let pieces = get_list_all_pieces () in
+    List.map (fun p -> {p with player=false}) pieces
+
+
+let next_pos = function
+  |(9,y) -> (0, y-1)
+  |(x,y) -> (x+1, y)
+
+let rec random_fill board filled remaining pos =
+  match remaining with
+  |[] -> board
+  |h::t ->
+    if List.mem pos filled then
+      random_fill board filled remaining (next_pos pos)
+    else
+      let new_board = add_mapping pos (Some h) board in
+      random_fill new_board (pos::filled) t (next_pos pos)
+
+(* [setup_board] takes in a board where only the player has set up their
+ * pieces and sets up the AI's pieces.
+ *)
+  let setup_board board =
+    let () = Random.self_init () in
+    let flag_x_pos = Random.int 10 in
+    let flag_pos = (flag_x_pos, 9) in
+    let bomb_one_x = match flag_x_pos with
+                     |0 -> 4
+                     |n -> n-1 in
+    let bomb_two_x = match flag_x_pos with
+                     |9 -> 6
+                     |n -> n+1 in
+    let flag_board = add_mapping flag_pos
+        (Some {rank=11; player=false; hasBeenSeen=false}) board in
+    let one_bomb_board = add_mapping (bomb_one_x, 9)
+        (Some {rank=0; player=false; hasBeenSeen=false}) flag_board in
+    let two_bomb_board = add_mapping (bomb_two_x, 9)
+        (Some {rank=0; player=false; hasBeenSeen=false}) one_bomb_board in
+    let three_bombs_board = add_mapping (flag_x_pos, 8)
+        (Some {rank=0; player=false; hasBeenSeen=false}) two_bomb_board in
+    let filled = [flag_pos;(bomb_one_x, 9);(bomb_two_x, 9); (flag_x_pos, 8)] in
+    let remaining = match get_list_all_pieces () with
+                    |f::b1::b2::b3::t -> t
+                    |_ -> failwith "the function should match the above" in
+    let shuffled = List.sort (fun x y -> Random.int 2) remaining in
+    random_fill three_bombs_board filled shuffled (0,9)
 
   (* [replace_pos board lst] is a new board with replacements made according
    * to the (pos,piece option) association list [lst], where the first of every
@@ -52,11 +102,6 @@ module GameAI : AI = struct
     | None, _ -> failwith "there's no piece here to move"
     | p1 , None -> replace_pos board [(pos1, None);(pos2, p1)]
     | Some p1,Some p2 ->replace_pos board [(pos1, None);(pos2, ai_battle p1 p2)]
-
-
-
-  let setup_board board =
-    failwith "unimplemented"
 
   (* [score_board] takes in a board and assigns it a score based on
    * how desirable it is for the AI

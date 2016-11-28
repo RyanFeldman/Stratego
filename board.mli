@@ -131,6 +131,12 @@ module type Board = sig
      *)
     val make_move : t -> position -> position -> (t * piece list)
 
+    (*
+     * [get_list_all_pieces] returns a piece list containing every piece that
+     * the player starts with.
+     *)
+    val get_list_all_pieces: unit -> piece list
+
     (**
      * [equal_board b1 b2] is true iff b1 maps the same positions to the same 
      * piece options as b2. False otherwise.
