@@ -52,6 +52,9 @@ module type Board = sig
     (* The type of the board *)
     type t
 
+    type victory = Active of t | Victory of bool
+
+
     (**
      * [empty_board] returns a completely empty board. No mappings.
      *)
@@ -129,7 +132,7 @@ module type Board = sig
      *  - the movement from position1 -> position2 is valid
      *  - position1 contains a piece that can execute the movement
      *)
-    val make_move : t -> position -> position -> (t * piece list)
+    val make_move : t -> position -> position -> (victory * piece list * string)
 
     (*
      * [get_list_all_pieces] returns a piece list containing every piece that
