@@ -152,41 +152,46 @@ let rec random_fill board filled remaining pos =
               score := !score - x.rank) captured in
     score
 
-  (* [is_enemy piece] returns true iff [piece] belongs to the player, not the AI
-   *
-   * Requires: [piece] : piece
+  (* [can_move_to board (x,y) player)] returns true if a piece belonging to
+   * [player] can move to coordinate [(x,y)] on [board]. That is, either there
+   * is an enemy piece at [(x,y)] or no piece is at (x,y)
    *)
-  let is_enemy piece =
-    if piece.player = false then true else false
-
-  let can_move_to board (x,y) =
+  let can_move_to board (x,y) player =
     try
       match search (x,y) board with
       |None -> true
-      |Some piece -> piece.player
+      |Some piece -> player <> piece.player
     with
     |_ -> false
 
-  (* [has_move piece] returns true iff there is 1 or more valid move that the
-   * piece at position [pos] can make on [board].
+  (* [has_move piece] returns true if there is 1 or more valid move that the
+   * piece at position [pos] can make on [board when it is the turn of [player].
+   * i.e. [player] = true means it is the player's turn; [player] = false means
+   * it is the AI's turn.
    *)
-  (*Needs to be fixed...this would return true even if a piece is surrounded
-   *by friendly pieces.*)
-  let has_move board pos =
+  let has_move board pos player=
+    let piece = match search pos board with
+               |Some p -> p
+               | _ -> failwith "Should be a piece here" in
+    if (piece.rank = 0 || piece.rank = 11) then
+      let () = print_endline("bomb or flag in has_move") in
+      false
+    else
+    let () = print_endline("no bomb or flag") in
     let (x,y) = pos in
-    let can_up = (match (x,y+1) with
-               |(x',y') when y' > 10 -> false
-               |(x',y') -> can_move_to board (x',y')) in
-    let can_down = (match (x,y-1) with
-                 |(x',y') when y' < 0 -> false
-                 |(x',y') -> can_move_to board (x',y')) in
-    let can_left = (match (x-1,y) with
-                 |(x',y') when x < 0 -> false
-                 |(x',y') -> can_move_to board (x',y')) in
-    let can_right = (match (x+1,y) with
-                  |(x',y') when x > 10 -> false
-                  |(x',y') -> can_move_to board (x',y')) in
-    (can_up || can_down || can_left || can_right)
+      let can_up = (match (x,y+1) with
+                 |(x',y') when y' > 10 -> false
+                 |(x',y') -> can_move_to board (x',y') player) in
+      let can_down = (match (x,y-1) with
+                   |(x',y') when y' < 0 -> false
+                   |(x',y') -> can_move_to board (x',y') player) in
+      let can_left = (match (x-1,y) with
+                   |(x',y') when x < 0 -> false
+                   |(x',y') -> can_move_to board (x',y') player) in
+      let can_right = (match (x+1,y) with
+                    |(x',y') when x > 10 -> false
+                    |(x',y') -> can_move_to board (x',y') player) in
+      (can_up || can_down || can_left || can_right)
 
 
   (* [get_moveable_init board] returns the list of positions in [board] that
@@ -194,7 +199,9 @@ let rec random_fill board filled remaining pos =
    *)
   let get_moveable_init board player =
     let lst = ref [] in
-    let f k = function | Some p when p.player = player -> true | _ -> false in
+    let f k = function
+      | Some p when p.player = player -> has_move board k player
+      | _ -> false in
     let () = board_iter
       (fun k v -> if f k v then (lst := k::(!lst)) else ()) board in
    !lst

@@ -6,6 +6,7 @@ open GameAI
 open Display
 open TextDisplay
 
+
 let bomb = {rank=0; player=false; hasBeenSeen=false}
 
 let corner_board =
@@ -38,6 +39,54 @@ let scout_first_row_leftp =
     add_mapping (8, 3) (Some {bomb with rank=4}) scout_first_row_topp
 let scout_first_row_botp =
     add_mapping (9, 2) (Some {bomb with rank=4}) scout_first_row_leftp
+
+let can_move_to board (x,y) player =
+    try
+      match search (x,y) board with
+      |None -> true
+      |Some piece -> player <> piece.player
+    with
+    |_ -> false
+
+  (* [has_move piece] returns true iff there is 1 or more valid move that the
+   * piece at position [pos] can make on [board].
+   *)
+  (*Needs to be fixed...this would return true even if a piece is surrounded
+   *by friendly pieces.*)
+  let has_move board pos player=
+    let piece = match search pos board with
+               |Some p -> p
+               | _ -> failwith "Should be a piece here" in
+    if (piece.rank = 0 || piece.rank = 11) then
+      false
+    else
+    let (x,y) = pos in
+      let can_up = (match (x,y+1) with
+                 |(x',y') when y' > 10 -> false
+                 |(x',y') -> can_move_to board (x',y') player) in
+      let can_down = (match (x,y-1) with
+                   |(x',y') when y' < 0 -> false
+                   |(x',y') -> can_move_to board (x',y') player) in
+      let can_left = (match (x-1,y) with
+                   |(x',y') when x < 0 -> false
+                   |(x',y') -> can_move_to board (x',y') player) in
+      let can_right = (match (x+1,y) with
+                    |(x',y') when x > 10 -> false
+                    |(x',y') -> can_move_to board (x',y') player) in
+      (can_up || can_down || can_left || can_right)
+
+
+  (* [get_moveable_init board] returns the list of positions in [board] that
+   * contain a piece that can make 1 or more valid moves.
+   *)
+  let get_moveable_init board player =
+    let lst = ref [] in
+    let f k = function
+      | Some p when p.player = player -> has_move board k player
+      | _ -> false in
+    let () = board_iter
+      (fun k v -> if f k v then (lst := k::(!lst)) else ()) board in
+    !lst
 
 let rec none_whole_board board pos=
     match pos with
@@ -100,7 +149,7 @@ let tests = "ai tests" >::: [
         (true, "")
         (is_valid_move scout_first_row_botp false (9, 3) (9, 5)));
 
-    "random board generation" >:: (fun _ -> assert_equal ()
+    "AI setup test" >:: (fun _ -> assert_equal ()
         (display_board (setup_board (none_whole_board (empty_board ()) (0,0)))));
 
     "equal_boards" >:: (fun _ -> assert_equal
@@ -108,10 +157,34 @@ let tests = "ai tests" >::: [
         (equal_board map_two map_b));
 
     "No_equal_boards" >:: (fun _ -> assert_equal
-        false
+        (false)
         (equal_board map_a map_one));
 
+    "AI get_moveable_init 1" >:: (fun _ -> assert_equal
+        ([])
+        (get_moveable_init (empty_board ()) true));
 
+    "AI get_moveable_init 2" >:: (fun _ -> assert_equal
+        ([])
+        (get_moveable_init corner_board false));
+
+    "AI get_moveable_init 3" >:: (fun _ -> assert_equal
+        ([])
+        (get_moveable_init corner_board true));
+
+    "AI get_moveable_init 4" >:: (fun _ -> assert_equal
+        ([])
+        (get_moveable_init flag_top_row true));
+
+    "AI get_moveable_init 5" >:: (fun _ -> assert_equal
+        []
+        (get_moveable_init flag_top_row false));
+
+    "AI get_moveable_init 6" >:: (fun _ -> assert_equal
+        []
+        (get_moveable_init flag_top_row false));
     ]
+
+
 
 let _ = run_test_tt_main tests

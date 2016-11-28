@@ -48,7 +48,6 @@ let rec instantiate_user_board board = function
                     instantiate_user_board board (h::t)) in
     instantiate_user_board new_board t
 
-
 let get_list_all_pieces () =
     let p       = {rank=0; player=false; hasBeenSeen=false} in
     let col     = {p with rank=8} in
