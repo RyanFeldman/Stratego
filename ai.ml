@@ -283,6 +283,6 @@ let get_valid_boards board player =
   let choose_best_board board =
     let move = snd (minimax board true 2) in
     if move = ((-1,-1),  (-1,-1)) then failwith "something went wrong with ai"
-    else fst (make_move move)
+    else fst (make_move board (fst move) (snd move))
 
 end
