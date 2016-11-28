@@ -104,11 +104,6 @@ let rec random_fill board filled remaining pos =
     | p1 , None -> replace_pos board [(pos1, None);(pos2, p1)]
     | Some p1,Some p2 ->replace_pos board [(pos1, None);(pos2, ai_battle p1 p2)]
 
-  (* [score_board] takes in a board and assigns it a score based on
-   * how desirable it is for the AI
-   *)
-  let score_board board =
-    failwith "unimplemented"
 
   (* [choose_best_board] takes in a list of boards available to the AI
    * and picks the one with the highest score (relative to the AI)
@@ -139,7 +134,7 @@ let rec random_fill board filled remaining pos =
    *
    * Requires: [board] : board
    *)
-  let get_score_init board =
+  let score_board board =
     let f piece a = (match piece with
         |None -> a
         |Some p when p.player -> a+(get_value p.rank)
@@ -239,8 +234,9 @@ let get_valid_boards board player =
     else List.fold_left
         (fun a (p1,p2) -> (fst (make_move board p1 p2),(p1,p2))::a) [] moves
 
-(* [minimax board max depth] :(int, board) is the resulting (score, board) from
- * the minimax algorithm
+(* [minimax board max depth] :int*(board*((int*int)*(int*int))) is the resulting
+ *(score, (board,move)) from the minimax algorithm. The move is either the move
+ * that minimaxes the board or ((-1,-1),(-1,-1)) if there are no valid moves
  * Requires:
  *    max : bool,true when you want the maximum score
       board: board
@@ -249,16 +245,16 @@ let get_valid_boards board player =
  * TODO: keep track of moves, figure out way to break ties?
  *)
   let rec minimax board max depth =
-      let dummy = ((0,0), (0,0)) in
-      if depth = 0 then (get_score_init board, (board, dummy)) else
-      let fmax (score, b') (b,m) = let (s, _) = minimax b false (depth-1) in
-          if score > s then (score, b') else (s,(b,m)) in
-      let fmin (score, b') (b,m) = let (s, _) = minimax b true (depth-1) in
-          if score < s then (score, b') else (s,(b,m)) in
+      let no_move = ((-1,-1), (-1,-1)) in
+      if depth = 0 then (score_board board, (board, no_move)) else
+      let get_max (s_acc, acc) x = let (s_new, _) = minimax (fst x) false (depth-1) in
+          if s_acc > s_new then (s_acc, acc) else (s_new,x) in
+      let get_min (s, acc) x = let (s', _) = minimax (fst x) true (depth-1) in
+          if s < s' then (s, acc) else (s',x) in
       match get_valid_boards board max with
-      | [] -> failwith "there are no possible boards"
+      | [] -> if max then (-1000, (board, no_move)) else (1000, (board,no_move))
       | (b,m)::t when max ->
-          List.fold_left (fun a x -> fmax a x) ((fst (minimax b false (depth-1))), (b,m)) t
-      | (b,m)::t -> List.fold_left (fun a x -> fmin a x)((fst (minimax b true (depth-1))), (b,m)) t
+          List.fold_left (fun a x -> get_max a x) ((fst (minimax b false (depth-1))), (b,m)) t
+      | (b,m)::t -> List.fold_left (fun a x -> get_min a x)((fst (minimax b true (depth-1))), (b,m)) t
 
 end
