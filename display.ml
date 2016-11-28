@@ -2,6 +2,7 @@ open Board.GameBoard
 
 module type Display = sig
   type board = t
+  type piece = Board.GameBoard.piece
   val print_message : string -> unit
   val display_board : board -> unit
   val print_list : piece list -> unit
@@ -11,6 +12,7 @@ end
 module TextDisplay : Display = struct
 
   type board = t
+  type piece = Board.GameBoard.piece
 
   let print_message s = print_endline s
 

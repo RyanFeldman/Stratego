@@ -21,6 +21,7 @@ module type Board = sig
         hasBeenSeen: bool
     }
     type t
+    type victory = Active of t | Victory of bool
     val empty_board : unit -> t
     val search : position -> t -> (piece option)
     val is_member : position -> t -> bool
@@ -30,7 +31,7 @@ module type Board = sig
     val string_from_piece : piece -> string
     val get_possible_moves : t -> bool -> piece -> position -> position list
     val is_valid_move : t -> bool -> position -> position -> (bool * string)
-    val make_move : t -> position -> position -> (t * piece list)
+    val make_move : t -> position -> position -> (victory * piece list * string)
     val get_list_all_pieces: unit -> piece list
     val equal_board : t -> t -> bool
 end
@@ -41,8 +42,8 @@ module GameBoard : Board = struct
 
     type position = int * int
 
-    (* piece.player = true -> AI
-     * piece.player = false -> User *)
+    (* piece.player = true -> User
+     * piece.player = false -> AI *)
     type piece = {
         rank : int;
         player : bool;
@@ -50,6 +51,8 @@ module GameBoard : Board = struct
     }
 
     type t = (piece option) BoardMap.t
+
+    type victory = Active of t | Victory of bool
 
     type dir = N | E | S | W
 
@@ -223,43 +226,57 @@ module GameBoard : Board = struct
         | h::[] ->
             if h.player then
                 let p_win = remove_optional (search pos_two (fst tup)) in
-                "User's "^(string_from_piece p_win)^" defeated the AI's"
-                ^(string_from_piece h)^"! User's piece is at "
-                ^(string_from_tuple pos_two)^" and AI's piece has been taken"
-                ^" from the baord."
-            else
-                let p_win = remove_optional (search pos_two (fst tup)) in
                 "AI's "^(string_from_piece p_win)^" defeated the User's"
                 ^(string_from_piece h)^"! AI's piece is at "
                 ^(string_from_tuple pos_two)^" and User's piece has been taken"
                 ^" from the board."
+            else
+                let p_win = remove_optional (search pos_two (fst tup)) in
+                "User's "^(string_from_piece p_win)^" defeated the AI's"
+                ^(string_from_piece h)^"! User's piece is at "
+                ^(string_from_tuple pos_two)^" and AI's piece has been taken"
+                ^" from the board."
+                
         | h1::h2::[] ->
             "Both the user and the AI's "^(string_from_piece h1)^" have been"
             ^" taken from the board."
         | _ -> failwith "Invalid captured pieces list given"
 
+    let check_if_winner lst = 
+        match lst with 
+        | [] -> false
+        | h1::[] -> if h1.rank = 11 then true else false
+        | _ -> false
+
     (* See board.mli file *)
     let make_move (board:t) (pos_one:position) (pos_two:position)
-            : t * piece list =
-        let changed_tuple =
+            : (victory * piece list * string) =
+        let (new_board, captured) =
             (match (search pos_two board) with
             | None ->
                 let temp_board =
                             add_mapping pos_two (search pos_one board) board in
                 ((add_mapping pos_one None temp_board), [])
             | Some piece -> execute_conflict board piece pos_one pos_two) in
-        let msg = get_msg pos_one pos_two changed_tuple in
-        let p_one = remove_optional (search pos_two (fst changed_tuple)) in
-        let _ = print_endline ("Moved "
-                                ^(string_from_piece p_one)^"from "
+        let msg = get_msg pos_one pos_two (new_board, captured) in
+        let p_one = remove_optional (search pos_two new_board) in
+        let move_msg = ("Moved "^(string_from_piece p_one)^"from "
                                 ^(string_from_tuple pos_one)
                                 ^" to "^(string_from_tuple pos_two)^"with no "
-                                ^"conflicts!") in
-        let _ = print_endline msg in
-        changed_tuple
+                                ^"conflicts!") in 
+        if (check_if_winner captured) then 
+            let winner = (List.hd captured).player in 
+            let congrats = 
+                (if winner then 
+                    "Congrats! You won the game!"
+                else
+                    "The AI won the game! Better luck next time!") in 
+            (Victory ((List.hd captured).player), captured, congrats)
+        else 
+            (Active (new_board), captured, move_msg^msg)
 
     let get_list_all_pieces () =
-        let p       = {rank=0; player=false; hasBeenSeen=false} in
+        let p       = {rank=0; player=true; hasBeenSeen=false} in
         let col     = {p with rank=8} in
         let major   = {p with rank=7} in
         let cap     = {p with rank=6} in
@@ -280,17 +297,12 @@ module GameBoard : Board = struct
                         scout; scout] in
         let spy_list = [{p with rank=1}] in
         let flag_lst = [{p with rank=11}] in
-        flag_lst @ bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @ cap_list @
-        lieut_list @ serg_list @ mine_list @ sco_list @ spy_list
+        flag_lst @ bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @ 
+        cap_list @ lieut_list @ serg_list @ mine_list @ sco_list @ spy_list
 
     (*[equal_board b1 b2] is true when b1 are the same size and have the same
      * positions and pieces binded to positions and false otherwise
      *)
     let equal_board b1 b2 = BoardMap.equal (=) b1 b2
-        (* let sizeb1 = board_fold (fun k v b -> b + 1) b1 0 in
-        let sizeb2 = board_fold (fun k v b -> b + 1) b2 0 in
-        let same_map = board_fold
-            (fun k v b -> (try v = search k b2 with _ -> false) && b) b1 true in
-        ((sizeb1 = sizeb2) && same_map) *)
 
 end

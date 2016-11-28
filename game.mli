@@ -1,5 +1,9 @@
 (* [board] represents the type of a Board *)
 type board = Board.GameBoard.t
+type game_piece = Board.GameBoard.piece
+
+val user_pieces_lost : game_piece array
+val ai_pieces_lost : game_piece array
 
 (**
  * [setup_game] creates the board that exists at the start of gameplay; it
