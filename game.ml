@@ -6,8 +6,14 @@ exception Illegal
 type board = t
 type game_piece = piece
 
-let user_pieces = failwith "Unimplemented"
-let ai_pieces = failwith "Unimplemented"
+let user_counter = 
+    let c = ref (-1) in 
+    fun () -> c := !c+1; !c
+let ai_counter = 
+    let c = ref (-1) in 
+    fun () -> c := !c+1; !c
+let user_pieces_lost = Array.make 40 {rank=12; player=true; hasBeenSeen=false} 
+let ai_pieces_lost = Array.make 40 {rank=12; player=true; hasBeenSeen=false} 
 
 let rec fill_rows board acc =
     if acc=10
@@ -78,17 +84,40 @@ let tuple_from_string str =
     let y = int_of_char (String.get str 1) in 
     (x, y)
 
+let append_to_cap lst = 
+    match lst with 
+    | [] -> () 
+    | h::[] -> 
+        if h.player then 
+            let index = user_counter () in 
+            (user_pieces_lost.(index) <- h)
+        else
+            let index = ai_counter () in 
+            (ai_pieces_lost.(index) <- h)
+    | h1::h2::[] -> 
+        if h1.player then 
+            let index = user_counter () in 
+            let index2 = user_counter () in 
+            (user_pieces_lost.(index) <- h1);
+            (user_pieces_lost.(index2) <- h2)
+        else
+            let index = ai_counter () in 
+            let index2 = ai_counter () in 
+            (user_pieces_lost.(index) <- h1);
+            (user_pieces_lost.(index2) <- h2)
+    | _ -> failwith "Invalid captured pieces?"
+
 let execute_movement board num1 num2 = 
     let pos_one = tuple_from_string num1 in 
     let pos_two = tuple_from_string num2 in 
     let valid_move = is_valid_move board false pos_one pos_two in 
     if (fst valid_move) then 
         let board_tuple = make_move board pos_one pos_two in 
-        failwith "Unimplemented"
+        let _ = append_to_cap (snd board_tuple) in 
+        fst board_tuple
     else
         let _ = print_message (snd valid_move) in 
         raise Illegal  
-
 
 let is_num pos_one pos_two = 
     if (String.length pos_one) = 2 then 
@@ -115,4 +144,5 @@ let rec play (board:board) : board=
     let user_tuple = parse_user_input user_input in 
     let user_board = try (handle_user_input user_tuple board) with 
                             | Illegal -> (play board) in 
-    user_board
+    let ai_moved = choose_best_board user_board in 
+    (play ai_moved)
