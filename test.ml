@@ -181,8 +181,8 @@ let tests = "ai tests" >::: [
         (get_moveable_init flag_top_row false));
 
     "AI get_moveable_init 6" >:: (fun _ -> assert_equal
-        []
-        (get_moveable_init flag_top_row false));
+        [(0,3)]
+        (get_moveable_init cap_first_row_enemy true));
     ]
 
 
