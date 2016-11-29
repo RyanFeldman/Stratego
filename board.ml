@@ -286,11 +286,15 @@ module GameBoard : Board = struct
                 ((add_mapping pos_one None temp_board), [])
             | Some piece -> execute_conflict board piece pos_one pos_two) in
         let msg = get_msg pos_one pos_two (new_board, captured) in
-        let p_one = remove_optional (search pos_two new_board) in
-        let move_msg = ("Moved "^(string_from_piece p_one)^"cfrom "
+        let p_one = remove_optional (search pos_one board) in
+        let move_msg = 
+            if p_one.player then 
+                ("Moved "^(string_from_piece p_one)^" from "
                                 ^(string_from_tuple pos_one)
-                                ^" to "^(string_from_tuple pos_two)^" with no "
-                                ^"conflicts!\n") in
+                                ^" to "^(string_from_tuple pos_two)) 
+            else 
+                ("Moved piece from "^(string_from_tuple pos_one)
+                                ^" to "^(string_from_tuple pos_two)) in 
         if (check_if_winner captured) then
             let winner = (List.hd captured).player in
             let congrats =
