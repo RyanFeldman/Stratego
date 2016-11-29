@@ -17,7 +17,7 @@ let ai_pieces_lost = Array.make 40 {rank=12; player=true; hasBeenSeen=false}
 
 let rec none_whole_board board pos=
     match pos with
-    |(9,9) -> board
+    |(0,10) -> board
     |(10,y) -> none_whole_board board (0, y+1)
     |(x,y) -> let brd = add_mapping (x,y) None board
                 in none_whole_board brd (x+1,y)
