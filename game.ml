@@ -43,7 +43,7 @@ let rec get_user_input (board:board) (piece:piece) : board =
                             ^(string_from_piece piece)^ "? (ex. 00)");
     let user_input = read_line () in
     let (x, y) = parse_user_input user_input in
-    if (y > 4 || y < 0)
+    if (y > 3 || y < 0)
         then failwith "Invalid y"
     else
         if (x < 0 || x > 9)
