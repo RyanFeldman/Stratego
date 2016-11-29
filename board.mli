@@ -105,7 +105,7 @@ module type Board = sig
      * and gives back a list of possible positions that piece can move.
      * Requires:
      *  - t : board
-     *  - bool : true if AI, false otherwise
+     *  - bool : true if user, false otherwise
      *  - piece : piece record that is on the board
      *  - position : position of piece on the board
      *)
@@ -119,7 +119,7 @@ module type Board = sig
      * false with the reason why to display to the user. Empty if true.
      * Requires:
      *  - t : board object
-     *  - bool : true if AI, false otherwise
+     *  - bool : true if user, false otherwise
      *  - pos1 : piece initial position
      *  - pos2 : piece final position
      *)
@@ -141,7 +141,7 @@ module type Board = sig
     val get_list_all_pieces: unit -> piece list
 
     (**
-     * [equal_board b1 b2] is true iff b1 maps the same positions to the same 
+     * [equal_board b1 b2] is true iff b1 maps the same positions to the same
      * piece options as b2. False otherwise.
      *)
     val equal_board: t -> t -> bool

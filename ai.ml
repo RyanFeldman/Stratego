@@ -86,7 +86,7 @@ let rec random_fill board filled remaining pos =
    *)
   let ai_battle p1 p2 =
     match p1.rank, p2.rank with
-    | _, _ when p2.player -> failwith "ai shouldn't battle it's own piece"
+    | _, _ when (not p2.player) -> failwith "ai shouldn't battle it's own piece"
     | 3,0 -> Some p1
     | _ , 0 -> Some p2
     | _ , 11 -> Some p1
@@ -135,8 +135,8 @@ let rec random_fill board filled remaining pos =
   let score board =
     let f piece a = (match piece with
         |None -> a
-        |Some p when p.player -> a+(get_value p.rank)
-        |Some p -> a-(get_value p.rank)) in
+        |Some p when p.player -> a-(get_value p.rank)
+        |Some p -> a+(get_value p.rank)) in
     board_fold (fun k v ac -> f v ac) board 0
 
 
@@ -152,7 +152,7 @@ let rec random_fill board filled remaining pos =
     let score = ref orig_score in
     let (victory, captured, str) = make_move board pos1 pos2 in
     let () = List.iter
-              (fun x-> if x.player then score := !score + x.rank else
+              (fun x-> if (not x.player) then score := !score + x.rank else
               score := !score - x.rank) captured in
     score
 
@@ -232,7 +232,7 @@ let get_valid_boards board player =
     let moveable = get_moveable_init board player in
     let moves = List.fold_left
         (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
-    if player then List.fold_left
+    if (not player) then List.fold_left
         (fun a (p1,p2) -> (ai_move board p1 p2, (p1,p2))::a) [] moves
     else
         let new_board pos1 pos2 = match make_move board pos1 pos2 with
@@ -243,26 +243,26 @@ let get_valid_boards board player =
 
 
 
-(* [minimax board max depth] (:int*(position*position)) is the resulting
+(* [minimax board min depth] (:int*(position*position)) is the resulting
  *(score, move) from the minimax algorithm. The move is either the move
  * that minimaxes the board or ((-1,-1),(-1,-1)) if there are no valid moves
  * Requires:
- *    max : bool,true when you want the maximum score
+ *    min : bool,true when you want the minimum score (player = user)
  *    board: board
  *    depth : int
  * TODO: get rid of prints in make_move
  *)
-  let rec minimax board max depth =
+  let rec minimax board min depth =
       let no_move = ((-1,-1), (-1,-1)) in
       let worst_min = (2000, no_move) in
       let worst_max = (-2000, no_move) in
       let tie = (0, no_move) in
       if depth = 0 then (score board, no_move) else
-      match get_valid_boards board max, max with
-      | [], true  -> if get_valid_boards board false =[] then tie else worst_max
-      | [], false -> if get_valid_boards board true = [] then tie else worst_min
-      | lst, true -> List.fold_left (fun a x -> get_max a x depth) worst_max lst
-      | lst,false -> List.fold_left (fun a x -> get_min a x depth) worst_min lst
+      match get_valid_boards board min, min with
+      | [], true  -> if get_valid_boards board false =[] then tie else worst_min
+      | [], false -> if get_valid_boards board true = [] then tie else worst_max
+      | lst, true -> List.fold_left (fun a x -> get_min a x depth) worst_min lst
+      | lst,false -> List.fold_left (fun a x -> get_max a x depth) worst_max lst
 
 
   (* [get_max (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
@@ -271,7 +271,7 @@ let get_valid_boards board player =
    * in the case of a tie, [m2] is chosen
     *)
   and get_max (s1, m1) (b2, m2) depth =
-      let (s2, _) = minimax b2 false (depth - 1) in
+      let (s2, _) = minimax b2 true (depth - 1) in
       if s1 > s2 then (s1, m1) else (s2, m2)
 
   (* [get_min (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
@@ -280,14 +280,14 @@ let get_valid_boards board player =
    * in the case of a tie, [m2] is chosen
   *)
   and get_min (s1, m1) (b2, m2) depth =
-      let (s2, _) = minimax b2 true (depth-1) in
+      let (s2, _) = minimax b2 false (depth-1) in
       if s1 < s2 then (s1,m1) else (s2, m2)
 
   (* [choose_best_board] takes in a list of boards available to the AI
    * and picks the one with the highest score (relative to the AI)
    *)
   let choose_best_board board =
-    let move = snd (minimax board true 2) in
+    let move = snd (minimax board false 1) in
     if move = ((-1,-1),  (-1,-1)) then
         (Victory true, [], "")
     else
