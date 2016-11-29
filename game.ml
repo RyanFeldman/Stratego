@@ -126,7 +126,7 @@ let append_to_cap lst =
 let execute_movement board num1 num2 =
     let pos_one = tuple_from_string num1 in
     let pos_two = tuple_from_string num2 in
-    let valid_move = is_valid_move board false pos_one pos_two in
+    let valid_move = is_valid_move board true pos_one pos_two in
     if (fst valid_move) then
         let (new_board, captured, str) = make_move board pos_one pos_two in
         let _ = append_to_cap (captured) in
