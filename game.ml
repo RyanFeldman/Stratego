@@ -17,7 +17,7 @@ let ai_pieces_lost = Array.make 40 {rank=12; player=true; hasBeenSeen=false}
 
 let rec none_whole_board board pos=
     match pos with
-    |(9,9) -> board
+    |(10,9) -> board
     |(10,y) -> none_whole_board board (0, y+1)
     |(x,y) -> let brd = add_mapping (x,y) None board
                 in none_whole_board brd (x+1,y)
@@ -38,9 +38,7 @@ let parse_user_input (c:string) : position =
     (x_one, y_one)
 
 let rec get_user_input (board:board) (piece:piece) : board =
-
     display_board board;
-    let user_inpddut = read_line () in
     print_message ("Where would you like to place your "
                             ^(string_from_piece piece)^ "? (ex. 00)");
     let user_input = read_line () in
