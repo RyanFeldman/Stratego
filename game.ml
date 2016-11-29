@@ -68,13 +68,11 @@ let rec instantiate_user_board board = function
     instantiate_user_board new_board t
 
 let setup_game () =
-    let new_board = (*empty_board ()*)none_whole_board (empty_board ()) (0,0) in
+    let new_board = none_whole_board (empty_board ()) (0,0) in
     let () = print_endline("marker one") in
-    (*let () = display_board new_board in*)
     let full_pieces = get_list_all_pieces () in
     let user_board = instantiate_user_board new_board full_pieces in
-    (*let gap_filled_board = fill_rows user_board 0 in*)
-    let start_board = setup_board (*gap_filled_board*)user_board in
+    let start_board = setup_board user_board in
     let () = display_board start_board in
     start_board
 
