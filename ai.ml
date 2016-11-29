@@ -148,7 +148,7 @@ let rec random_fill board filled remaining pos =
    *)
   let get_score_from_move board orig_score pos1 pos2 =
     let score = ref orig_score in
-    let (new_board, captured) = make_move board pos1 pos2 in
+    let (victory, captured, str) = make_move board pos1 pos2 in
     let () = List.iter
               (fun x-> if x.player then score := !score + x.rank else
               score := !score - x.rank) captured in
@@ -234,8 +234,12 @@ let get_valid_boards board player =
         (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
     if player then List.fold_left
         (fun a (p1,p2) -> (ai_move board p1 p2, (p1,p2))::a) [] moves
-    else List.fold_left
-        (fun a (p1,p2) -> (fst (make_move board p1 p2),(p1,p2))::a) [] moves
+    else
+        let new_board pos1 pos2 = match make_move board pos1 pos2 with
+                        |(Active brd, _, _) -> brd
+                        |_ -> failwith "make_move should return Active" in
+        List.fold_left
+        (fun a (p1,p2) -> (new_board p1 p2,(p1,p2))::a) [] moves
 
 
 
@@ -284,7 +288,12 @@ let get_valid_boards board player =
    *)
   let choose_best_board board =
     let move = snd (minimax board true 2) in
-    if move = ((-1,-1),  (-1,-1)) then failwith "something went wrong with ai"
-    else make_move board (fst move) (snd move)
+    if move = ((-1,-1),  (-1,-1)) then
+        failwith "something went wrong with ai"
+    else
+        match make_move board (fst move) (snd move) with
+        |(Active b,_,_) -> b
+        |_ -> failwith "First element should be Active variant"
+        (*fst (make_move board (fst move) (snd move))*)
 
 end
