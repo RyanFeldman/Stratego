@@ -152,8 +152,8 @@ let tests = "ai tests" >::: [
     "AI setup test" >:: (fun _ -> assert_equal ()
         (display_board (setup_board (none_whole_board (empty_board ()) (0,0)))));
 
-    "Empty 10 by 10 None display" >:: (fun _ -> assert_equal ()
-        (display_board (none_whole_board (empty_board ()) (0,0))));
+    (*"Empty 10 by 10 None display" >:: (fun _ -> assert_equal ()
+        (display_board (none_whole_board (empty_board ()) (0,0))));*)
 
     "equal_boards" >:: (fun _ -> assert_equal
         true

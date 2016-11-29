@@ -150,7 +150,7 @@ module GameBoard : Board = struct
             | None -> (false, "There's nothing at (" ^ (string_of_int (fst pos))
                                 ^ ", " ^ (string_of_int (snd pos)) ^ ")!")
             | Some x ->
-                if x.player = b then (true, "")
+                if x.player <> b then (true, "")
                 else (false, "That's not your piece!")
 
     (* See board.mli *)
@@ -191,39 +191,39 @@ module GameBoard : Board = struct
      *)
     let execute_conflict board p_two pos_one pos_two =
         let p_one = remove_optional (search pos_one board) in
-        match (p_one.rank, p_two.rank) with 
-        | (1, 10) -> 
+        match (p_one.rank, p_two.rank) with
+        | (1, 10) ->
             let temp_board = add_mapping pos_one None board in
             let seen_piece = {p_one with hasBeenSeen=true} in
             let new_board = add_mapping pos_two (Some seen_piece) temp_board in
             (new_board, [p_two])
-        | (3, 0) -> 
+        | (3, 0) ->
             let temp_board = add_mapping pos_one None board in
             let seen_piece = {p_one with hasBeenSeen=true} in
             let new_board = add_mapping pos_two (Some seen_piece) temp_board in
             (new_board, [p_two])
-        | (_, 0) -> 
+        | (_, 0) ->
             let temp_board = add_mapping pos_one None board in
             let p = remove_optional (search pos_two temp_board) in
             let seen_p = {p with hasBeenSeen=true} in
             let new_board = add_mapping pos_two (Some seen_p) temp_board in
             (new_board, [p_one])
-        | (_, 11) -> 
+        | (_, 11) ->
             let temp_board = add_mapping pos_one None board in
             let seen_piece = {p_one with hasBeenSeen=true} in
             let new_board = add_mapping pos_two (Some seen_piece) temp_board in
             (new_board, [p_two])
-        | (r1, r2) when r1 < r2 -> 
+        | (r1, r2) when r1 < r2 ->
             let temp_board = add_mapping pos_one None board in
             let p = remove_optional (search pos_two temp_board) in
             let seen_p = {p with hasBeenSeen=true} in
             let new_board = add_mapping pos_two (Some seen_p) temp_board in
             (new_board, [p_one])
-        | (r1, r2) when r1 = r2 -> 
+        | (r1, r2) when r1 = r2 ->
             let temp_board = add_mapping pos_one None board in
             let new_board = add_mapping pos_two None temp_board in
             (new_board, [p_one; p_two])
-        | (r1, r2) when r1 > r2 -> 
+        | (r1, r2) when r1 > r2 ->
             let temp_board = add_mapping pos_one None board in
             let seen_piece = {p_one with hasBeenSeen=true} in
             let new_board = add_mapping pos_two (Some seen_piece) temp_board in
@@ -257,14 +257,14 @@ module GameBoard : Board = struct
                 ^(string_from_piece h)^"! User's piece is at "
                 ^(string_from_tuple pos_two)^" and AI's piece has been taken"
                 ^" from the board."
-                
+
         | h1::h2::[] ->
             "Both the user and the AI's "^(string_from_piece h1)^" have been"
             ^" taken from the board."
         | _ -> failwith "Invalid captured pieces list given"
 
-    let check_if_winner lst = 
-        match lst with 
+    let check_if_winner lst =
+        match lst with
         | [] -> false
         | h1::[] -> if h1.rank = 11 then true else false
         | _ -> false
@@ -284,16 +284,16 @@ module GameBoard : Board = struct
         let move_msg = ("Moved "^(string_from_piece p_one)^"from "
                                 ^(string_from_tuple pos_one)
                                 ^" to "^(string_from_tuple pos_two)^"with no "
-                                ^"conflicts!") in 
-        if (check_if_winner captured) then 
-            let winner = (List.hd captured).player in 
-            let congrats = 
-                (if winner then 
+                                ^"conflicts!") in
+        if (check_if_winner captured) then
+            let winner = (List.hd captured).player in
+            let congrats =
+                (if winner then
                     "Congrats! You won the game!"
                 else
-                    "The AI won the game! Better luck next time!") in 
+                    "The AI won the game! Better luck next time!") in
             (Victory ((List.hd captured).player), captured, congrats)
-        else 
+        else
             (Active (new_board), captured, move_msg^msg)
 
     let get_list_all_pieces () =
@@ -318,7 +318,7 @@ module GameBoard : Board = struct
                         scout; scout] in
         let spy_list = [{p with rank=1}] in
         let flag_lst = [{p with rank=11}] in
-        flag_lst @ bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @ 
+        flag_lst @ bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @
         cap_list @ lieut_list @ serg_list @ mine_list @ sco_list @ spy_list
 
     (*[equal_board b1 b2] is true when b1 are the same size and have the same

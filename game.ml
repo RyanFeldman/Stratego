@@ -35,9 +35,12 @@ let rec fill_rows board acc =
 
 let parse_user_input (c:string) : position =
     let trimmed_c = c |> String.trim in
-    let x_one = (String.get trimmed_c 0) |> int_of_char in
-    let y_one = (String.get trimmed_c 1) |> int_of_char in
-    (x_one-48, y_one-48)
+    if (String.length trimmed_c) = 2 then
+        let x_one = (String.get trimmed_c 0) |> int_of_char in
+        let y_one = (String.get trimmed_c 1) |> int_of_char in
+        (x_one-48, y_one-48)
+    else
+        failwith "Invalid string length"
 
 let rec get_user_input (board:board) (piece:piece) : board =
     display_board board;
@@ -61,25 +64,23 @@ let rec instantiate_user_board board = function
     let new_board =
         (try (get_user_input board h) with
             | _ ->
-                let _ = print_message ("Sorry, your input must be in the"
+                let _ = print_message ("\nSorry, your input must be in the"
                     ^" form 'xy' to place your piece at (x, y)! As a reminder,"
                     ^" you must place your pieces in the first 4 rows and two "
                     ^"pieces cannot be placed on top of each other to start."
-                    ^"\n\n\n") in
+                    ^"\n\n") in
                     board) in
-    if equal_board board new_board then
-        instantiate_user_board board h::t
+    if (equal_board new_board board) then
+        instantiate_user_board board (h::t)
     else
         instantiate_user_board new_board t
 
 let setup_game () =
-    let new_board = (*empty_board ()*)none_whole_board (empty_board ()) (0,0) in
+    let new_board = none_whole_board (empty_board ()) (0,0) in
     let () = print_endline("marker one") in
-    (*let () = display_board new_board in*)
     let full_pieces = get_list_all_pieces () in
     let user_board = instantiate_user_board new_board full_pieces in
-    (*let gap_filled_board = fill_rows user_board 0 in*)
-    let start_board = setup_board (*gap_filled_board*)user_board in
+    let start_board = setup_board user_board in
     let () = display_board start_board in
     start_board
 

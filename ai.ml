@@ -178,24 +178,22 @@ let rec random_fill board filled remaining pos =
                |Some p -> p
                | _ -> failwith "Should be a piece here" in
     if (piece.rank = 0 || piece.rank = 11) then
-      let () = print_endline("bomb or flag in has_move") in
       false
     else
-    let () = print_endline("no bomb or flag") in
-    let (x,y) = pos in
-      let can_up = (match (x,y+1) with
-                 |(x',y') when y' > 10 -> false
-                 |(x',y') -> can_move_to board (x',y') player) in
-      let can_down = (match (x,y-1) with
-                   |(x',y') when y' < 0 -> false
+      let (x,y) = pos in
+        let can_up = (match (x,y+1) with
+                   |(x',y') when y' > 10 -> false
                    |(x',y') -> can_move_to board (x',y') player) in
-      let can_left = (match (x-1,y) with
-                   |(x',y') when x < 0 -> false
-                   |(x',y') -> can_move_to board (x',y') player) in
-      let can_right = (match (x+1,y) with
-                    |(x',y') when x > 10 -> false
-                    |(x',y') -> can_move_to board (x',y') player) in
-      (can_up || can_down || can_left || can_right)
+        let can_down = (match (x,y-1) with
+                     |(x',y') when y' < 0 -> false
+                     |(x',y') -> can_move_to board (x',y') player) in
+        let can_left = (match (x-1,y) with
+                     |(x',y') when x < 0 -> false
+                     |(x',y') -> can_move_to board (x',y') player) in
+        let can_right = (match (x+1,y) with
+                      |(x',y') when x > 10 -> false
+                      |(x',y') -> can_move_to board (x',y') player) in
+        (can_up || can_down || can_left || can_right)
 
 
   (* [get_moveable_init board] returns the list of positions in [board] that
