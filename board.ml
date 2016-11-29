@@ -155,7 +155,7 @@ module GameBoard : Board = struct
             | None -> (false, "There's nothing at (" ^ (string_of_int (fst pos))
                                 ^ ", " ^ (string_of_int (snd pos)) ^ ")!")
             | Some x ->
-                if x.player <> b then (true, "")
+                if x.player = b then (true, "")
                 else (false, "That's not your piece!")
 
     (* See board.mli *)
@@ -252,13 +252,13 @@ module GameBoard : Board = struct
         | h::[] ->
             if h.player then
                 let p_win = remove_optional (search pos_two (fst tup)) in
-                "AI's "^(string_from_piece p_win)^" defeated the User's"
+                "AI's "^(string_from_piece p_win)^" defeated the User's "
                 ^(string_from_piece h)^"! \nAI's piece is at "
                 ^(string_from_tuple pos_two)^" and User's piece has been taken"
                 ^" from the board."
             else
                 let p_win = remove_optional (search pos_two (fst tup)) in
-                "User's "^(string_from_piece p_win)^" defeated the AI's"
+                "User's "^(string_from_piece p_win)^" defeated the AI's "
                 ^(string_from_piece h)^"!\n User's piece is at "
                 ^(string_from_tuple pos_two)^" and AI's piece has been taken"
                 ^" from the board."
@@ -287,9 +287,9 @@ module GameBoard : Board = struct
             | Some piece -> execute_conflict board piece pos_one pos_two) in
         let msg = get_msg pos_one pos_two (new_board, captured) in
         let p_one = remove_optional (search pos_two new_board) in
-        let move_msg = ("Moved "^(string_from_piece p_one)^"from "
+        let move_msg = ("Moved "^(string_from_piece p_one)^"cfrom "
                                 ^(string_from_tuple pos_one)
-                                ^" to "^(string_from_tuple pos_two)^"with no "
+                                ^" to "^(string_from_tuple pos_two)^" with no "
                                 ^"conflicts!\n") in
         if (check_if_winner captured) then
             let winner = (List.hd captured).player in
