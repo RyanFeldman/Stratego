@@ -39,8 +39,27 @@ let parse_user_input (c:string) : position =
         let x_one = (String.get trimmed_c 0) |> int_of_char in
         let y_one = (String.get trimmed_c 1) |> int_of_char in
         (x_one-48, y_one-48)
+    (*get rid of the following 2 lines before submission*)
+    else if trimmed_c = "random" then
+        (-10,-10)
     else
         failwith "Invalid string length"
+(*remove this before submission*)
+let next_pos = function
+  |(9,y) -> (0, y+1)
+  |(x,y) -> (x+1, y)
+
+(*remove this before submission*)
+let rec random_fill board filled remaining pos =
+  match remaining with
+  |[] -> board
+  |h::t ->
+    if List.mem pos filled then
+      random_fill board filled remaining (next_pos pos)
+    else
+      let new_board = add_mapping pos (Some h) board in
+      random_fill new_board (pos::filled) t (next_pos pos)
+
 
 let rec get_user_input (board:board) (piece:piece) : board =
     display_board board;
@@ -48,15 +67,16 @@ let rec get_user_input (board:board) (piece:piece) : board =
                             ^(string_from_piece piece)^ "? (ex. 00)");
     let user_input = read_line () in
     let (x, y) = parse_user_input user_input in
-    if (y > 3 || y < 0)
-        then failwith "Invalid y"
+    (*get rid of the following 2 lines before submission and change else if
+     *to an if*)
+    if (x,y) = (-10,-10) then
+        (add_mapping (-10,-10) None board)
+    else if (y > 3 || y < 0 || x < 0 || x > 9)
+        then failwith "Invalid xy coordinate input"
     else
-        if (x < 0 || x > 9)
-            then failwith "Invalid x"
-        else
-            match (search (x, y) board) with
-            | None -> (add_mapping (x, y) (Some piece) board)
-            | Some p -> failwith "A piece is already there!"
+        match (search (x, y) board) with
+        | None -> (add_mapping (x, y) (Some piece) board)
+        | Some p -> failwith "A piece is already there!"
 
 let rec instantiate_user_board board = function
 | [] -> board
@@ -70,14 +90,17 @@ let rec instantiate_user_board board = function
                     ^"pieces cannot be placed on top of each other to start."
                     ^"\n\n") in
                     board) in
-    if (equal_board new_board board) then
+    (*get rid of the following 2 lines before submission and change the else
+     *if to just if*)
+    if (search (-10,-10) new_board = None) then
+        random_fill (none_whole_board (empty_board ()) (0,0)) [] (get_list_all_pieces ()) (0,0)
+    else if (equal_board new_board board) then
         instantiate_user_board board (h::t)
     else
         instantiate_user_board new_board t
 
 let setup_game () =
     let new_board = none_whole_board (empty_board ()) (0,0) in
-    let () = print_endline("marker one") in
     let full_pieces = get_list_all_pieces () in
     let user_board = instantiate_user_board new_board full_pieces in
     let start_board = setup_board user_board in
@@ -126,7 +149,7 @@ let append_to_cap lst =
 let execute_movement board num1 num2 =
     let pos_one = tuple_from_string num1 in
     let pos_two = tuple_from_string num2 in
-    let valid_move = is_valid_move board false pos_one pos_two in
+    let valid_move = is_valid_move board true pos_one pos_two in
     if (fst valid_move) then
         let (new_board, captured, str) = make_move board pos_one pos_two in
         let _ = append_to_cap (captured) in

@@ -8,10 +8,12 @@ let () =
   print_string ">";
   let user_input = read_line () in
   let trimmed = user_input |> String.trim |> String.lowercase_ascii in
-  let () = if (trimmed = "rules") then (
-    Display.TextDisplay.display_rules ();
-    print_endline "\nInput anything to continue...";
-    let _ = read_line () in ()) else () in
+  let () =
+      if (trimmed = "rules") then (
+          Display.TextDisplay.display_rules ();
+          print_endline "\nInput anything to continue...";
+          let _ = read_line () in ())
+      else () in
   let initial_board = setup_game () in
   let _ = play initial_board in
   ()
