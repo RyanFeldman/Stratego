@@ -43,7 +43,6 @@ let parse_user_input (c:string) : position =
         failwith "Invalid string length"
 
 let rec get_user_input (board:board) (piece:piece) : board =
-    display_board board;
     print_message ("Where would you like to place your "
                             ^(string_from_piece piece)^ "? (ex. 00)");
     let user_input = read_line () in
@@ -73,11 +72,13 @@ let rec instantiate_user_board board = function
     if (equal_board new_board board) then
         instantiate_user_board board (h::t)
     else
+        let () = display_board new_board in 
         instantiate_user_board new_board t
 
 let setup_game () =
     let new_board = none_whole_board (empty_board ()) (0,0) in
     let () = print_endline("marker one") in
+    display_board new_board;
     let full_pieces = get_list_all_pieces () in
     let user_board = instantiate_user_board new_board full_pieces in
     let start_board = setup_board user_board in
@@ -159,7 +160,14 @@ let handle_user_input cmd board =
         print_list (Array.to_list ai_pieces_lost);
         Active (board)
     | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
-    | _ -> failwith "Unimplemented"
+    | _ -> 
+        let () = (print_message ("Sorry, I don't quite understant your input. "^
+                    "Remember: To move, type the position of the piece you want"^
+                    " to move followed by the target location (ex. 00 01). At "^
+                    "any time, type \"table\" to see the pieces reference table"^
+                    ", or type \"captured\" to see the pieces that have been "^
+                    "captured.")) in 
+        raise Illegal
 
 let check_winner b =
     match b with
@@ -172,7 +180,6 @@ let strip_variant var =
     | Active board -> board
 
 let rec play (board:board) : board =
-    let _ = display_board board in
     let _ = print_message "It's your turn! What would you like to do?" in
     let user_input = read_line () in
     let user_tuple = parse_user_input user_input in
@@ -182,12 +189,18 @@ let rec play (board:board) : board =
     if win then
         board
     else
-        let stripped_board = (strip_variant user_board) in
-        let (ai_board, captured, msg) = choose_best_board stripped_board in
-        let ai_win = check_winner ai_board in
-        if ai_win then
-            (strip_variant ai_board)
-        else
-            let _ = append_to_cap captured in
-            let _ = print_message msg in
-            play (strip_variant ai_board)
+        if (equal_board (strip_variant user_board) board) then 
+            let _ = display_board board in
+            play (strip_variant user_board) 
+        else 
+
+            let stripped_board = (strip_variant user_board) in
+            let (ai_board, captured, msg) = choose_best_board stripped_board in
+            let ai_win = check_winner ai_board in
+            if ai_win then
+                (strip_variant ai_board)
+            else
+                let _ = append_to_cap captured in
+                let _ = display_board board in
+                let _ = print_message msg in
+                play (strip_variant ai_board)
