@@ -33,9 +33,12 @@ let rec fill_rows board acc =
 
 let parse_user_input (c:string) : position =
     let trimmed_c = c |> String.trim in
-    let x_one = (String.get trimmed_c 0) |> int_of_char in
-    let y_one = (String.get trimmed_c 1) |> int_of_char in
-    (x_one-48, y_one-48)
+    if (String.length trimmed_c) = 2 then 
+        let x_one = (String.get trimmed_c 0) |> int_of_char in
+        let y_one = (String.get trimmed_c 1) |> int_of_char in
+        (x_one-48, y_one-48)
+    else 
+        failwith "Invalid string length"
 
 let rec get_user_input (board:board) (piece:piece) : board =
     display_board board;
@@ -64,8 +67,11 @@ let rec instantiate_user_board board = function
                     ^" you must place your pieces in the first 4 rows and two "
                     ^"pieces cannot be placed on top of each other to start."
                     ^"\n\n") in
-                    instantiate_user_board board (h::t)) in
-    instantiate_user_board new_board t
+                    board) in
+    if (equal_board new_board board) then 
+        instantiate_user_board board (h::t)
+    else 
+        instantiate_user_board new_board t
 
 let setup_game () =
     let new_board = none_whole_board (empty_board ()) (0,0) in
