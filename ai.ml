@@ -6,7 +6,7 @@ module type AI = sig
   type victory = Board.GameBoard.victory
   type piece = Board.GameBoard.piece
   val setup_board : board -> board
-  val choose_best_board : board -> victory
+  val choose_best_board : board -> (victory * piece list * string)
 end
 
 module GameAI : AI = struct
@@ -291,10 +291,10 @@ let get_valid_boards board player =
   let choose_best_board board =
     let move = snd (minimax board true 2) in
     if move = ((-1,-1),  (-1,-1)) then
-        Victory true
+        (Victory true, [], "")
     else
         match make_move board (fst move) (snd move) with
-        |(Active b,_,_) -> Active b
+        |(Active b, captured, str) -> (Active b, captured, str)
         |_ -> failwith "First element should be Active variant"
         (*fst (make_move board (fst move) (snd move))*)
 
