@@ -193,7 +193,6 @@ let rec play (board:board) : board =
             let _ = display_board board in
             play (strip_variant user_board) 
         else 
-
             let stripped_board = (strip_variant user_board) in
             let (ai_board, captured, msg) = choose_best_board stripped_board in
             let ai_win = check_winner ai_board in
@@ -201,6 +200,6 @@ let rec play (board:board) : board =
                 (strip_variant ai_board)
             else
                 let _ = append_to_cap captured in
-                let _ = display_board board in
+                let _ = display_board (strip_variant ai_board) in
                 let _ = print_message msg in
                 play (strip_variant ai_board)
