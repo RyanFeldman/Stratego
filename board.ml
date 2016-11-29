@@ -155,7 +155,7 @@ module GameBoard : Board = struct
             | None -> (false, "There's nothing at (" ^ (string_of_int (fst pos))
                                 ^ ", " ^ (string_of_int (snd pos)) ^ ")!")
             | Some x ->
-                if x.player <> b then (true, "")
+                if x.player = b then (true, "")
                 else (false, "That's not your piece!")
 
     (* See board.mli *)
@@ -287,7 +287,7 @@ module GameBoard : Board = struct
             | Some piece -> execute_conflict board piece pos_one pos_two) in
         let msg = get_msg pos_one pos_two (new_board, captured) in
         let p_one = remove_optional (search pos_two new_board) in
-        let move_msg = ("Moved "^(string_from_piece p_one)^"from "
+        let move_msg = ("Moved "^(string_from_piece p_one)^"cfrom "
                                 ^(string_from_tuple pos_one)
                                 ^" to "^(string_from_tuple pos_two)^"with no "
                                 ^"conflicts!\n") in
