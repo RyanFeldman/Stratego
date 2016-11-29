@@ -183,6 +183,7 @@ let rec random_fill board filled remaining pos =
    * contain a piece that can make 1 or more valid moves.
    *)
   let get_moveable_init board player =
+    let () = print_endline (string_of_bool player) in
     let lst = ref [] in
     let f k = function
       | Some p when p.player = player -> has_move board k player
@@ -208,7 +209,7 @@ let rec random_fill board filled remaining pos =
 let get_valid_boards board player =
     let moveable = get_moveable_init board player in
     let moves = List.fold_left
-        (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
+        (fun a x -> let () = print_endline "moveable" in ((get_moves_piece board x) @ a)) [] moveable in
     if (not player) then List.fold_left
         (fun a (p1,p2) -> (ai_move board p1 p2, (p1,p2))::a) [] moves
     else
@@ -264,7 +265,9 @@ let get_valid_boards board player =
    * and picks the one with the highest score (relative to the AI)
    *)
   let choose_best_board board =
+    let () = print_endline "called" in
     let move = snd (minimax board false 1) in
+    let () = (print_endline ((string_of_int (fst (fst move)))^(string_of_int (snd ( fst move))))) in
     if move = ((-1,-1),  (-1,-1)) then
         (Victory true, [], "")
     else

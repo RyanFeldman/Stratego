@@ -122,6 +122,8 @@ module GameBoard : Board = struct
         let left_list = step board b pos W in
         up_list @ right_list @ bot_list @ left_list
 
+
+
     let get_possible_moves board b piece pos =
         match piece.rank with
         | 0 | 11 -> []
@@ -132,7 +134,10 @@ module GameBoard : Board = struct
             let right = if x=9 then [] else [(x+1, y)] in
             let top = if y=9 then [] else [(x, y+1)] in
             let bot = if y=0 then [] else [(x, y-1)] in
-            left @ right @ top @ bot
+            List.filter (fun a -> match search a board with
+                                | Some p when p.player = piece.player -> false
+                                |_ -> true)
+                (left @ right @ top @ bot)
 
     let in_board pos =
         if (fst pos) < 0 || (fst pos) > 9 then false
@@ -272,6 +277,7 @@ module GameBoard : Board = struct
     (* See board.mli file *)
     let make_move (board:t) (pos_one:position) (pos_two:position)
             : (victory * piece list * string) =
+        let () = print_endline "called make_move" in
         let (new_board, captured) =
             (match (search pos_two board) with
             | None ->
