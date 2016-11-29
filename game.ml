@@ -133,8 +133,15 @@ let is_num pos_one pos_two =
 
 let handle_user_input cmd board = 
     match cmd with 
-    | ("table", "") -> failwith "Unimplemented"
-    | ("captured", "") -> failwith "Unimplemented"
+    | ("table", "") -> 
+        let _ = display_table () in
+        Active (board)
+    | ("captured", "") -> 
+        print_message "User's Pieces Lost:"; 
+        (print_list (Array.to_list user_pieces_lost));
+        print_message "AI's Pieces Lost:";
+        print_list (Array.to_list ai_pieces_lost);
+        Active (board)
     | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
     | _ -> failwith "Unimplemented"
 
