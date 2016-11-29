@@ -17,9 +17,17 @@ module type Display = sig
 	 *)
 	val display_board : board -> unit
 
+  (**
+	 * [print_list] displays a list of pieces to the player
+	 *)
 	val print_list : piece list -> unit
 
+  (**
+   * [display_table] displays a reference table of the pieces to the player
+   *)
 	val display_table : unit -> unit
+
+  val display_rules : unit -> unit
 
 end
 
