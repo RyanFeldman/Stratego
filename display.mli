@@ -5,6 +5,8 @@ module type Display = sig
 	(* [board] is the type of a Board *)
 	type board = Board.GameBoard.t
 
+	type piece = Board.GameBoard.piece
+
 	(**
 	 * [print_message] takes in a string message to the user and displays it
 	 *)
@@ -18,7 +20,7 @@ module type Display = sig
   (**
 	 * [print_list] displays a list of pieces to the player
 	 *)
-	val print_list : Board.GameBoard.piece list -> unit
+	val print_list : piece list -> unit
 
   (**
    * [display_table] displays a reference table of the pieces to the player

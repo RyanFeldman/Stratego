@@ -3,13 +3,17 @@ open Display.TextDisplay
 
 module type AI = sig
   type board = t
+  type victory = Board.GameBoard.victory
+  type piece = Board.GameBoard.piece
   val setup_board : board -> board
-  val choose_best_board : board -> board
+  val choose_best_board : board -> (victory * piece list * string)
 end
 
 module GameAI : AI = struct
 
   type board = t
+  type victory = Board.GameBoard.victory
+  type piece = Board.GameBoard.piece
 
  (*
   * [get_list_all_pieces] returns a piece list containing every piece that
@@ -105,12 +109,6 @@ let rec random_fill board filled remaining pos =
     | Some p1,Some p2 ->replace_pos board [(pos1, None);(pos2, ai_battle p1 p2)]
 
 
-  (* [choose_best_board] takes in a list of boards available to the AI
-   * and picks the one with the highest score (relative to the AI)
-   *)
-  let choose_best_board board_lst =
-    failwith "unimplemented"
-
   (*[get_value rank] returns the value of a given rank.
    *)
   let get_value = function
@@ -152,47 +150,52 @@ let rec random_fill board filled remaining pos =
    *)
   let get_score_from_move board orig_score pos1 pos2 =
     let score = ref orig_score in
-    let (new_board, captured) = make_move board pos1 pos2 in
+    let (victory, captured, str) = make_move board pos1 pos2 in
     let () = List.iter
               (fun x-> if x.player then score := !score + x.rank else
               score := !score - x.rank) captured in
     score
 
-  (* [is_enemy piece] returns true iff [piece] belongs to the player, not the AI
-   *
-   * Requires: [piece] : piece
+  (* [can_move_to board (x,y) player)] returns true if a piece belonging to
+   * [player] can move to coordinate [(x,y)] on [board]. That is, either there
+   * is an enemy piece at [(x,y)] or no piece is at (x,y)
    *)
-  let is_enemy piece =
-    if piece.player = false then true else false
-
-  let can_move_to board (x,y) =
+  let can_move_to board (x,y) player =
     try
       match search (x,y) board with
       |None -> true
-      |Some piece -> piece.player
+      |Some piece -> player <> piece.player
     with
     |_ -> false
 
-  (* [has_move piece] returns true iff there is 1 or more valid move that the
-   * piece at position [pos] can make on [board].
+  (* [has_move piece] returns true if there is 1 or more valid move that the
+   * piece at position [pos] can make on [board when it is the turn of [player].
+   * i.e. [player] = true means it is the player's turn; [player] = false means
+   * it is the AI's turn.
    *)
-  (*Needs to be fixed...this would return true even if a piece is surrounded
-   *by friendly pieces.*)
-  let has_move board pos =
+  let has_move board pos player=
+    let piece = match search pos board with
+               |Some p -> p
+               | _ -> failwith "Should be a piece here" in
+    if (piece.rank = 0 || piece.rank = 11) then
+      let () = print_endline("bomb or flag in has_move") in
+      false
+    else
+    let () = print_endline("no bomb or flag") in
     let (x,y) = pos in
-    let can_up = (match (x,y+1) with
-               |(x',y') when y' > 10 -> false
-               |(x',y') -> can_move_to board (x',y')) in
-    let can_down = (match (x,y-1) with
-                 |(x',y') when y' < 0 -> false
-                 |(x',y') -> can_move_to board (x',y')) in
-    let can_left = (match (x-1,y) with
-                 |(x',y') when x < 0 -> false
-                 |(x',y') -> can_move_to board (x',y')) in
-    let can_right = (match (x+1,y) with
-                  |(x',y') when x > 10 -> false
-                  |(x',y') -> can_move_to board (x',y')) in
-    (can_up || can_down || can_left || can_right)
+      let can_up = (match (x,y+1) with
+                 |(x',y') when y' > 10 -> false
+                 |(x',y') -> can_move_to board (x',y') player) in
+      let can_down = (match (x,y-1) with
+                   |(x',y') when y' < 0 -> false
+                   |(x',y') -> can_move_to board (x',y') player) in
+      let can_left = (match (x-1,y) with
+                   |(x',y') when x < 0 -> false
+                   |(x',y') -> can_move_to board (x',y') player) in
+      let can_right = (match (x+1,y) with
+                    |(x',y') when x > 10 -> false
+                    |(x',y') -> can_move_to board (x',y') player) in
+      (can_up || can_down || can_left || can_right)
 
 
   (* [get_moveable_init board] returns the list of positions in [board] that
@@ -200,7 +203,9 @@ let rec random_fill board filled remaining pos =
    *)
   let get_moveable_init board player =
     let lst = ref [] in
-    let f k = function | Some p when p.player = player -> true | _ -> false in
+    let f k = function
+      | Some p when p.player = player -> has_move board k player
+      | _ -> false in
     let () = board_iter
       (fun k v -> if f k v then (lst := k::(!lst)) else ()) board in
    !lst
@@ -231,8 +236,12 @@ let get_valid_boards board player =
         (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
     if player then List.fold_left
         (fun a (p1,p2) -> (ai_move board p1 p2, (p1,p2))::a) [] moves
-    else List.fold_left
-        (fun a (p1,p2) -> (fst (make_move board p1 p2),(p1,p2))::a) [] moves
+    else
+        let new_board pos1 pos2 = match make_move board pos1 pos2 with
+                        |(Active brd, _, _) -> brd
+                        |_ -> failwith "make_move should return Active" in
+        List.fold_left
+        (fun a (p1,p2) -> (new_board p1 p2,(p1,p2))::a) [] moves
 
 
 
@@ -246,16 +255,17 @@ let get_valid_boards board player =
  * TODO: get rid of prints in make_move
  *)
   let rec minimax board max depth =
-      let () = if depth = 0 then print_endline "0 depth" else () in
       let no_move = ((-1,-1), (-1,-1)) in
       let worst_min = (2000, no_move) in
       let worst_max = (-2000, no_move) in
+      let tie = (0, no_move) in
       if depth = 0 then (score board, no_move) else
       match get_valid_boards board max, max with
-      | [], true  -> worst_max
-      | [], false -> worst_min
+      | [], true  -> if get_valid_boards board false =[] then tie else worst_max
+      | [], false -> if get_valid_boards board true = [] then tie else worst_min
       | lst, true -> List.fold_left (fun a x -> get_max a x depth) worst_max lst
       | lst,false -> List.fold_left (fun a x -> get_min a x depth) worst_min lst
+
 
   (* [get_max (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
    * tuple that is the move ([m1] or [m2]) that gives the highest score ([s1] or
@@ -274,5 +284,18 @@ let get_valid_boards board player =
   and get_min (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 true (depth-1) in
       if s1 < s2 then (s1,m1) else (s2, m2)
+
+  (* [choose_best_board] takes in a list of boards available to the AI
+   * and picks the one with the highest score (relative to the AI)
+   *)
+  let choose_best_board board =
+    let move = snd (minimax board true 2) in
+    if move = ((-1,-1),  (-1,-1)) then
+        (Victory true, [], "")
+    else
+        match make_move board (fst move) (snd move) with
+        |(Active b, captured, str) -> (Active b, captured, str)
+        |_ -> failwith "First element should be Active variant"
+        (*fst (make_move board (fst move) (snd move))*)
 
 end
