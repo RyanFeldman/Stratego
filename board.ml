@@ -252,13 +252,13 @@ module GameBoard : Board = struct
         | h::[] ->
             if h.player then
                 let p_win = remove_optional (search pos_two (fst tup)) in
-                "AI's "^(string_from_piece p_win)^" defeated the User's"
+                "AI's "^(string_from_piece p_win)^" defeated the User's "
                 ^(string_from_piece h)^"! \nAI's piece is at "
                 ^(string_from_tuple pos_two)^" and User's piece has been taken"
                 ^" from the board."
             else
                 let p_win = remove_optional (search pos_two (fst tup)) in
-                "User's "^(string_from_piece p_win)^" defeated the AI's"
+                "User's "^(string_from_piece p_win)^" defeated the AI's "
                 ^(string_from_piece h)^"!\n User's piece is at "
                 ^(string_from_tuple pos_two)^" and AI's piece has been taken"
                 ^" from the board."
@@ -289,7 +289,7 @@ module GameBoard : Board = struct
         let p_one = remove_optional (search pos_two new_board) in
         let move_msg = ("Moved "^(string_from_piece p_one)^"cfrom "
                                 ^(string_from_tuple pos_one)
-                                ^" to "^(string_from_tuple pos_two)^"with no "
+                                ^" to "^(string_from_tuple pos_two)^" with no "
                                 ^"conflicts!\n") in
         if (check_if_winner captured) then
             let winner = (List.hd captured).player in
