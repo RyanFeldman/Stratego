@@ -35,7 +35,7 @@ let parse_user_input (c:string) : position =
     let trimmed_c = c |> String.trim in
     let x_one = (String.get trimmed_c 0) |> int_of_char in
     let y_one = (String.get trimmed_c 1) |> int_of_char in
-    (x_one, y_one)
+    (x_one-48, y_one-48)
 
 let rec get_user_input (board:board) (piece:piece) : board =
     display_board board;
