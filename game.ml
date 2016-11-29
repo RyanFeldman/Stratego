@@ -30,9 +30,9 @@ let parse_user_input (c:string) : position =
     (x_one, y_one)
 
 let rec get_user_input (board:board) (piece:piece) : board =
-    let _ = display_board board in
-    let _ = (print_message ("Where would you like to place your "
-                            ^(string_from_piece piece)^ "? (ex. 00)"))  in
+    display_board board;
+    print_message ("Where would you like to place your "
+                            ^(string_from_piece piece)^ "? (ex. 00)");
     let user_input = read_line () in
     let (x, y) = parse_user_input user_input in
     if (y > 4 || y < 0)
