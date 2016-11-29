@@ -27,6 +27,8 @@ module type Display = sig
    *)
 	val display_table : unit -> unit
 
+  val display_rules : unit -> unit
+
 end
 
 (* [TextDisplay] is a module that displays the board via ASCII characters in the

@@ -7,6 +7,7 @@ module type Display = sig
   val display_board : board -> unit
   val print_list : piece list -> unit
   val display_table : unit -> unit
+  val display_rules : unit -> unit
 end
 
 module TextDisplay : Display = struct
@@ -43,6 +44,39 @@ module TextDisplay : Display = struct
       print_endline "    |____|____|____|____|____|____|____|____|____|____|";
     done;
     print_endline "       0    1    2    3    4    5    6    7    8    9"
+
+  let display_rules () =
+    print_endline
+    "
+    Stratego is a game in which you need to capture the flag of your opponent
+    while defending your own flag.
+    To capture the flag you use your army of 40 pieces.
+    Pieces have a rank and represent individual officers and soldiers in an army.
+    In addition to those ranked pieces you can use bombs to protect your flag.
+
+    Pieces move 1 square per turn, horizontally or vertically.
+    Only the scout can move over multiple empty squares per turn.
+    Pieces cannot jump over another piece.
+
+    If a piece is moved onto a square occupied by an opposing piece,
+    The weaker piece is removed from the board,
+    and the stronger piece is moved into the place formerly occupied by the weaker piece.
+    If the engaging pieces are of equal rank, they are both removed.
+    Pieces may not move onto a square already occupied by another piece without attacking.
+    Exception to the rule of the higher rank winning is the spy.
+    When the spy attacks the marshal, the spy defeats the higher ranked marshal.
+    However, when the marshal attacks the spy, the spy loses.
+    Bombs lose when they are defused by a miner.
+
+    The bombs and the flag cannot be moved.
+    A bomb defeats every piece that tries to attack it, except the miner.
+    The flag loses from every other piece.
+    When you capture the flag of your opponent you win the game.
+
+    To move, type the position of the piece you want to move followed by the target
+    location (ex. 00 01).
+    At any time, type \"table\" to see the pieces reference table,
+    or type \"captured\" to see the pieces that have been captured."
 
   let print_list (l:piece list) =
     print_string "Pieces: ";
