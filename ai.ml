@@ -4,14 +4,16 @@ open Display.TextDisplay
 module type AI = sig
   type board = t
   type victory = Board.GameBoard.victory
+  type piece = Board.GameBoard.piece
   val setup_board : board -> board
-  val choose_best_board : board -> board
+  val choose_best_board : board -> victory
 end
 
 module GameAI : AI = struct
 
   type board = t
   type victory = Board.GameBoard.victory
+  type piece = Board.GameBoard.piece
 
  (*
   * [get_list_all_pieces] returns a piece list containing every piece that
@@ -289,10 +291,10 @@ let get_valid_boards board player =
   let choose_best_board board =
     let move = snd (minimax board true 2) in
     if move = ((-1,-1),  (-1,-1)) then
-        failwith "something went wrong with ai"
+        Victory true
     else
         match make_move board (fst move) (snd move) with
-        |(Active b,_,_) -> b
+        |(Active b,_,_) -> Active b
         |_ -> failwith "First element should be Active variant"
         (*fst (make_move board (fst move) (snd move))*)
 

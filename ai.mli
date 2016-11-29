@@ -17,7 +17,7 @@ module type AI = sig
 	 * [choose_best_board] takes in a list of boards available to the AI
 	 * and returns the one with the highest score (relative to the AI).
 	 *)
-	val choose_best_board : board -> (victory * piece list * string)
+	val choose_best_board : board -> victory
 
 end
 
