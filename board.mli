@@ -119,7 +119,7 @@ module type Board = sig
      * false with the reason why to display to the user. Empty if true.
      * Requires:
      *  - t : board object
-     *  - bool : true if AI, false otherwise
+     *  - bool : true if player, false otherwise
      *  - pos1 : piece initial position
      *  - pos2 : piece final position
      *)
@@ -141,7 +141,7 @@ module type Board = sig
     val get_list_all_pieces: unit -> piece list
 
     (**
-     * [equal_board b1 b2] is true iff b1 maps the same positions to the same 
+     * [equal_board b1 b2] is true iff b1 maps the same positions to the same
      * piece options as b2. False otherwise.
      *)
     val equal_board: t -> t -> bool

@@ -281,7 +281,7 @@ module GameBoard : Board = struct
             | Some piece -> execute_conflict board piece pos_one pos_two) in
         let msg = get_msg pos_one pos_two (new_board, captured) in
         let p_one = remove_optional (search pos_two new_board) in
-        let move_msg = ("Moved "^(string_from_piece p_one)^"from "
+        let move_msg = ("Moved "^(string_from_piece p_one)^" from "
                                 ^(string_from_tuple pos_one)
                                 ^" to "^(string_from_tuple pos_two)^"with no "
                                 ^"conflicts!") in

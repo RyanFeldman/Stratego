@@ -60,7 +60,7 @@ let rec random_fill board filled remaining pos =
     let three_bombs_board = add_mapping (flag_x_pos, 8)
         (Some {rank=0; player=false; hasBeenSeen=false}) two_bomb_board in
     let filled = [flag_pos;(bomb_one_x, 9);(bomb_two_x, 9); (flag_x_pos, 8)] in
-    let remaining = match get_list_all_pieces () with
+    let remaining = match get_ai_pieces () with
                     |f::b1::b2::b3::t -> t
                     |_ -> failwith "the function should match the above" in
     let shuffled = List.sort (fun x y -> Random.int 2) remaining in
@@ -86,7 +86,7 @@ let rec random_fill board filled remaining pos =
    *)
   let ai_battle p1 p2 =
     match p1.rank, p2.rank with
-    | _, _ when p2.player -> failwith "ai shouldn't battle it's own piece"
+    | _, _ when p2.player=false -> failwith "ai shouldn't battle it's own piece"
     | 3,0 -> Some p1
     | _ , 0 -> Some p2
     | _ , 11 -> Some p1
