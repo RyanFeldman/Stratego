@@ -139,23 +139,6 @@ let rec random_fill board filled remaining pos =
         |Some p -> a+(get_value p.rank)) in
     board_fold (fun k v ac -> f v ac) board 0
 
-
-  (* [get_score_from_move board move] gets the score of [board], which initially
-   * has score orig_score, after the piece that is initially at position pos1
-   * moves to position pos2.
-   *
-   * Requires:
-   * board : board
-   * pos1,pos2 : (char * int)
-   *)
-  let get_score_from_move board orig_score pos1 pos2 =
-    let score = ref orig_score in
-    let (victory, captured, str) = make_move board pos1 pos2 in
-    let () = List.iter
-              (fun x-> if (not x.player) then score := !score + x.rank else
-              score := !score - x.rank) captured in
-    score
-
   (* [can_move_to board (x,y) player)] returns true if a piece belonging to
    * [player] can move to coordinate [(x,y)] on [board]. That is, either there
    * is an enemy piece at [(x,y)] or no piece is at (x,y)
@@ -218,12 +201,6 @@ let rec random_fill board filled remaining pos =
     | None -> failwith "there's no piece here"
     | Some p -> get_possible_moves board p.player p pos) in
     List.fold_left (fun a x -> (pos, x)::a) [] moves
-
-(* [get_moveable_from_move board]
- *
- *)
-let get_moveable_from_move board =
-  failwith "unimplemented"
 
 (**
    * [get_valid_boards board player] is all the possible boards that are valid

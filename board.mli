@@ -119,6 +119,7 @@ module type Board = sig
      * false with the reason why to display to the user. Empty if true.
      * Requires:
      *  - t : board object
+
      *  - bool : true if user, false otherwise
      *  - pos1 : piece initial position
      *  - pos2 : piece final position
