@@ -66,8 +66,11 @@ let rec instantiate_user_board board = function
                     ^" you must place your pieces in the first 4 rows and two "
                     ^"pieces cannot be placed on top of each other to start."
                     ^"\n\n\n") in
-                    instantiate_user_board board (h::t)) in
-    instantiate_user_board new_board t
+                    board) in
+    if equal_board board new_board then
+        instantiate_user_board board h::t
+    else
+        instantiate_user_board new_board t
 
 let setup_game () =
     let new_board = (*empty_board ()*)none_whole_board (empty_board ()) (0,0) in
@@ -94,7 +97,7 @@ let parse_user_input c =
 let tuple_from_string str =
     let x = int_of_char (String.get str 0) in
     let y = int_of_char (String.get str 1) in
-    (x, y)
+    (x-48, y-48)
 
 let append_to_cap lst =
     match lst with
