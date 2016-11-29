@@ -290,7 +290,8 @@ let get_valid_boards board player =
   let choose_best_board board =
     let () = print_endline "called" in
     let move = snd (minimax board false 1) in
-    let () = (print_endline ((string_of_int (fst (fst move)))^(string_of_int (snd ( fst move))))) in
+    let () = (print_endline ("first: "^((string_of_int (fst (fst move)))^(string_of_int (snd ( fst move)))))) in
+    let () = (print_endline ("second: "^((string_of_int (fst (snd move)))^(string_of_int (snd ( snd move)))))) in
     if move = ((-1,-1),  (-1,-1)) then
         (Victory true, [], "")
     else
