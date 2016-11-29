@@ -3,14 +3,17 @@ open Display.TextDisplay
 
 module type AI = sig
   type board = t
+  type victory = Board.GameBoard.victory
+  type piece = Board.GameBoard.piece
   val setup_board : board -> board
-  val choose_best_board : board -> board
+  val choose_best_board : board -> victory
 end
 
 module GameAI : AI = struct
 
   type board = t
-
+  type victory = Board.GameBoard.victory
+  type piece = Board.GameBoard.piece
  (*
   * [get_list_all_pieces] returns a piece list containing every piece that
   * the ai starts with.
