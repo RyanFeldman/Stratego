@@ -40,7 +40,7 @@ let parse_user_input (c:string) : position =
         let y_one = (String.get trimmed_c 1) |> int_of_char in
         (x_one-48, y_one-48)
     (*get rid of the following 2 lines before submission*)
-    else if trimmed_c = "random" then
+    else if trimmed_c = "auto" then
         (-10,-10)
     else
         failwith "Invalid string length"
