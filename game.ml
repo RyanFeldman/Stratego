@@ -18,59 +18,21 @@ let user_pieces_lost = Array.make 40 {rank=12; player=true; hasBeenSeen=false}
 
 let ai_pieces_lost = Array.make 40 {rank=12; player=true; hasBeenSeen=false}
 
-let rec none_whole_board board pos=
-    match pos with
-    |(10,9) -> board
-    |(10,y) -> none_whole_board board (0, y+1)
-    |(x,y) -> let brd = add_mapping (x,y) None board
-                in none_whole_board brd (x+1,y)
-
-let rec fill_rows board acc =
-    if acc=10
-        then board
-    else
-        let board_four = add_mapping (4, acc) None board in
-        let board_five = add_mapping (5, acc) None board_four in
-        fill_rows board_five (acc+1)
-
 let parse_user_input (c:string) : position =
     let trimmed_c = c |> String.trim in
     if (String.length trimmed_c) = 2 then
         let x_one = (String.get trimmed_c 0) |> int_of_char in
         let y_one = (String.get trimmed_c 1) |> int_of_char in
         (x_one-48, y_one-48)
-    (*get rid of the following 2 lines before submission*)
-    else if trimmed_c = "auto" then
-        (-10,-10)
     else
         failwith "Invalid string length"
-(*remove this before submission*)
-let next_pos = function
-  |(9,y) -> (0, y+1)
-  |(x,y) -> (x+1, y)
-
-(*remove this before submission*)
-let rec random_fill board filled remaining pos =
-  match remaining with
-  |[] -> board
-  |h::t ->
-    if List.mem pos filled then
-      random_fill board filled remaining (next_pos pos)
-    else
-      let new_board = add_mapping pos (Some h) board in
-      random_fill new_board (pos::filled) t (next_pos pos)
-
 
 let rec get_user_input (board:board) (piece:piece) : board =
     print_message ("Where would you like to place your "
                             ^(string_from_piece piece)^ "? (ex. 00)");
     let user_input = read_line () in
     let (x, y) = parse_user_input user_input in
-    (*get rid of the following 2 lines before submission and change else if
-     *to an if*)
-    if (x,y) = (-10,-10) then
-        (add_mapping (-10,-10) None board)
-    else if (y > 3 || y < 0 || x < 0 || x > 9)
+    if (y > 3 || y < 0 || x < 0 || x > 9)
         then failwith "Invalid xy coordinate input"
     else
         match (search (x, y) board) with
@@ -78,32 +40,38 @@ let rec get_user_input (board:board) (piece:piece) : board =
         | Some p -> failwith "A piece is already there!"
 
 let rec instantiate_user_board board = function
-| [] -> board
-| h::t ->
-    let new_board =
-        (try (get_user_input board h) with
-            | _ ->
-                let _ = print_message ("\nSorry, your input must be in the"
-                    ^" form 'xy' to place your piece at (x, y)! As a reminder,"
-                    ^" you must place your pieces in the first 4 rows and two "
-                    ^"pieces cannot be placed on top of each other to start."
-                    ^"\n\n") in
-                    board) in
-    (*get rid of the following 2 lines before submission and change the else
-     *if to just if*)
-    if (search (-10,-10) new_board = None) then
-        random_fill (none_whole_board (empty_board ()) (0,0)) [] (get_list_all_pieces ()) (0,0)
-    else if (equal_board new_board board) then
-        instantiate_user_board board (h::t)
-    else
-        let () = display_board new_board in 
-        instantiate_user_board new_board t
+    | [] -> board
+    | h::t ->
+        let new_board =
+            (try (get_user_input board h) with
+                | _ ->
+                    let _ = print_message ("\nSorry, your input must be in the"
+                        ^" form 'xy' to place your piece at (x, y)! As a reminder,"
+                        ^" you must place your pieces in the first 4 rows and two "
+                        ^"pieces cannot be placed on top of each other to start."
+                        ^"\n\n") in
+                        board) in
+        if (equal_board new_board board) then
+            instantiate_user_board board (h::t)
+        else
+            let () = display_board new_board in
+            instantiate_user_board new_board t
 
-let setup_game () =
+let auto_setup () =
+    let () = Random.self_init () in
+    let all_pieces = get_list_all_pieces () in
+    let shuffled = List.sort (fun x y -> Random.int 2) all_pieces in
+    let init_board = none_whole_board (empty_board ()) (0,0) in
+    let player_brd = fill init_board [] shuffled (0,0) true in
+    let completed_board = ai_setup player_brd in
+    let () = display_board completed_board in
+    completed_board
+
+let manual_setup () =
     let new_board = none_whole_board (empty_board ()) (0,0) in
     let full_pieces = get_list_all_pieces () in
     let user_board = instantiate_user_board new_board full_pieces in
-    let start_board = setup_board user_board in
+    let start_board = ai_setup user_board in
     let () = display_board start_board in
     start_board
 
@@ -182,13 +150,13 @@ let handle_user_input cmd board =
         print_list (Array.to_list ai_pieces_lost);
         Active (board)
     | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
-    | _ -> 
+    | _ ->
         let () = (print_message ("Sorry, I don't quite understant your input. "^
                     "Remember: To move, type the position of the piece you want"^
                     " to move followed by the target location (ex. 00 01). At "^
                     "any time, type \"table\" to see the pieces reference table"^
                     ", or type \"captured\" to see the pieces that have been "^
-                    "captured.")) in 
+                    "captured.")) in
         raise Illegal
 
 let check_winner b =
@@ -211,10 +179,10 @@ let rec play (board:board) : board =
     if win then
         board
     else
-        if (equal_board (strip_variant user_board) board) then 
+        if (equal_board (strip_variant user_board) board) then
             let _ = display_board board in
-            play (strip_variant user_board) 
-        else 
+            play (strip_variant user_board)
+        else
             let stripped_board = (strip_variant user_board) in
             let (ai_board, captured, msg) = choose_best_board stripped_board in
             let ai_win = check_winner ai_board in
