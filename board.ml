@@ -289,11 +289,11 @@ module GameBoard : Board = struct
         let p_one = remove_optional (search pos_one board) in
         let move_msg = 
             if p_one.player then 
-                ("Moved "^(string_from_piece p_one)^" from "
+                ("Player moved "^(string_from_piece p_one)^" from "
                                 ^(string_from_tuple pos_one)
                                 ^" to "^(string_from_tuple pos_two)) 
             else 
-                ("Moved piece from "^(string_from_tuple pos_one)
+                ("AI moved piece from "^(string_from_tuple pos_one)
                                 ^" to "^(string_from_tuple pos_two)) in 
         if (check_if_winner captured) then
             let winner = (List.hd captured).player in
@@ -304,7 +304,7 @@ module GameBoard : Board = struct
                     "The AI won the game! Better luck next time!") in
             (Victory ((List.hd captured).player), captured, congrats)
         else
-            (Active (new_board), captured, move_msg^msg)
+            (Active (new_board), captured, move_msg^"\n"^msg)
 
     let get_list_all_pieces () =
         let p       = {rank=0; player=true; hasBeenSeen=false} in
