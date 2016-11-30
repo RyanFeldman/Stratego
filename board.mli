@@ -54,12 +54,12 @@ module type Board = sig
 
     type victory = Active of t | Victory of bool
 
-
     (**
      * [empty_board] returns a completely empty board. No mappings.
      *)
     val empty_board : unit -> t
 
+    val none_whole_board : t -> position -> t
     (**
      * [search pos board] is the piece option mapped to [pos] on [board].
      * Raises:
@@ -147,6 +147,12 @@ module type Board = sig
      *)
     val equal_board: t -> t -> bool
 
+    (**
+    * [fill board filled remaining pos player] takes in [board], on which the tiles
+    * in [filled] are filled. Then, it adds all of the pieces in [remaining] to
+    * [board], starting at position [pos] and moving rightward from there.
+    *)
+    val fill: t -> position list -> piece list -> position -> bool -> t
 end
 
 module GameBoard : Board
