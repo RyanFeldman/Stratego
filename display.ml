@@ -75,15 +75,14 @@ module TextDisplay : Display = struct
     When you capture the flag of your opponent you win the game.
 
     To move, type the position of the piece you want to move followed by the target
-    location (ex. 00 01).
-    ";
+    location (ex. 00 01).";
     print_endline 
     "
-    Once the game begins, the following commands will be available:\n
-    \t\"table\"- Displays a table linking the names of Stratego pieces to their ranks\n
-    \t\"captured\"- Displays the pieces captured by each player\n
-    \t\"rules\"- Displays the rules and commands available\n
-    \t\"quit\"- Exits the game"
+    Once the game begins, the following commands will be available:
+    \t\"table\" - Displays a table linking the names of Stratego pieces to their ranks
+    \t\"captured\" - Displays the pieces captured by each player
+    \t\"rules\" - Displays the rules and commands available
+    \t\"quit\" - Exits the game"
 
   let print_list (l:piece list) =
     print_string "Pieces: ";
