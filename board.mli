@@ -40,7 +40,7 @@ module type Board = sig
      *)
 
     (* Type representing a location on the stratego board *)
-    type position = (int * int)
+    type position 
 
     val make_position : int -> int -> position
 
