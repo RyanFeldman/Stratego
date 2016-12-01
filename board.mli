@@ -42,24 +42,47 @@ module type Board = sig
     (* Type representing a location on the stratego board *)
     type position 
 
+    (**
+     * [make_position] takes in two ints and gives back a position
+     *)
     val make_position : int -> int -> position
 
+    (**
+     * [get_position] turns a position into an int tuple 
+     *)
     val get_position : position -> int * int
 
     (* Type representing a stratego piece on the board *)
     type piece 
 
+    (**
+     * [make_piece] takes in a rank, the player, and a bool 
+     * representing if it has been seen by the AI or not and gives
+     * back a corresponding piece. 
+     *)
     val make_piece : int -> bool -> bool -> piece 
 
+    (**
+     * [get_rank] is the corresponding rank of a given piece
+     *)
     val get_rank : piece -> int
 
+    (**
+     * [get_player] is true iff the piece belongs to the player. 
+     * False otherwise. 
+     *)
     val get_player : piece -> bool
 
+    (**
+     * [get_been_seen] is true iff this piece has been seen by the AI. In other
+     * words, true iff the piece has been in a conflict and survived. 
+     *)
     val get_been_seen : piece -> bool 
 
     (* The type of the board *)
     type t
 
+    (* The type of an active board and a board with a winner *)
     type victory = Active of t | Victory of bool
 
     (**
@@ -68,6 +91,7 @@ module type Board = sig
     val empty_board : unit -> t
 
     val none_whole_board : t -> position -> t
+    
     (**
      * [search pos board] is the piece option mapped to [pos] on [board].
      * Raises:
