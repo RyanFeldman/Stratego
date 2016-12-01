@@ -8,10 +8,10 @@ module type AI = sig
 	type piece = Board.GameBoard.piece
 
 	(**
-	 * [setup_board] takes in a board and returns the same board with the AI's
+	 * [ai_setup] takes in a board and returns the same board with the AI's
 	 * stratego pieces placed on its side of the board.
 	 *)
-	val setup_board : board -> board
+	val ai_setup : board -> board
 
 	(**
 	 * [choose_best_board] takes in a list of boards available to the AI

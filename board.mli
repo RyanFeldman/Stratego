@@ -40,25 +40,60 @@ module type Board = sig
      *)
 
     (* Type representing a location on the stratego board *)
-    type position = (int * int)
+    type position 
+
+    (**
+     * [make_position] takes in two ints and gives back a position
+     *)
+    val make_position : int -> int -> position
+
+    (**
+     * [get_position] turns a position into an int tuple 
+     *)
+    val get_position : position -> int * int
 
     (* Type representing a stratego piece on the board *)
-    type piece = {
-        rank : int;
-        player : bool;
-        hasBeenSeen: bool
-    }
+    type piece 
+
+    (**
+     * [make_piece] takes in a rank, the player, and a bool 
+     * representing if it has been seen by the AI or not and gives
+     * back a corresponding piece. 
+     * Note:    
+     *      piece.player = true -> User
+     *      piece.player = false -> AI
+     *)
+    val make_piece : int -> bool -> bool -> piece 
+
+    (**
+     * [get_rank] is the corresponding rank of a given piece
+     *)
+    val get_rank : piece -> int
+
+    (**
+     * [get_player] is true iff the piece belongs to the player. 
+     * False otherwise. 
+     *)
+    val get_player : piece -> bool
+
+    (**
+     * [get_been_seen] is true iff this piece has been seen by the AI. In other
+     * words, true iff the piece has been in a conflict and survived. 
+     *)
+    val get_been_seen : piece -> bool 
 
     (* The type of the board *)
     type t
 
+    (* The type of an active board and a board with a winner *)
     type victory = Active of t | Victory of bool
-
 
     (**
      * [empty_board] returns a completely empty board. No mappings.
      *)
     val empty_board : unit -> t
+
+    val none_whole_board : t -> position -> t
 
     (**
      * [search pos board] is the piece option mapped to [pos] on [board].
@@ -119,6 +154,7 @@ module type Board = sig
      * false with the reason why to display to the user. Empty if true.
      * Requires:
      *  - t : board object
+
      *  - bool : true if user, false otherwise
      *  - pos1 : piece initial position
      *  - pos2 : piece final position
@@ -146,6 +182,12 @@ module type Board = sig
      *)
     val equal_board: t -> t -> bool
 
+    (**
+    * [fill board filled remaining pos player] takes in [board], on which the tiles
+    * in [filled] are filled. Then, it adds all of the pieces in [remaining] to
+    * [board], starting at position [pos] and moving rightward from there.
+    *)
+    val fill: t -> position list -> piece list -> position -> bool -> t
 end
 
 module GameBoard : Board

@@ -5,7 +5,7 @@ module type AI = sig
   type board = t
   type victory = Board.GameBoard.victory
   type piece = Board.GameBoard.piece
-  val setup_board : board -> board
+  val ai_setup : board -> board
   val choose_best_board : board -> (victory * piece list * string)
 end
 
@@ -23,25 +23,10 @@ let get_ai_pieces () =
   let pieces = get_list_all_pieces () in
   List.map (fun p -> {p with player=false}) pieces
 
-
-let next_pos = function
-  |(9,y) -> (0, y-1)
-  |(x,y) -> (x+1, y)
-
-let rec random_fill board filled remaining pos =
-  match remaining with
-  |[] -> board
-  |h::t ->
-    if List.mem pos filled then
-      random_fill board filled remaining (next_pos pos)
-    else
-      let new_board = add_mapping pos (Some h) board in
-      random_fill new_board (pos::filled) t (next_pos pos)
-
-(* [setup_board] takes in a board where only the player has set up their
+(* [ai_setup] takes in a board where only the player has set up their
  * pieces and sets up the AI's pieces.
  *)
-  let setup_board board =
+  let ai_setup board =
     let () = Random.self_init () in
     let flag_x_pos = Random.int 10 in
     let flag_pos = (flag_x_pos, 9) in
@@ -64,7 +49,7 @@ let rec random_fill board filled remaining pos =
                     |f::b1::b2::b3::t -> t
                     |_ -> failwith "the function should match the above" in
     let shuffled = List.sort (fun x y -> Random.int 2) remaining in
-    random_fill three_bombs_board filled shuffled (0,9)
+    fill three_bombs_board filled shuffled (0,9) false
 
   (* [replace_pos board lst] is a new board with replacements made according
    * to the (pos,piece option) association list [lst], where the first of every
@@ -139,23 +124,6 @@ let rec random_fill board filled remaining pos =
         |Some p -> a+(get_value p.rank)) in
     board_fold (fun k v ac -> f v ac) board 0
 
-
-  (* [get_score_from_move board move] gets the score of [board], which initially
-   * has score orig_score, after the piece that is initially at position pos1
-   * moves to position pos2.
-   *
-   * Requires:
-   * board : board
-   * pos1,pos2 : (char * int)
-   *)
-  let get_score_from_move board orig_score pos1 pos2 =
-    let score = ref orig_score in
-    let (victory, captured, str) = make_move board pos1 pos2 in
-    let () = List.iter
-              (fun x-> if (not x.player) then score := !score + x.rank else
-              score := !score - x.rank) captured in
-    score
-
   (* [can_move_to board (x,y) player)] returns true if a piece belonging to
    * [player] can move to coordinate [(x,y)] on [board]. That is, either there
    * is an enemy piece at [(x,y)] or no piece is at (x,y)
@@ -200,7 +168,7 @@ let rec random_fill board filled remaining pos =
    * contain a piece that can make 1 or more valid moves.
    *)
   let get_moveable_init board player =
-    let () = print_endline (string_of_bool player) in
+    (*let () = print_endline (string_of_bool player) in*)
     let lst = ref [] in
     let f k = function
       | Some p when p.player = player -> has_move board k player
@@ -219,12 +187,6 @@ let rec random_fill board filled remaining pos =
     | Some p -> get_possible_moves board p.player p pos) in
     List.fold_left (fun a x -> (pos, x)::a) [] moves
 
-(* [get_moveable_from_move board]
- *
- *)
-let get_moveable_from_move board =
-  failwith "unimplemented"
-
 (**
    * [get_valid_boards board player] is all the possible boards that are valid
    * from the current board [board] when [player] moves.
@@ -232,7 +194,7 @@ let get_moveable_from_move board =
 let get_valid_boards board player =
     let moveable = get_moveable_init board player in
     let moves = List.fold_left
-        (fun a x -> let () = print_endline "moveable" in ((get_moves_piece board x) @ a)) [] moveable in
+        (fun a x -> (*let () = print_endline "moveable" in*) ((get_moves_piece board x) @ a)) [] moveable in
     if (not player) then List.fold_left
         (fun a (p1,p2) -> (ai_move board p1 p2, (p1,p2))::a) [] moves
     else
@@ -288,10 +250,10 @@ let get_valid_boards board player =
    * and picks the one with the highest score (relative to the AI)
    *)
   let choose_best_board board =
-    let () = print_endline "called" in
-    let move = snd (minimax board false 1) in
-    let () = (print_endline ("first: "^((string_of_int (fst (fst move)))^(string_of_int (snd ( fst move)))))) in
-    let () = (print_endline ("second: "^((string_of_int (fst (snd move)))^(string_of_int (snd ( snd move)))))) in
+    (*let () = print_endline "called" in*)
+    let move = snd (minimax board false 3) in
+    (*let () = (print_endline ("first: "^((string_of_int (fst (fst move)))^(string_of_int (snd ( fst move)))))) in
+    let () = (print_endline ("second: "^((string_of_int (fst (snd move)))^(string_of_int (snd ( snd move)))))) in*)
     if move = ((-1,-1),  (-1,-1)) then
         (Victory true, [], "")
     else

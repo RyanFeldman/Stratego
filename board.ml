@@ -14,15 +14,18 @@ module IntTuple : (Tuple with type t = (int * int)) = struct
 end
 
 module type Board = sig
-    type position = int * int
-    type piece = {
-        rank : int;
-        player : bool;
-        hasBeenSeen: bool
-    }
+    type position 
+    val make_position : int -> int -> position
+    val get_position : position -> int * int
+    type piece 
+    val make_piece : int -> bool -> bool -> piece
+    val get_rank : piece -> int
+    val get_player : piece -> bool
+    val get_been_seen : piece -> bool
     type t
     type victory = Active of t | Victory of bool
     val empty_board : unit -> t
+    val none_whole_board : t -> position -> t
     val search : position -> t -> (piece option)
     val is_member : position -> t -> bool
     val add_mapping : position -> (piece option) -> t -> t
@@ -34,40 +37,74 @@ module type Board = sig
     val make_move : t -> position -> position -> (victory * piece list * string)
     val get_list_all_pieces: unit -> piece list
     val equal_board : t -> t -> bool
+    val fill: t -> position list -> piece list -> position -> bool -> t
 end
 
 module BoardMap = Map.Make(IntTuple)
 
 module GameBoard : Board = struct
 
+    (* See board.mli file *)
     type position = int * int
 
-    (* piece.player = true -> User
-     * piece.player = false -> AI *)
+    (* See board.mli file *)
+    let make_position (x:int) (y:int) : int * int = (x, y)
+
+    (* See board.mli file *)
+    let get_position (pos:position) : int * int = pos
+
+    (* See board.mli file *)
     type piece = {
         rank : int;
         player : bool;
         hasBeenSeen : bool
     }
 
+    (* See board.mli file *)
+    let make_piece (r:int) (pla:bool) (seen:bool) : piece = 
+        { rank = r; player = pla; hasBeenSeen = seen }
+
+    (* See board.mli file *)
+    let get_rank (p:piece) : int = p.rank
+
+    (* See board.mli file *)
+    let get_player (p:piece) : bool = p.player
+
+    (* See board.mli file *)
+    let get_been_seen (p:piece) : bool = p.hasBeenSeen
+
+    (* See board.mli file *)
     type t = (piece option) BoardMap.t
 
+    (* See board.mli file *)
     type victory = Active of t | Victory of bool
 
+    (* Represents a direction that an iterator will step on a board *)
     type dir = N | E | S | W
 
+    (* See board.mli file *)
     let empty_board () = BoardMap.empty
 
+    (* See board.mli file *)
     let search pos board = BoardMap.find pos board
 
+    (* See board.mli file *)
     let is_member pos board = BoardMap.mem pos board
 
+    (* See board.mli file *)
     let add_mapping pos piece board = BoardMap.add pos piece board
 
+    (* See board.mli file *)
     let board_fold f board acc = BoardMap.fold f board acc
 
+    (* See board.mli file *)
     let board_iter f board = BoardMap.iter f board
 
+    (**
+     * [string_from_piece piece] is the name of [piece] given its rank.
+     * Raises: 
+     *  - Failure when passed an invalid piece
+     *)
     let string_from_piece piece =
         match piece.rank with
         | 0 -> "Bomb"
@@ -84,37 +121,93 @@ module GameBoard : Board = struct
         | 11 -> "Flag"
         | _ -> failwith "Not a valid piece"
 
+    (* See board.mli file *)
+    let get_list_all_pieces () =
+        let p       = {rank=0; player=true; hasBeenSeen=false} in
+        let col     = {p with rank=8} in
+        let major   = {p with rank=7} in
+        let cap     = {p with rank=6} in
+        let lieut   = {p with rank=5} in
+        let serg    = {p with rank=4} in
+        let miner   = {p with rank=3} in
+        let scout   = {p with rank=2} in
+        let bomb_list = [p; p; p; p; p; p] in
+        let marsh_list = [{p with rank=10}] in
+        let gen_list = [{p with rank=9}] in
+        let col_list = [col; col] in
+        let maj_list = [major; major; major] in
+        let cap_list = [cap; cap; cap; cap] in
+        let lieut_list = [lieut; lieut; lieut; lieut] in
+        let serg_list = [serg; serg; serg; serg] in
+        let mine_list = [miner; miner; miner; miner; miner] in
+        let sco_list = [scout; scout; scout; scout; scout; scout;
+                        scout; scout] in
+        let spy_list = [{p with rank=1}] in
+        let flag_lst = [{p with rank=11}] in
+        flag_lst @ bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @
+        cap_list @ lieut_list @ serg_list @ mine_list @ sco_list @ spy_list
+
+    (* See board.mli file *)
+    let rec none_whole_board board pos=
+        match pos with
+        |(10,9) -> board
+        |(10,y) -> none_whole_board board (0, y+1)
+        |(x,y) -> let brd = add_mapping (x,y) None board
+                    in none_whole_board brd (x+1,y)
+
+    (* See board.mli file *)
+    let rec fill board filled remaining pos player=
+        let next_pos = function
+        |(9,y) -> if player then (0, y+1) else (0, y-1)
+        |(x,y) -> (x+1, y) in
+        match remaining with
+        | [] -> board
+        | h::t ->
+            if List.mem pos filled then
+                fill board filled remaining (next_pos pos) player
+            else
+                let new_board = add_mapping pos (Some h) board in
+                fill new_board (pos::filled) t (next_pos pos) player
+
+    (**
+     * [step board b pos dir] is the list of positions a scout can move to on 
+     * [board] given the player [b] from position [pos] in direction [dir].
+     * This function steps until it meets an enemy piece (including that 
+     * position in the list), a member of its own team (excluding that 
+     * position from the list), or until a board edge is reached. 
+     *)
     let rec step board b pos dir =
+        let (x, y) = pos in 
         match dir with
         | N ->
-            let (x, y) = pos in
             if y=9 then [] else
             (match (search (x, y+1) board) with
             | None -> (x, y+1)::(step board b (x, y+1) N)
             | Some piece ->
                 if (piece.player = b) then [] else [(x, y+1)])
         | E ->
-            let (x, y) = pos in
             if x=9 then [] else
             (match (search (x+1, y) board) with
             | None -> (x+1, y)::(step board b (x+1, y) E)
             | Some piece ->
                 if (piece.player = b) then [] else [(x+1, y)])
         | S ->
-            let (x, y) = pos in
             if y=0 then [] else
             (match (search (x, y-1) board) with
             | None -> (x, y-1)::(step board b (x, y-1) S)
             | Some piece ->
                 if (piece.player = b) then [] else [(x, y-1)])
         | W ->
-            let (x, y) = pos in
             if x=0 then [] else
             (match (search (x-1, y) board) with
             | None -> (x-1, y)::(step board b (x-1, y) W)
             | Some piece ->
                 if (piece.player = b) then [] else [(x-1, y)])
 
+    (**
+     * [get_scout_moves board b pos] is the list of positions a scout can move
+     * to in all directions by player [b] on board [board] from position [pos].
+     *)
     let get_scout_moves board b pos =
         let up_list = step board b pos N in
         let right_list = step board b pos E in
@@ -122,8 +215,7 @@ module GameBoard : Board = struct
         let left_list = step board b pos W in
         up_list @ right_list @ bot_list @ left_list
 
-
-
+    (* See board.mli file *)
     let get_possible_moves board b piece pos =
         match piece.rank with
         | 0 | 11 -> []
@@ -139,11 +231,15 @@ module GameBoard : Board = struct
                                 |_ -> true)
                 (left @ right @ top @ bot)
 
+    (**
+     * [in_board pos] is true iff [pos] is within the dimensions of a 10x10 
+     * board. In other words, -1 < both values in pos < 10. False otherwise
+     *)
     let in_board pos =
         if (fst pos) < 0 || (fst pos) > 9 then false
         else
             if (snd pos) < 0 || (fst pos) > 9 then false
-        else true
+            else true
 
     (**
      * [check_pos_one board b pos] is a tuple t. Fst t is true iff a piece at
@@ -277,7 +373,7 @@ module GameBoard : Board = struct
     (* See board.mli file *)
     let make_move (board:t) (pos_one:position) (pos_two:position)
             : (victory * piece list * string) =
-        let () = print_endline "called make_move" in
+        (*let () = print_endline "called make_move" in*)
         let (new_board, captured) =
             (match (search pos_two board) with
             | None ->
@@ -286,11 +382,16 @@ module GameBoard : Board = struct
                 ((add_mapping pos_one None temp_board), [])
             | Some piece -> execute_conflict board piece pos_one pos_two) in
         let msg = get_msg pos_one pos_two (new_board, captured) in
-        let p_one = remove_optional (search pos_two new_board) in
-        let move_msg = ("Moved "^(string_from_piece p_one)^"cfrom "
+        let p_one = remove_optional (search pos_one board) in
+        let move_msg = 
+            if p_one.player then 
+                ("Player moved "^(string_from_piece p_one)^" from "
                                 ^(string_from_tuple pos_one)
-                                ^" to "^(string_from_tuple pos_two)^" with no "
-                                ^"conflicts!\n") in
+                                ^" to "^(string_from_tuple pos_two)) 
+            else 
+                ("AI moved piece from "^(string_from_tuple pos_one)
+                                ^" to "^(string_from_tuple pos_two)) in 
+
         if (check_if_winner captured) then
             let winner = (List.hd captured).player in
             let congrats =
@@ -300,32 +401,9 @@ module GameBoard : Board = struct
                     "The AI won the game! Better luck next time!") in
             (Victory ((List.hd captured).player), captured, congrats)
         else
-            (Active (new_board), captured, move_msg^msg)
+            (Active (new_board), captured, move_msg^"\n"^msg)
 
-    let get_list_all_pieces () =
-        let p       = {rank=0; player=true; hasBeenSeen=false} in
-        let col     = {p with rank=8} in
-        let major   = {p with rank=7} in
-        let cap     = {p with rank=6} in
-        let lieut   = {p with rank=5} in
-        let serg    = {p with rank=4} in
-        let miner   = {p with rank=3} in
-        let scout   = {p with rank=2} in
-        let bomb_list = [p; p; p; p; p; p] in
-        let marsh_list = [{p with rank=10}] in
-        let gen_list = [{p with rank=9}] in
-        let col_list = [col; col] in
-        let maj_list = [major; major; major] in
-        let cap_list = [cap; cap; cap; cap] in
-        let lieut_list = [lieut; lieut; lieut; lieut] in
-        let serg_list = [serg; serg; serg; serg] in
-        let mine_list = [miner; miner; miner; miner; miner] in
-        let sco_list = [scout; scout; scout; scout; scout; scout;
-                        scout; scout] in
-        let spy_list = [{p with rank=1}] in
-        let flag_lst = [{p with rank=11}] in
-        flag_lst @ bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @
-        cap_list @ lieut_list @ serg_list @ mine_list @ sco_list @ spy_list
+
 
     (*[equal_board b1 b2] is true when b1 are the same size and have the same
      * positions and pieces binded to positions and false otherwise
