@@ -175,8 +175,7 @@ let execute_movement board num1 num2 =
     if (fst valid_move) then
         let (new_board, captured, str) = make_move board pos_one pos_two in
         let _ = append_to_cap (captured) in
-        let _ = print_message str in
-        new_board
+        (new_board, str)
     else
         let _ = print_message (snd valid_move) in
         raise Illegal
@@ -206,7 +205,7 @@ let handle_user_input cmd board =
     match cmd with
     | ("table", "") ->
         let _ = display_table () in
-        Active (board)
+        (Active (board), "")
     | ("captured", "") ->
         let user_lst = List.filter (fun x -> get_rank x <> 12)
                         (Array.to_list user_pieces_lost) in
@@ -216,24 +215,16 @@ let handle_user_input cmd board =
         (print_list (user_lst));
         print_message "AI's Pieces Lost:";
         print_list (ai_lst);
-        Active (board)
+        (Active (board), "")
     | ("quit", "") -> (print_message ("Did the 3110 students quit when their "
                         ^"final project was due in 9 days? Oh well, your choice."
                         ^" You surrendered to the AI.")); 
-                        Victory (false)
+                        (Victory (false), "")
     | ("rules", "") -> 
         let _ = display_rules () in 
-        Active (board)
+        (Active (board), "")
     | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
-    | _ ->
-        let () = (print_message 
-                    ("\n\nSorry, I don't quite understand your input.\n"
-                    ^"Remember: To move, type the position of the piece you want"
-                    ^" to move followed by the target location (ex. 00 01). At "
-                    ^"any time, type \"table\" to see the pieces reference table"
-                    ^", or type \"captured\" to see the pieces that have been "
-                    ^"captured.\n")) in
-        raise Illegal
+    | _ -> raise Illegal
 
 (**
  * [check_winner b] is true iff victory [b] is a Victory, not an Active. False
@@ -241,7 +232,7 @@ let handle_user_input cmd board =
  *)
 let check_winner b =
     match b with
-    | Victory b -> true
+    | Victory v -> true
     | _ -> false
 
 (**
@@ -260,16 +251,23 @@ let rec play (board:board) : board =
     let user_input = read_line () in
     let user_tuple = parse_user_input user_input in
     let user_board = try (handle_user_input user_tuple board) with
-                            | Illegal -> Active (play board) in
-    let win = check_winner user_board in
+                    | Illegal -> (Active (board), 
+                    "\n\nSorry, I don't quite understand your input.\n"
+                    ^"Remember: To move, type the position of the piece you want"
+                    ^" to move followed by the target location (ex. 00 01). At "
+                    ^"any time, type \"table\" to see the pieces reference table"
+                    ^", or type \"captured\" to see the pieces that have been "
+                    ^"captured.\n") in
+    let win = check_winner (fst user_board) in
     if win then
         board
     else
-        if (equal_board (strip_variant user_board) board) then
+        if (equal_board (strip_variant (fst user_board)) board) then
             let _ = display_board board in
-            play (strip_variant user_board)
+            let _ = print_message (snd user_board) in 
+            play (strip_variant (fst user_board))
         else
-            let stripped_board = (strip_variant user_board) in
+            let stripped_board = (strip_variant (fst user_board)) in
             let (ai_board, captured, msg) = choose_best_board stripped_board in
             let ai_win = check_winner ai_board in
             if ai_win then
@@ -277,5 +275,5 @@ let rec play (board:board) : board =
             else
                 let _ = append_to_cap captured in
                 let _ = display_board (strip_variant ai_board) in
-                let _ = print_message msg in
+                let _ = print_message ("\n"^(snd user_board) ^ "\n" ^msg^"\n") in
                 play (strip_variant ai_board)
