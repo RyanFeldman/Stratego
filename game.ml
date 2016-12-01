@@ -14,16 +14,16 @@ let ai_counter =
     let c = ref (-1) in
     fun () -> c := !c+1; !c
 
-let user_pieces_lost = Array.make 40 {rank=12; player=true; hasBeenSeen=false}
+let user_pieces_lost = Array.make 40 (make_piece 12 true false)
 
-let ai_pieces_lost = Array.make 40 {rank=12; player=true; hasBeenSeen=false}
+let ai_pieces_lost = Array.make 40 (make_piece 12 true false)
 
 let parse_user_input (c:string) : position =
     let trimmed_c = c |> String.trim in
     if (String.length trimmed_c) = 2 then
         let x_one = (String.get trimmed_c 0) |> int_of_char in
         let y_one = (String.get trimmed_c 1) |> int_of_char in
-        (x_one-48, y_one-48)
+        make_position (x_one-48) (y_one-48)
     else
         failwith "Invalid string length"
 
@@ -31,7 +31,7 @@ let rec get_user_input (board:board) (piece:piece) : board =
     print_message ("Where would you like to place your "
                             ^(string_from_piece piece)^ "? (ex. 00)");
     let user_input = read_line () in
-    let (x, y) = parse_user_input user_input in
+    let (x, y) = get_position (parse_user_input user_input) in
     if (y > 3 || y < 0 || x < 0 || x > 9)
         then failwith "Invalid xy coordinate input"
     else
@@ -153,6 +153,9 @@ let handle_user_input cmd board =
         print_message "AI's Pieces Lost:";
         print_list (ai_lst);
         Active (board)
+    | ("quit", "") -> (print_message ("Did the 3110 students quit when their "
+                        ^"final project was due in 9 days? Oh well, your choice.")); 
+                        Victory (false)
     | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
     | _ ->
         let () = (print_message ("\n\nSorry, I don't quite understand your input.\n"^
