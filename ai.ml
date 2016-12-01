@@ -282,7 +282,7 @@ let get_valid_boards board player =
   *)
   and get_min (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 false (depth-1) in
-      if s1 < s2 then (s1,m1) else (s2, m2)
+      if s1 < s2 then (s1, m1) else (s2, m2)
 
   (* [choose_best_board] takes in a list of boards available to the AI
    * and picks the one with the highest score (relative to the AI)
