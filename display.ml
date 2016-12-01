@@ -17,7 +17,7 @@ module TextDisplay : Display = struct
 
   let print_message s = print_endline s
 
-  let string_of_piece p = match p.rank with
+  let string_of_piece p = match (get_rank p) with
   |x when x = 0 -> " B"
   |x when x < 10 -> " "^(string_of_int x)
   |x when x = 11 -> " F"
@@ -25,10 +25,11 @@ module TextDisplay : Display = struct
 
   let print_row (board:board) (row:int) =
     for col = 0 to 9 do
-      let p = (search (col,row) board) in ();
+      let pos = make_position col row in
+      let p = (search pos board) in ();
       (match p with
       |None -> print_string "  ";
-      |Some x -> if not x.player then print_string "AI"
+      |Some x -> if not (get_player x) then print_string "AI"
         else (print_string (string_of_piece x)));
       print_string " | "
     done;
