@@ -261,20 +261,22 @@ module GameBoard : Board = struct
         let within_board = (in_board pos_one) && (in_board pos_two) in
         if (within_board = false) then (false, "Position outside of board") else
         let valid_pos_one = check_pos_one board b pos_one in
-        if (fst valid_pos_one) = false then valid_pos_one else
-        let pos_one_p = match (search pos_one board) with
+        if (fst valid_pos_one) = false then 
+            valid_pos_one 
+        else
+            let pos_one_p = match (search pos_one board) with
                         | None -> failwith "Nothing at pos_one for some reason"
                         | Some x -> x in
-        let possible_moves_list = get_possible_moves board b pos_one_p pos_one in
-        if (List.mem pos_two possible_moves_list) = false
-            then (false, "That piece can't move there!")
-        else
-            match (search pos_two board) with
-            | None -> (true, "")
-            | Some x ->
-                if (x.player = b) then (false, "Don't attack your own team!")
-                else
-                    (true, "")
+            let possible_moves_list = get_possible_moves board b pos_one_p pos_one in
+            if (List.mem pos_two possible_moves_list) = false then 
+                (false, "That piece can't move there!")
+            else
+                match (search pos_two board) with
+                | None -> (true, "")
+                | Some x ->
+                    if (x.player = b) then (false, "Don't attack your own team!")
+                    else
+                        (true, "")
 
     (**
      * [remove_optional piece] is p in [piece], which is (Some p).

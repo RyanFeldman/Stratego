@@ -115,7 +115,7 @@ let append_to_cap lst =
     | _ -> failwith "Invalid captured pieces?"
 
 let execute_movement board num1 num2 =
-    let t1 = tuple_from_string num2 in
+    let t1 = tuple_from_string num1 in
     let t2 = tuple_from_string num2 in
     let pos_one = make_position (fst t1) (snd t1) in
     let pos_two = make_position (fst t2) (snd t2) in

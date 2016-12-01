@@ -21,7 +21,7 @@ module GameAI : AI = struct
   *)
 let get_ai_pieces () =
   let pieces = get_list_all_pieces () in
-  List.map (fun p -> {p with player=false}) pieces
+  List.map (fun p -> (make_piece (get_rank p) false (get_been_seen p))) pieces
 
 (* [ai_setup] takes in a board where only the player has set up their
  * pieces and sets up the AI's pieces.
@@ -36,20 +36,24 @@ let get_ai_pieces () =
     let bomb_two_x = match flag_x_pos with
                      |9 -> 6
                      |n -> n+1 in
-    let flag_board = add_mapping flag_pos
-        (Some {rank=11; player=false; hasBeenSeen=false}) board in
-    let one_bomb_board = add_mapping (bomb_one_x, 9)
-        (Some {rank=0; player=false; hasBeenSeen=false}) flag_board in
-    let two_bomb_board = add_mapping (bomb_two_x, 9)
-        (Some {rank=0; player=false; hasBeenSeen=false}) one_bomb_board in
-    let three_bombs_board = add_mapping (flag_x_pos, 8)
-        (Some {rank=0; player=false; hasBeenSeen=false}) two_bomb_board in
-    let filled = [flag_pos;(bomb_one_x, 9);(bomb_two_x, 9); (flag_x_pos, 8)] in
+    let flag_p = make_position (fst flag_pos) (snd flag_pos) in 
+    let bomb_one = make_position bomb_one_x 9 in 
+    let bomb_two = make_position bomb_two_x 9 in 
+    let bomb_three = make_position flag_x_pos 8 in 
+    let flag_board = add_mapping flag_p
+        (Some(make_piece 11 false false)) board in
+    let one_bomb_board = add_mapping bomb_one
+        (Some (make_piece 0 false false)) flag_board in
+    let two_bomb_board = add_mapping bomb_two
+        (Some (make_piece 0 false false)) one_bomb_board in
+    let three_bombs_board = add_mapping bomb_three 
+        (Some (make_piece 0 false false)) two_bomb_board in
+    let filled = [flag_p; bomb_one; bomb_two; bomb_three] in
     let remaining = match get_ai_pieces () with
                     |f::b1::b2::b3::t -> t
                     |_ -> failwith "the function should match the above" in
     let shuffled = List.sort (fun x y -> Random.int 2) remaining in
-    fill three_bombs_board filled shuffled (0,9) false
+    fill three_bombs_board filled shuffled (make_position 0 9) false
 
   (* [replace_pos board lst] is a new board with replacements made according
    * to the (pos,piece option) association list [lst], where the first of every
@@ -70,13 +74,13 @@ let get_ai_pieces () =
    * or if p1 is within 2 points of the rank of p2
    *)
   let ai_battle p1 p2 =
-    match p1.rank, p2.rank with
-    | _, _ when (not p2.player) -> failwith "ai shouldn't battle it's own piece"
+    match (get_rank p1), (get_rank p2) with
+    | _, _ when (not (get_player p2)) -> failwith "ai shouldn't battle it's own piece"
     | 3,0 -> Some p1
     | _ , 0 -> Some p2
     | _ , 11 -> Some p1
     | 1, 10 -> Some p1
-    | p1r, p2r when p2.hasBeenSeen ->
+    | p1r, p2r when (get_been_seen p2) ->
           if p1r > p2r then Some p1 else if p1r < p2r then Some p2 else None
     | p1r, p2r when p1r >= p2r - 2 -> Some p1
     | _,_ -> Some p2
@@ -120,8 +124,8 @@ let get_ai_pieces () =
   let score board =
     let f piece a = (match piece with
         |None -> a
-        |Some p when p.player -> a-(get_value p.rank)
-        |Some p -> a+(get_value p.rank)) in
+        |Some p when (get_player p) -> a-(get_value (get_rank p))
+        |Some p -> a+(get_value (get_rank p))) in
     board_fold (fun k v ac -> f v ac) board 0
 
   (* [can_move_to board (x,y) player)] returns true if a piece belonging to
@@ -130,9 +134,9 @@ let get_ai_pieces () =
    *)
   let can_move_to board (x,y) player =
     try
-      match search (x,y) board with
+      match search (make_position x y) board with
       |None -> true
-      |Some piece -> player <> piece.player
+      |Some piece -> player <> (get_player piece)
     with
     |_ -> false
 
@@ -145,10 +149,10 @@ let get_ai_pieces () =
     let piece = match search pos board with
                |Some p -> p
                | _ -> failwith "Should be a piece here" in
-    if (piece.rank = 0 || piece.rank = 11) then
+    if ((get_rank piece) = 0 || (get_rank piece) = 11) then
       false
     else
-      let (x,y) = pos in
+      let (x,y) = get_tuple pos in
         let can_up = (match (x,y+1) with
                    |(x',y') when y' > 10 -> false
                    |(x',y') -> can_move_to board (x',y') player) in
@@ -171,7 +175,7 @@ let get_ai_pieces () =
     (*let () = print_endline (string_of_bool player) in*)
     let lst = ref [] in
     let f k = function
-      | Some p when p.player = player -> has_move board k player
+      | Some p when (get_player p) = player -> has_move board k player
       | _ -> false in
     let () = board_iter
       (fun k v -> if f k v then (lst := k::(!lst)) else ()) board in
@@ -184,7 +188,7 @@ let get_ai_pieces () =
   let get_moves_piece board pos  =
     let moves = (match search pos board with
     | None -> failwith "there's no piece here"
-    | Some p -> get_possible_moves board p.player p pos) in
+    | Some p -> get_possible_moves board (get_player p) p pos) in
     List.fold_left (fun a x -> (pos, x)::a) [] moves
 
 (**
@@ -235,7 +239,7 @@ let get_valid_boards board player =
     *)
   and get_max (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 true (depth - 1) in
-      if s1 > s2 then (s1, m1) else (s2, m2)
+      if s1 > s2 then (s1, m1) else (s2, ((get_tuple (fst m2)), (get_tuple (snd m2))))
 
   (* [get_min (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
    * tuple that is the move ([m1] or [m2]) that gives the lowest score ([s1] or
@@ -244,7 +248,7 @@ let get_valid_boards board player =
   *)
   and get_min (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 false (depth-1) in
-      if s1 < s2 then (s1, m1) else (s2, m2)
+      if s1 < s2 then (s1, m1) else (s2, ((get_tuple (fst m2)), (get_tuple (snd m2))))
 
   (* [choose_best_board] takes in a list of boards available to the AI
    * and picks the one with the highest score (relative to the AI)
@@ -257,7 +261,9 @@ let get_valid_boards board player =
     if move = ((-1,-1),  (-1,-1)) then
         (Victory true, [], "")
     else
-        match make_move board (fst move) (snd move) with
+        let pos_one = make_position (fst (fst move)) (snd (fst move)) in 
+        let pos_two = make_position (fst (snd move)) (snd (snd move)) in 
+        match make_move board pos_one pos_two with
         |(Active b, captured, str) -> (Active b, captured, str)
         |_ -> failwith "First element should be Active variant"
         (*fst (make_move board (fst move) (snd move))*)
