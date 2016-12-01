@@ -363,7 +363,7 @@ module GameBoard : Board = struct
                 ^(string_of_int (get_rank p_win))^")"
                 ^" defeated the AI's "^(string_from_piece h)^" ("
                 ^(string_of_int (get_rank h))^
-                ")"^"!\n User's piece is at "
+                ")"^"!\nUser's piece is at "
                 ^(string_from_tuple pos_two)^" and AI's piece has been taken"
                 ^" from the board."
 
