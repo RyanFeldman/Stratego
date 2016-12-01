@@ -70,6 +70,7 @@ let auto_setup () =
 let manual_setup () =
     let new_board = none_whole_board (empty_board ()) (make_position 0 0) in
     let full_pieces = get_list_all_pieces () in
+    let _ = display_board new_board in 
     let user_board = instantiate_user_board new_board full_pieces in
     let start_board = ai_setup user_board in
     let () = display_board start_board in
