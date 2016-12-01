@@ -42,12 +42,20 @@ module type Board = sig
     (* Type representing a location on the stratego board *)
     type position = (int * int)
 
+    val make_position : int -> int -> position
+
+    val get_position : position -> int * int
+
     (* Type representing a stratego piece on the board *)
-    type piece = {
-        rank : int;
-        player : bool;
-        hasBeenSeen: bool
-    }
+    type piece 
+
+    val make_piece : int -> bool -> bool -> piece 
+
+    val get_rank : piece -> int
+
+    val get_player : piece -> bool
+
+    val get_been_seen : piece -> bool 
 
     (* The type of the board *)
     type t
