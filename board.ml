@@ -14,10 +14,10 @@ module IntTuple : (Tuple with type t = (int * int)) = struct
 end
 
 module type Board = sig
-    type position 
+    type position
     val make_position : int -> int -> position
     val get_tuple : position -> int * int
-    type piece 
+    type piece
     val make_piece : int -> bool -> bool -> piece
     val get_rank : piece -> int
     val get_player : piece -> bool
@@ -61,7 +61,7 @@ module GameBoard : Board = struct
     }
 
     (* See board.mli file *)
-    let make_piece (r:int) (pla:bool) (seen:bool) : piece = 
+    let make_piece (r:int) (pla:bool) (seen:bool) : piece =
         { rank = r; player = pla; hasBeenSeen = seen }
 
     (* See board.mli file *)
@@ -110,7 +110,7 @@ module GameBoard : Board = struct
 
     (**
      * [string_from_piece piece] is the name of [piece] given its rank.
-     * Raises: 
+     * Raises:
      *  - Failure when passed an invalid piece
      *)
     let string_from_piece piece =
@@ -171,14 +171,14 @@ module GameBoard : Board = struct
                 fill new_board (pos::filled) t (next_pos pos) player
 
     (**
-     * [step board b pos dir] is the list of positions a scout can move to on 
+     * [step board b pos dir] is the list of positions a scout can move to on
      * [board] given the player [b] from position [pos] in direction [dir].
-     * This function steps until it meets an enemy piece (including that 
-     * position in the list), a member of its own team (excluding that 
-     * position from the list), or until a board edge is reached. 
+     * This function steps until it meets an enemy piece (including that
+     * position in the list), a member of its own team (excluding that
+     * position from the list), or until a board edge is reached.
      *)
     let rec step board b pos dir =
-        let (x, y) = pos in 
+        let (x, y) = pos in
         match dir with
         | N ->
             if y=9 then [] else
@@ -233,7 +233,7 @@ module GameBoard : Board = struct
                 (left @ right @ top @ bot)
 
     (**
-     * [in_board pos] is true iff [pos] is within the dimensions of a 10x10 
+     * [in_board pos] is true iff [pos] is within the dimensions of a 10x10
      * board. In other words, -1 < both values in pos < 10. False otherwise
      *)
     let in_board pos =
@@ -261,14 +261,14 @@ module GameBoard : Board = struct
         let within_board = (in_board pos_one) && (in_board pos_two) in
         if (within_board = false) then (false, "Position outside of board") else
         let valid_pos_one = check_pos_one board b pos_one in
-        if (fst valid_pos_one) = false then 
-            valid_pos_one 
+        if (fst valid_pos_one) = false then
+            valid_pos_one
         else
             let pos_one_p = match (search pos_one board) with
                         | None -> failwith "Nothing at pos_one for some reason"
                         | Some x -> x in
             let possible_moves_list = get_possible_moves board b pos_one_p pos_one in
-            if (List.mem pos_two possible_moves_list) = false then 
+            if (List.mem pos_two possible_moves_list) = false then
                 (false, "That piece can't move there!")
             else
                 match (search pos_two board) with
@@ -363,7 +363,7 @@ module GameBoard : Board = struct
                 ^(string_of_int (get_rank p_win))^")"
                 ^" defeated the AI's "^(string_from_piece h)^" ("
                 ^(string_of_int (get_rank h))^
-                ")"^"!\n User's piece is at "
+                ")"^"!\nUser's piece is at "
                 ^(string_from_tuple pos_two)^" and AI's piece has been taken"
                 ^" from the board."
 
@@ -391,14 +391,14 @@ module GameBoard : Board = struct
             | Some piece -> execute_conflict board piece pos_one pos_two) in
         let msg = get_msg pos_one pos_two (new_board, captured) in
         let p_one = remove_optional (search pos_one board) in
-        let move_msg = 
-            if p_one.player then 
+        let move_msg =
+            if p_one.player then
                 ("Player moved "^(string_from_piece p_one)^" from "
                                 ^(string_from_tuple pos_one)
-                                ^" to "^(string_from_tuple pos_two)) 
-            else 
+                                ^" to "^(string_from_tuple pos_two))
+            else
                 ("AI moved piece from "^(string_from_tuple pos_one)
-                                ^" to "^(string_from_tuple pos_two)) in 
+                                ^" to "^(string_from_tuple pos_two)) in
 
         if (check_if_winner captured) then
             let winner = (List.hd captured).player in

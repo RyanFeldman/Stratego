@@ -40,7 +40,7 @@ module type Board = sig
      *)
 
     (* Type representing a location on the stratego board *)
-    type position 
+    type position
 
     (**
      * [make_position] takes in two ints and gives back a position
@@ -48,39 +48,49 @@ module type Board = sig
     val make_position : int -> int -> position
 
     (**
-     * [get_tuple] turns a position into an int tuple 
+     * [get_tuple] turns a position into an int tuple
      *)
     val get_tuple : position -> int * int
 
     (* Type representing a stratego piece on the board *)
-    type piece 
+    type piece
 
     (**
-     * [make_piece] takes in a rank, the player, and a bool 
-     * representing if it has been seen by the AI or not and gives
-     * back a corresponding piece. 
-     * Note:    
+     * [make_piece] takes in a rank, the player, and a bool
+     * that is true iff the piece has been seen by the AI or not, and gives
+     * back a corresponding piece.
+     *
+     * Note:
      *      piece.player = true -> User
      *      piece.player = false -> AI
+     *
+     * Note 2: For make_piece, the ranking for special pieces is as follows:
+     *
+     *      Rank 0: Bomb (i.e. making a piece of rank 0 makes a bomb)
+     *      Rank 1: Spy
+     *      Rank 11: Flag
      *)
-    val make_piece : int -> bool -> bool -> piece 
+    val make_piece : int -> bool -> bool -> piece
 
     (**
-     * [get_rank] is the corresponding rank of a given piece
+     * [get_rank] is the corresponding rank of a given piece.
+     *
+     * The ranking of special pieces (spies, flags, bombs) is the same as in
+     * [make_piece]
      *)
     val get_rank : piece -> int
 
     (**
-     * [get_player] is true iff the piece belongs to the player. 
-     * False otherwise. 
+     * [get_player] is true iff the piece belongs to the player.
+     * False otherwise.
      *)
     val get_player : piece -> bool
 
     (**
      * [get_been_seen] is true iff this piece has been seen by the AI. In other
-     * words, true iff the piece has been in a conflict and survived. 
+     * words, true iff the piece has been in a conflict and survived.
      *)
-    val get_been_seen : piece -> bool 
+    val get_been_seen : piece -> bool
 
     (* The type of the board *)
     type t

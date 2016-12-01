@@ -23,8 +23,14 @@ let get_ai_pieces () =
   let pieces = get_list_all_pieces () in
   List.map (fun p -> (make_piece (get_rank p) false (get_been_seen p))) pieces
 
-(* [ai_setup] takes in a board where only the player has set up their
- * pieces and sets up the AI's pieces.
+(* [ai_setup] takes in a board [board], on which the player has set up their
+ * pieces, and sets up the AI's pieces. The AI will always put its flag in the
+ * back row and place three bombs around it. Other than that, the placement
+ * of every piece is totally random.
+ *
+ * Requires:
+ * [board] : board
+ * The player has set up their pieces on [board] already
  *)
   let ai_setup board =
     let () = Random.self_init () in
@@ -36,20 +42,23 @@ let get_ai_pieces () =
     let bomb_two_x = match flag_x_pos with
                      |9 -> 6
                      |n -> n+1 in
-    let flag_p = make_position (fst flag_pos) (snd flag_pos) in 
-    let bomb_one = make_position bomb_one_x 9 in 
-    let bomb_two = make_position bomb_two_x 9 in 
-    let bomb_three = make_position flag_x_pos 8 in 
+    let flag_p = make_position (fst flag_pos) (snd flag_pos) in
+    let bomb_one = make_position bomb_one_x 9 in
+    let bomb_two = make_position bomb_two_x 9 in
+    let bomb_three = make_position flag_x_pos 8 in
     let flag_board = add_mapping flag_p
         (Some(make_piece 11 false false)) board in
     let one_bomb_board = add_mapping bomb_one
         (Some (make_piece 0 false false)) flag_board in
     let two_bomb_board = add_mapping bomb_two
         (Some (make_piece 0 false false)) one_bomb_board in
-    let three_bombs_board = add_mapping bomb_three 
+    let three_bombs_board = add_mapping bomb_three
         (Some (make_piece 0 false false)) two_bomb_board in
     let filled = [flag_p; bomb_one; bomb_two; bomb_three] in
     let remaining = match get_ai_pieces () with
+                    (*The following line removes the flag and three bombs
+                     *from the list of pieces that need to be placed because
+                     *they have already been put on the board*)
                     |f::b1::b2::b3::t -> t
                     |_ -> failwith "the function should match the above" in
     let shuffled = List.sort (fun x y -> Random.int 2) remaining in
@@ -69,9 +78,20 @@ let get_ai_pieces () =
     let () = board_iter (fun k v -> f k v) board in
     !newb
 
-  (* [ai_battle p1 p2] is the piece option that ai assumes will win if p1 and p2
-   * battle ai assumes p1, its own piece, will win if p1 would win in normal gameplay
-   * or if p1 is within 2 points of the rank of p2
+  (* [ai_battle p1 p2] is a piece option representing the piece that ai assumes
+   * will win if the AI's piece, p1, battles the player's piece, p2. AI assumes
+   * p1 will win under the following circumstances:
+   *
+   *  1) p1 is a miner and p2 is a bomb
+   *  2) p1 is any piece and p2 is the player's flag
+   *  3) p1 is a spy (rank 1) and p2 is the marshal (rank 10)
+   *  4) The AI has not battled p2 in the past and the rank(p1) <= rank(p2) + 2
+   *  5) The AI has battle p2 in the past and rank(p1) > rank(p2)
+   *
+   * In all other circumstances, the AI assumes p1 will lose to p2 in a battle.
+   *
+   * Requires:
+   * [p1] and [p2] : piece
    *)
   let ai_battle p1 p2 =
     match (get_rank p1), (get_rank p2) with
@@ -86,10 +106,16 @@ let get_ai_pieces () =
     | _,_ -> Some p2
 
 
-  (* [ai_move board pos1 pos 2] is a new board with the piece in pos1 moved to
-  * pos2.  If there is a piece in pos2, the piece in pos2 of the new board is
-  * the winner of ai_battle
-  *)
+  (* [ai_move board pos1 pos2] is the board that the AI assumes will result when
+   * the piece at position [pos1] is moved to position [pos2] on board [board].
+   * If moving that piece causes a battle (i.e. there is an enemy piece at pos2)
+   * then the board returned reflects what the AI thinks the outcome of the
+   * battle will be according to [ai_battle].
+   *
+   * Requires:
+   * [board] : Board
+   * [pos1], [pos2] : Board.position
+   *)
   let ai_move board pos1 pos2 =
     if pos1 = pos2 then failwith "can't move to same position" else
     match search pos1 board, search pos2 board with
@@ -98,7 +124,23 @@ let get_ai_pieces () =
     | Some p1,Some p2 ->replace_pos board [(pos1, None);(pos2, ai_battle p1 p2)]
 
 
-  (*[get_value rank] returns the value of a given rank.
+  (* [get_value rank] returns the AI's perceived value of a given piece's rank.
+   * The values of pieces are how the AI determines which move it should make.
+   *
+   * For most pieces, the AI's perceived value of a rank is simply that rank.
+   * However, there are some exceptions, such as spies. The reason for this is
+   * as follows: despite the fact that a spy is rank 1 and it is defeated in
+   * battle by nearly every piece, it is valuable because without it, it would
+   * be very difficult to defeat the most powerful piece in the game, the
+   * marshal. So losing a spy is very costly and so it is assigned a higher
+   * value than 1. Similar arguments apply for the flag (obviously the most
+   * important piece because its capture ends the game), bombs, and miners.
+   *
+   * Note that this function takes in an int, which is the integer representation
+   * of rank described in the [get_rank] function of the Board module.
+   *
+   * Requires:
+   * [rank] : int
    *)
   let get_value = function
     |0 -> 5
@@ -112,12 +154,7 @@ let get_ai_pieces () =
    * and subtracting player's score from the AI's score to find the net score.
    *
    * The scoring heuristic assigns each piece an integer value based on its rank.
-   * The value of each piece is its rank except for the following exceptions:
-   * A rank 1 piece (Spy) has a value of 6
-   * A rank 3 piece (miner) has a value of 5
-   * A bomb has a value of 5
-   * A rank 10 piece (Marshall) has a value of 15
-   * A flag has value 1000
+   * The value of each rank is as described in [get_value]
    *
    * Requires: [board] : board
    *)
@@ -129,8 +166,15 @@ let get_ai_pieces () =
     board_fold (fun k v ac -> f v ac) board 0
 
   (* [can_move_to board (x,y) player)] returns true if a piece belonging to
-   * [player] can move to coordinate [(x,y)] on [board]. That is, either there
-   * is an enemy piece at [(x,y)] or no piece is at (x,y)
+   * [player] (i.e. true if the user, false if the AI) can move to coordinate
+   * [(x,y)] on [board]; that is, either there is an enemy piece at [(x,y)] or
+   * no piece is at [(x,y)].
+   *
+   * Requires:
+   * [(x,y)] : (int*int)
+   * [board] : Board
+   * player : bool
+   *
    *)
   let can_move_to board (x,y) player =
     try
@@ -140,10 +184,16 @@ let get_ai_pieces () =
     with
     |_ -> false
 
-  (* [has_move piece] returns true if there is 1 or more valid move that the
-   * piece at position [pos] can make on [board when it is the turn of [player].
+  (* [has_move piece] returns true iff there is 1 or more valid move that the
+   * piece at position [pos] can make on [board] when it is the turn of [player].
    * i.e. [player] = true means it is the player's turn; [player] = false means
    * it is the AI's turn.
+   *
+   * Requires:
+   * [board] : Board
+   * [pos] : (int*int)
+   * [player] : bool
+   *
    *)
   let has_move board pos player=
     let piece = match search pos board with
@@ -169,10 +219,14 @@ let get_ai_pieces () =
 
 
   (* [get_moveable_init board] returns the list of positions in [board] that
-   * contain a piece that can make 1 or more valid moves.
+   * contain a piece that can make 1 or more valid moves. Note that positions
+   * in this list are represented as (int*int).
+   *
+   * Requires:
+   * [board] : Board
+   * [player] : bool
    *)
   let get_moveable_init board player =
-    (*let () = print_endline (string_of_bool player) in*)
     let lst = ref [] in
     let f k = function
       | Some p when (get_player p) = player -> has_move board k player
@@ -181,8 +235,8 @@ let get_ai_pieces () =
       (fun k v -> if f k v then (lst := k::(!lst)) else ()) board in
    !lst
 
-  (*[get_moves_piece board pos] is an (pos1,pos2) association list that
-   *represents all of the posistions the piece at [pos] can move to. The
+  (* [get_moves_piece board pos] is an (pos1,pos2) association list that
+   * represents all of the posistions the piece at [pos] can move to. The
    * starting move is the first in the association list.
    *)
   let get_moves_piece board pos  =
@@ -254,15 +308,12 @@ let get_valid_boards board player =
    * and picks the one with the highest score (relative to the AI)
    *)
   let choose_best_board board =
-    (*let () = print_endline "called" in*)
     let move = snd (minimax board false 3) in
-    (*let () = (print_endline ("first: "^((string_of_int (fst (fst move)))^(string_of_int (snd ( fst move)))))) in
-    let () = (print_endline ("second: "^((string_of_int (fst (snd move)))^(string_of_int (snd ( snd move)))))) in*)
     if move = ((-1,-1),  (-1,-1)) then
         (Victory true, [], "")
     else
-        let pos_one = make_position (fst (fst move)) (snd (fst move)) in 
-        let pos_two = make_position (fst (snd move)) (snd (snd move)) in 
+        let pos_one = make_position (fst (fst move)) (snd (fst move)) in
+        let pos_two = make_position (fst (snd move)) (snd (snd move)) in
         match make_move board pos_one pos_two with
         |(Active b, captured, str) -> (Active b, captured, str)
         |_ -> failwith "First element should be Active variant"
