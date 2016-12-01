@@ -144,19 +144,23 @@ let handle_user_input cmd board =
         let _ = display_table () in
         Active (board)
     | ("captured", "") ->
+        let user_lst = List.filter (fun x -> x.rank <> 12) 
+                        (Array.to_list user_pieces_lost) in 
+        let ai_lst = List.filter (fun x -> x.rank <> 12) 
+                        (Array.to_list ai_pieces_lost) in 
         print_message "User's Pieces Lost:";
-        (print_list (Array.to_list user_pieces_lost));
+        (print_list (user_lst));
         print_message "AI's Pieces Lost:";
-        print_list (Array.to_list ai_pieces_lost);
+        print_list (ai_lst);
         Active (board)
     | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
     | _ ->
-        let () = (print_message ("Sorry, I don't quite understant your input. "^
+        let () = (print_message ("\n\nSorry, I don't quite understand your input.\n"^
                     "Remember: To move, type the position of the piece you want"^
                     " to move followed by the target location (ex. 00 01). At "^
                     "any time, type \"table\" to see the pieces reference table"^
                     ", or type \"captured\" to see the pieces that have been "^
-                    "captured.")) in
+                    "captured.\n")) in
         raise Illegal
 
 let check_winner b =
