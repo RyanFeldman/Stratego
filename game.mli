@@ -1,8 +1,15 @@
 (* [board] represents the type of a Board *)
 type board = Board.GameBoard.t
+
+(* [game_piece] is the type of a Stratego piece *)
 type game_piece = Board.GameBoard.piece
 
+(* [user_pieces_lost] is an array containing all the stratego pieces the user
+ * has lost *)
 val user_pieces_lost : game_piece array
+
+(* [ai_pieces_lost] is an array containing all the stratego pieces the ai
+ * has lost *)
 val ai_pieces_lost : game_piece array
 
 (**
@@ -12,7 +19,13 @@ val ai_pieces_lost : game_piece array
  *)
 val manual_setup : unit -> board
 
+(**
+ * [auto_setup] creates the board that exists at the start of gameplay; it
+ * randomizes the user's initial piece setup. Returns a board with both the 
+ * user's pieces and the AI's pieces
+ *)
 val auto_setup : unit -> board
+
 (**
  * [play] handles the gameplay of stratego. It takes in a board, prompts the
  * player to input a move, checks that the move is valid, executes that move,
