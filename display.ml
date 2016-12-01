@@ -76,8 +76,14 @@ module TextDisplay : Display = struct
 
     To move, type the position of the piece you want to move followed by the target
     location (ex. 00 01).
-    At any time, type \"table\" to see the pieces reference table,
-    or type \"captured\" to see the pieces that have been captured."
+    ";
+    print_endline 
+    "
+    Once the game begins, the following commands will be available:\n
+    \t\"table\"- Displays a table linking the names of Stratego pieces to their ranks\n
+    \t\"captured\"- Displays the pieces captured by each player\n
+    \t\"rules\"- Displays the rules and commands available\n
+    \t\"quit\"- Exits the game"
 
   let print_list (l:piece list) =
     print_string "Pieces: ";
