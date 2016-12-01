@@ -163,8 +163,7 @@ module type Board = sig
      * [is_valid_move] is false. Returns an error string if [is_valid_move] is
      * false with the reason why to display to the user. Empty if true.
      * Requires:
-     *  - t : board object
-
+     *  - t    : board object
      *  - bool : true if user, false otherwise
      *  - pos1 : piece initial position
      *  - pos2 : piece final position
