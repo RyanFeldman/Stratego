@@ -48,9 +48,9 @@ module type Board = sig
     val make_position : int -> int -> position
 
     (**
-     * [get_position] turns a position into an int tuple 
+     * [get_tuple] turns a position into an int tuple 
      *)
-    val get_position : position -> int * int
+    val get_tuple : position -> int * int
 
     (* Type representing a stratego piece on the board *)
     type piece 
