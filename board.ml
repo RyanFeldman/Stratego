@@ -351,14 +351,19 @@ module GameBoard : Board = struct
         | h::[] ->
             if h.player then
                 let p_win = remove_optional (search pos_two (fst tup)) in
-                "AI's "^(string_from_piece p_win)^" defeated the User's "
-                ^(string_from_piece h)^"! \nAI's piece is at "
+                "AI's "^(string_from_piece p_win)^" ("
+                ^(string_of_int (get_rank p_win))^")"
+                ^" defeated the User's "^(string_from_piece h)^" ("^
+                (string_of_int (get_rank h))^")"^"! \nAI's piece is at "
                 ^(string_from_tuple pos_two)^" and User's piece has been taken"
                 ^" from the board."
             else
                 let p_win = remove_optional (search pos_two (fst tup)) in
-                "User's "^(string_from_piece p_win)^" defeated the AI's "
-                ^(string_from_piece h)^"!\n User's piece is at "
+                "User's "^(string_from_piece p_win)^" ("
+                ^(string_of_int (get_rank p_win))^")"
+                ^" defeated the AI's "^(string_from_piece h)^" ("
+                ^(string_of_int (get_rank h))^
+                ")"^"!\n User's piece is at "
                 ^(string_from_tuple pos_two)^" and AI's piece has been taken"
                 ^" from the board."
 
@@ -406,9 +411,7 @@ module GameBoard : Board = struct
         else
             (Active (new_board), captured, move_msg^"\n"^msg)
 
-    (*[equal_board b1 b2] is true when b1 are the same size and have the same
-     * positions and pieces binded to positions and false otherwise
-     *)
+    (* See board.mli file *)
     let equal_board b1 b2 = BoardMap.equal (=) b1 b2
 
 end
