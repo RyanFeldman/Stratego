@@ -156,7 +156,8 @@ let handle_user_input cmd board =
         print_list (ai_lst);
         Active (board)
     | ("quit", "") -> (print_message ("Did the 3110 students quit when their "
-                        ^"final project was due in 9 days? Oh well, your choice.")); 
+                        ^"final project was due in 9 days? Oh well, your choice."
+                        ^" You surrendered to the AI.")); 
                         Victory (false)
     | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
     | _ ->

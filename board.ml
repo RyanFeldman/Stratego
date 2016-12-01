@@ -16,7 +16,7 @@ end
 module type Board = sig
     type position 
     val make_position : int -> int -> position
-    val get_position : position -> int * int
+    val get_tuple : position -> int * int
     type piece 
     val make_piece : int -> bool -> bool -> piece
     val get_rank : piece -> int
@@ -51,7 +51,7 @@ module GameBoard : Board = struct
     let make_position (x:int) (y:int) : int * int = (x, y)
 
     (* See board.mli file *)
-    let get_position (pos:position) : int * int = pos
+    let get_tuple (pos:position) : int * int = pos
 
     (* See board.mli file *)
     type piece = {
@@ -83,9 +83,6 @@ module GameBoard : Board = struct
     type dir = N | E | S | W
 
     (* See board.mli file *)
-    let empty_board () = BoardMap.empty
-
-    (* See board.mli file *)
     let search pos board = BoardMap.find pos board
 
     (* See board.mli file *)
@@ -99,6 +96,17 @@ module GameBoard : Board = struct
 
     (* See board.mli file *)
     let board_iter f board = BoardMap.iter f board
+
+    (* See board.mli file *)
+    let rec none_whole_board board pos=
+        match pos with
+        |(10,9) -> board
+        |(10,y) -> none_whole_board board (0, y+1)
+        |(x,y) -> let brd = add_mapping (x,y) None board
+                    in none_whole_board brd (x+1,y)
+
+    (* See board.mli file *)
+    let empty_board () = BoardMap.empty
 
     (**
      * [string_from_piece piece] is the name of [piece] given its rank.
@@ -147,13 +155,6 @@ module GameBoard : Board = struct
         flag_lst @ bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @
         cap_list @ lieut_list @ serg_list @ mine_list @ sco_list @ spy_list
 
-    (* See board.mli file *)
-    let rec none_whole_board board pos=
-        match pos with
-        |(10,9) -> board
-        |(10,y) -> none_whole_board board (0, y+1)
-        |(x,y) -> let brd = add_mapping (x,y) None board
-                    in none_whole_board brd (x+1,y)
 
     (* See board.mli file *)
     let rec fill board filled remaining pos player=
@@ -402,8 +403,6 @@ module GameBoard : Board = struct
             (Victory ((List.hd captured).player), captured, congrats)
         else
             (Active (new_board), captured, move_msg^"\n"^msg)
-
-
 
     (*[equal_board b1 b2] is true when b1 are the same size and have the same
      * positions and pieces binded to positions and false otherwise
