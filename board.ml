@@ -44,46 +44,67 @@ module BoardMap = Map.Make(IntTuple)
 
 module GameBoard : Board = struct
 
+    (* See board.mli file *)
     type position = int * int
 
-    let make_position x y = (x, y)
+    (* See board.mli file *)
+    let make_position (x:int) (y:int) : int * int = (x, y)
 
+    (* See board.mli file *)
     let get_position (pos:position) : int * int = pos
 
-    (* piece.player = true -> User
-     * piece.player = false -> AI *)
+    (* See board.mli file *)
     type piece = {
         rank : int;
         player : bool;
         hasBeenSeen : bool
     }
 
-    let make_piece r pla seen = { rank = r; player = pla; hasBeenSeen = seen}
+    (* See board.mli file *)
+    let make_piece (r:int) (pla:bool) (seen:bool) : piece = 
+        { rank = r; player = pla; hasBeenSeen = seen }
 
-    let get_rank p = p.rank
+    (* See board.mli file *)
+    let get_rank (p:piece) : int = p.rank
 
-    let get_player p = p.player
+    (* See board.mli file *)
+    let get_player (p:piece) : bool = p.player
 
-    let get_been_seen p = p.hasBeenSeen
+    (* See board.mli file *)
+    let get_been_seen (p:piece) : bool = p.hasBeenSeen
 
+    (* See board.mli file *)
     type t = (piece option) BoardMap.t
 
+    (* See board.mli file *)
     type victory = Active of t | Victory of bool
 
+    (* Represents a direction that an iterator will step on a board *)
     type dir = N | E | S | W
 
+    (* See board.mli file *)
     let empty_board () = BoardMap.empty
 
+    (* See board.mli file *)
     let search pos board = BoardMap.find pos board
 
+    (* See board.mli file *)
     let is_member pos board = BoardMap.mem pos board
 
+    (* See board.mli file *)
     let add_mapping pos piece board = BoardMap.add pos piece board
 
+    (* See board.mli file *)
     let board_fold f board acc = BoardMap.fold f board acc
 
+    (* See board.mli file *)
     let board_iter f board = BoardMap.iter f board
 
+    (**
+     * [string_from_piece piece] is the name of [piece] given its rank.
+     * Raises: 
+     *  - Failure when passed an invalid piece
+     *)
     let string_from_piece piece =
         match piece.rank with
         | 0 -> "Bomb"
@@ -100,6 +121,7 @@ module GameBoard : Board = struct
         | 11 -> "Flag"
         | _ -> failwith "Not a valid piece"
 
+    (* See board.mli file *)
     let get_list_all_pieces () =
         let p       = {rank=0; player=true; hasBeenSeen=false} in
         let col     = {p with rank=8} in
@@ -125,6 +147,7 @@ module GameBoard : Board = struct
         flag_lst @ bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @
         cap_list @ lieut_list @ serg_list @ mine_list @ sco_list @ spy_list
 
+    (* See board.mli file *)
     let rec none_whole_board board pos=
         match pos with
         |(10,9) -> board
@@ -132,51 +155,59 @@ module GameBoard : Board = struct
         |(x,y) -> let brd = add_mapping (x,y) None board
                     in none_whole_board brd (x+1,y)
 
+    (* See board.mli file *)
     let rec fill board filled remaining pos player=
         let next_pos = function
         |(9,y) -> if player then (0, y+1) else (0, y-1)
         |(x,y) -> (x+1, y) in
         match remaining with
-        |[] -> board
-        |h::t ->
+        | [] -> board
+        | h::t ->
             if List.mem pos filled then
                 fill board filled remaining (next_pos pos) player
             else
                 let new_board = add_mapping pos (Some h) board in
                 fill new_board (pos::filled) t (next_pos pos) player
 
-
+    (**
+     * [step board b pos dir] is the list of positions a scout can move to on 
+     * [board] given the player [b] from position [pos] in direction [dir].
+     * This function steps until it meets an enemy piece (including that 
+     * position in the list), a member of its own team (excluding that 
+     * position from the list), or until a board edge is reached. 
+     *)
     let rec step board b pos dir =
+        let (x, y) = pos in 
         match dir with
         | N ->
-            let (x, y) = pos in
             if y=9 then [] else
             (match (search (x, y+1) board) with
             | None -> (x, y+1)::(step board b (x, y+1) N)
             | Some piece ->
                 if (piece.player = b) then [] else [(x, y+1)])
         | E ->
-            let (x, y) = pos in
             if x=9 then [] else
             (match (search (x+1, y) board) with
             | None -> (x+1, y)::(step board b (x+1, y) E)
             | Some piece ->
                 if (piece.player = b) then [] else [(x+1, y)])
         | S ->
-            let (x, y) = pos in
             if y=0 then [] else
             (match (search (x, y-1) board) with
             | None -> (x, y-1)::(step board b (x, y-1) S)
             | Some piece ->
                 if (piece.player = b) then [] else [(x, y-1)])
         | W ->
-            let (x, y) = pos in
             if x=0 then [] else
             (match (search (x-1, y) board) with
             | None -> (x-1, y)::(step board b (x-1, y) W)
             | Some piece ->
                 if (piece.player = b) then [] else [(x-1, y)])
 
+    (**
+     * [get_scout_moves board b pos] is the list of positions a scout can move
+     * to in all directions by player [b] on board [board] from position [pos].
+     *)
     let get_scout_moves board b pos =
         let up_list = step board b pos N in
         let right_list = step board b pos E in
@@ -184,8 +215,7 @@ module GameBoard : Board = struct
         let left_list = step board b pos W in
         up_list @ right_list @ bot_list @ left_list
 
-
-
+    (* See board.mli file *)
     let get_possible_moves board b piece pos =
         match piece.rank with
         | 0 | 11 -> []
@@ -201,6 +231,10 @@ module GameBoard : Board = struct
                                 |_ -> true)
                 (left @ right @ top @ bot)
 
+    (**
+     * [in_board pos] is true iff [pos] is within the dimensions of a 10x10 
+     * board. In other words, -1 < both values in pos < 10. False otherwise
+     *)
     let in_board pos =
         if (fst pos) < 0 || (fst pos) > 9 then false
         else

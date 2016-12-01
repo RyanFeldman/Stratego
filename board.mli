@@ -59,6 +59,9 @@ module type Board = sig
      * [make_piece] takes in a rank, the player, and a bool 
      * representing if it has been seen by the AI or not and gives
      * back a corresponding piece. 
+     * Note:    
+     *      piece.player = true -> User
+     *      piece.player = false -> AI
      *)
     val make_piece : int -> bool -> bool -> piece 
 
@@ -91,7 +94,7 @@ module type Board = sig
     val empty_board : unit -> t
 
     val none_whole_board : t -> position -> t
-    
+
     (**
      * [search pos board] is the piece option mapped to [pos] on [board].
      * Raises:
