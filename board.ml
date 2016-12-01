@@ -14,12 +14,14 @@ module IntTuple : (Tuple with type t = (int * int)) = struct
 end
 
 module type Board = sig
-    type position = int * int
-    type piece = {
-        rank : int;
-        player : bool;
-        hasBeenSeen: bool
-    }
+    type position 
+    val make_position : int -> int -> position
+    val get_position : position -> int * int
+    type piece 
+    val make_piece : int -> bool -> bool -> piece
+    val get_rank : piece -> int
+    val get_player : piece -> bool
+    val get_been_seen : piece -> bool
     type t
     type victory = Active of t | Victory of bool
     val empty_board : unit -> t
@@ -44,6 +46,10 @@ module GameBoard : Board = struct
 
     type position = int * int
 
+    let make_position x y = (x, y)
+
+    let get_position (pos:position) : int * int = pos
+
     (* piece.player = true -> User
      * piece.player = false -> AI *)
     type piece = {
@@ -51,6 +57,14 @@ module GameBoard : Board = struct
         player : bool;
         hasBeenSeen : bool
     }
+
+    let make_piece r pla seen = { rank = r; player = pla; hasBeenSeen = seen}
+
+    let get_rank p = p.rank
+
+    let get_player p = p.player
+
+    let get_been_seen p = p.hasBeenSeen
 
     type t = (piece option) BoardMap.t
 
