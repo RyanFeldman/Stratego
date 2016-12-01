@@ -31,12 +31,12 @@ let rec get_user_input (board:board) (piece:piece) : board =
     print_message ("Where would you like to place your "
                             ^(string_from_piece piece)^ "? (ex. 00)");
     let user_input = read_line () in
-    let (x, y) = get_position (parse_user_input user_input) in
+    let (x, y) = get_tuple (parse_user_input user_input) in
     if (y > 3 || y < 0 || x < 0 || x > 9)
         then failwith "Invalid xy coordinate input"
     else
-        match (search (x, y) board) with
-        | None -> (add_mapping (x, y) (Some piece) board)
+        match (search (make_position x y) board) with
+        | None -> (add_mapping (make_position x y) (Some piece) board)
         | Some p -> failwith "A piece is already there!"
 
 let rec instantiate_user_board board = function
@@ -61,14 +61,14 @@ let auto_setup () =
     let () = Random.self_init () in
     let all_pieces = get_list_all_pieces () in
     let shuffled = List.sort (fun x y -> Random.int 2) all_pieces in
-    let init_board = none_whole_board (empty_board ()) (0,0) in
-    let player_brd = fill init_board [] shuffled (0,0) true in
+    let init_board = none_whole_board (empty_board ()) (make_position 0 0) in
+    let player_brd = fill init_board [] shuffled (make_position 0 0) true in
     let completed_board = ai_setup player_brd in
     let () = display_board completed_board in
     completed_board
 
 let manual_setup () =
-    let new_board = none_whole_board (empty_board ()) (0,0) in
+    let new_board = none_whole_board (empty_board ()) (make_position 0 0) in
     let full_pieces = get_list_all_pieces () in
     let user_board = instantiate_user_board new_board full_pieces in
     let start_board = ai_setup user_board in
@@ -95,14 +95,14 @@ let append_to_cap lst =
     match lst with
     | [] -> ()
     | h::[] ->
-        if h.player then
+        if get_player h then
             let index = user_counter () in
             (user_pieces_lost.(index) <- h)
         else
             let index = ai_counter () in
             (ai_pieces_lost.(index) <- h)
     | h1::h2::[] ->
-        if h1.player then
+        if get_player h1 then
             let index = user_counter () in
             let index2 = user_counter () in
             (user_pieces_lost.(index) <- h1);
@@ -115,8 +115,10 @@ let append_to_cap lst =
     | _ -> failwith "Invalid captured pieces?"
 
 let execute_movement board num1 num2 =
-    let pos_one = tuple_from_string num1 in
-    let pos_two = tuple_from_string num2 in
+    let t1 = tuple_from_string num2 in
+    let t2 = tuple_from_string num2 in
+    let pos_one = make_position (fst t1) (snd t1) in
+    let pos_two = make_position (fst t2) (snd t2) in
     let valid_move = is_valid_move board true pos_one pos_two in
     if (fst valid_move) then
         let (new_board, captured, str) = make_move board pos_one pos_two in
@@ -144,10 +146,10 @@ let handle_user_input cmd board =
         let _ = display_table () in
         Active (board)
     | ("captured", "") ->
-        let user_lst = List.filter (fun x -> x.rank <> 12) 
-                        (Array.to_list user_pieces_lost) in 
-        let ai_lst = List.filter (fun x -> x.rank <> 12) 
-                        (Array.to_list ai_pieces_lost) in 
+        let user_lst = List.filter (fun x -> get_rank x <> 12)
+                        (Array.to_list user_pieces_lost) in
+        let ai_lst = List.filter (fun x -> get_rank x <> 12)
+                        (Array.to_list ai_pieces_lost) in
         print_message "User's Pieces Lost:";
         (print_list (user_lst));
         print_message "AI's Pieces Lost:";
