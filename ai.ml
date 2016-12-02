@@ -146,7 +146,7 @@ let get_ai_pieces () =
     |0 -> 5
     |1 -> 6
     |3 -> 5
-    |11 -> 1000
+    |11 -> 10000
     |n -> n
 
   (* [score board] returns the AI's net score on [board] by going through
@@ -317,6 +317,7 @@ let get_valid_boards board player =
     else
         match make_move board pos1 pos2 with
         |(Active b, captured, str) -> (Active b, captured, str)
+        |(Victory b, captured, str) -> (Victory b, captured, str)
         |_ -> failwith "First element should be Active variant"
 
 end

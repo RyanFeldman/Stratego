@@ -84,7 +84,7 @@ let rec manual_setup_helper board = function
             (try (get_user_input board h) with
             | _ ->
                 let _ = print_message ("\nSorry, your input must be in the"
-                    ^" form 'xy' to place your piece at (x, y)! As a reminder,"
+                    ^" form 'xy' to place your piece at (x, y)!\nAs a reminder,"
                     ^" you must place your pieces in the first 4 rows and two "
                     ^"pieces cannot be placed on top of each other to start."
                     ^"\n\n") in
@@ -218,7 +218,7 @@ let handle_user_input cmd board =
         print_list (ai_lst);
         (Active (board), "")
     | ("quit", "") -> (print_message ("Did the 3110 students quit when their "
-                        ^"final project was due in 9 days? Oh well, your choice."
+                        ^"final project was due in 9 days?\nOh well, your choice."
                         ^" You surrendered to the AI."));
                         (Victory (false), "")
     | ("rules", "") ->
@@ -254,14 +254,14 @@ let rec play (board:board) : board =
     let user_tuple = parse_user_input user_input in
     let user_board = try (handle_user_input user_tuple board) with
                     | Illegal -> (Active (board),
-                    "\n\nSorry, I don't quite understand your input.\n"
+                    "\n\nSorry, that input is not valid.\n"
                     ^"Remember: To move, type the position of the piece you want"
-                    ^" to move followed by the target location (ex. 00 01). At "
-                    ^"any time, the following commands will be available:\n"
-                    ^"\t\"table\" - Displays a table linking the names of "
-                    ^"Stratego pieces to their ranks\n\t\"captured\" - Displays"
-                    ^" the pieces captured by each player\n\t\"rules\" - "
-                    ^"Displays the rules and commands available\n\t\"quit\" - "
+                    ^" to move\nfollowed by the target location (ex. 00 01).\nAt "
+                    ^"any time, the following commands are available:\n"
+                    ^"\tTABLE - Displays a table linking the names of "
+                    ^"Stratego pieces to their ranks\n\tCAPTURED - Displays"
+                    ^" the pieces captured by each player\n\tRULES - "
+                    ^"Displays the rules and commands available\n\tQUIT - "
                     ^"Exits the game\n") in
     let win = check_winner (fst user_board) in
     if win then
@@ -276,7 +276,7 @@ let rec play (board:board) : board =
             let (ai_board, captured, msg) = choose_best_board stripped_board in
             let ai_win = check_winner ai_board in
             if ai_win then
-                (strip_variant ai_board)
+                board
             else
                 let _ = append_to_cap captured in
                 let _ = display_board (strip_variant ai_board) in
