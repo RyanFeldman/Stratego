@@ -62,11 +62,22 @@ let rec get_user_input (board:board) (piece:piece) : board =
         | None -> (add_mapping (make_position x y) (Some piece) board)
         | Some p -> failwith "A piece is already there!"
 
+(* See game.mli file *)
+let auto_setup () =
+    let () = Random.self_init () in
+    let all_pieces = get_list_all_pieces () in
+    let shuffled = List.sort (fun x y -> Random.int 2) all_pieces in
+    let init_board = none_whole_board (empty_board ()) (make_position 0 0) in
+    let player_brd = fill init_board [] shuffled (make_position 0 0) true in
+    let completed_board = ai_setup player_brd in
+    let () = display_board completed_board in
+    completed_board
+
 (**
- * [instantiate_user_board board lst] is a board with all the pieces in [lst]
+ * [manual_setup_helper board lst] is a board with all the pieces in [lst]
  * placed in valid positions in [board].
  *)
-let rec instantiate_user_board board = function
+let rec manual_setup_helper board = function
     | [] -> board
     | h::t ->
         let new_board =
@@ -79,28 +90,17 @@ let rec instantiate_user_board board = function
                     ^"\n\n") in
                     board) in
         if (equal_board new_board board) then
-            instantiate_user_board board (h::t)
+            manual_setup_helper board (h::t)
         else
             let () = display_board new_board in
-            instantiate_user_board new_board t
-
-(* See game.mli file *)
-let auto_setup () =
-    let () = Random.self_init () in
-    let all_pieces = get_list_all_pieces () in
-    let shuffled = List.sort (fun x y -> Random.int 2) all_pieces in
-    let init_board = none_whole_board (empty_board ()) (make_position 0 0) in
-    let player_brd = fill init_board [] shuffled (make_position 0 0) true in
-    let completed_board = ai_setup player_brd in
-    let () = display_board completed_board in
-    completed_board
+            manual_setup_helper new_board t
 
 (* See game.mli file *)
 let manual_setup () =
     let new_board = none_whole_board (empty_board ()) (make_position 0 0) in
     let full_pieces = get_list_all_pieces () in
     let _ = display_board new_board in
-    let user_board = instantiate_user_board new_board full_pieces in
+    let user_board = manual_setup_helper new_board full_pieces in
     let start_board = ai_setup user_board in
     let () = display_board start_board in
     start_board
