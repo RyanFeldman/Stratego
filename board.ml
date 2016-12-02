@@ -404,10 +404,10 @@ module GameBoard : Board = struct
             let winner = (List.hd captured).player in
             let congrats =
                 (if winner then
-                    "Congrats! You won the game!"
+                    "The AI won the game! Better luck next time!"
                 else
-                    "The AI won the game! Better luck next time!") in
-            (Victory ((List.hd captured).player), captured, congrats)
+                    "Congrats! You won the game!") in
+            (Victory (not(List.hd captured).player), captured, congrats)
         else
             (Active (new_board), captured, move_msg^"\n"^msg)
 

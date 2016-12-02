@@ -6,17 +6,42 @@ open GameAI
 open Display
 open TextDisplay
 
+type piece = {
+    rank : int;
+    player : bool;
+    hasBeenSeen : bool;
+}
 
-let bomb = {rank=0; player=false; hasBeenSeen=false}
+type position = int * int
 
-let corner_board =
+
+let flag = make_piece 11 false false 
+let pl = make_piece 2 true true 
+let pos_p = make_position 0 0 
+let pos_f = make_position 0 1
+
+let flag2 = make_piece 11 true false
+let pl2 = make_piece 2 false true 
+
+
+(* let corner_board =
     add_mapping (0,0) (Some {rank=5; player=false; hasBeenSeen = false})
         (empty_board ())
 
 let flag_top_row =
-    add_mapping (3, 5) (Some {bomb with rank=11}) (empty_board ())
+    add_mapping (3, 5) (Some {bomb with rank=11}) (empty_board ()) *)
 
-let cap_first_row =
+let flag_near = 
+    add_mapping pos_f (Some flag) (empty_board ())
+let flag_near_scout = 
+    add_mapping pos_p (Some pl) (flag_near)
+
+let flag_near2 = 
+    add_mapping pos_f (Some flag2) (empty_board ())
+let flag_near_scout2 = 
+    add_mapping pos_p (Some pl2) (flag_near2)
+
+(* let cap_first_row =
     add_mapping (0, 3) (Some {bomb with rank=6}) (empty_board ())
 let cap_first_row_none =
     add_mapping (0, 4) (None) cap_first_row
@@ -38,22 +63,22 @@ let scout_first_row_topp =
 let scout_first_row_leftp =
     add_mapping (8, 3) (Some {bomb with rank=4}) scout_first_row_topp
 let scout_first_row_botp =
-    add_mapping (9, 2) (Some {bomb with rank=4}) scout_first_row_leftp
+    add_mapping (9, 2) (Some {bomb with rank=4}) scout_first_row_leftp *)
 
-let can_move_to board (x,y) player =
+(* let can_move_to board (x,y) player =
     try
       match search (x,y) board with
       |None -> true
       |Some piece -> player <> piece.player
     with
-    |_ -> false
+    |_ -> false *)
 
   (* [has_move piece] returns true iff there is 1 or more valid move that the
    * piece at position [pos] can make on [board].
    *)
   (*Needs to be fixed...this would return true even if a piece is surrounded
    *by friendly pieces.*)
-  let has_move board pos player=
+(*   let has_move board pos player=
     let piece = match search pos board with
                |Some p -> p
                | _ -> failwith "Should be a piece here" in
@@ -103,17 +128,17 @@ let map_two =
 let map_a =
     add_mapping (1, 0) (None) (empty_board ())
 let map_b =
-    add_mapping (0, 0) (Some bomb) (map_a)
+    add_mapping (0, 0) (Some bomb) (map_a) *)
 
 let tests = "ai tests" >::: [
 
     "sample test" >:: (fun _ -> assert_equal 1 1);
 
-    "making board 1" >:: (fun _ -> assert_equal
+    (* "making board 1" >:: (fun _ -> assert_equal
         (Some {rank=5; player=false; hasBeenSeen = false})
-        (search (0,0) corner_board));
+        (search (0,0) corner_board)); *)
 
-    "is_valid_move_flag" >:: (fun _ -> assert_equal
+    (* "is_valid_move_flag" >:: (fun _ -> assert_equal
         (false, "That piece can't move there!")
         (is_valid_move flag_top_row false (3, 5) (3, 6)));
 
@@ -147,9 +172,17 @@ let tests = "ai tests" >::: [
 
     "is_valid_move_scout_two" >:: (fun _ -> assert_equal
         (true, "")
-        (is_valid_move scout_first_row_botp false (9, 3) (9, 5)));
+        (is_valid_move scout_first_row_botp false (9, 3) (9, 5))); *)
 
-    "AI setup test" >:: (fun _ -> assert_equal ()
+    "game_terminate" >:: (fun _ -> assert_equal
+        (Victory(true), [flag], "Congrats! You won the game!")
+        (make_move flag_near_scout pos_p pos_f));
+
+    "game_terminate2" >:: (fun _ -> assert_equal
+        (Victory(false), [flag2], "The AI won the game! Better luck next time!")
+        (make_move flag_near_scout2 pos_p pos_f));
+
+   (*  "AI setup test" >:: (fun _ -> assert_equal ()
         (display_board (setup_board (none_whole_board (empty_board ()) (0,0)))));
 
     (*"Empty 10 by 10 None display" >:: (fun _ -> assert_equal ()
@@ -185,7 +218,7 @@ let tests = "ai tests" >::: [
 
     "AI get_moveable_init 6" >:: (fun _ -> assert_equal
         []
-        (get_moveable_init cap_first_row_enemy true));
+        (get_moveable_init cap_first_row_enemy true)); *)
     ]
 
 
