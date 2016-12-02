@@ -16,7 +16,7 @@ let () =
       else () in
   print_endline "Type AUTO to automatically fill the board.\n";
   print_endline "Type anything else to manually setup of the board";
-
+  print_string ">";
   let new_input = read_line () in
   let new_trimmed = new_input |> String.trim |> String.lowercase_ascii in
   let initial_board =

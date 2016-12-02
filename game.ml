@@ -34,8 +34,8 @@ let ai_pieces_lost = Array.make 40 (make_piece 12 true false)
 let parse_user_input (c:string) : position =
     let trimmed_c = c |> String.trim in
     if (String.length trimmed_c) = 2 then
-        let _ = (try (int_of_string) with 
-                | _ -> failwith "Non-numerical input") in 
+        let _ = (try (int_of_string) with
+                | _ -> failwith "Non-numerical input") in
         let x_one = (String.get trimmed_c 0) |> int_of_char in
         let y_one = (String.get trimmed_c 1) |> int_of_char in
         make_position (x_one-48) (y_one-48)
@@ -52,6 +52,7 @@ let parse_user_input (c:string) : position =
 let rec get_user_input (board:board) (piece:piece) : board =
     print_message ("Where would you like to place your "
                             ^(string_from_piece piece)^ "? (ex. 00)");
+    print_string ">";
     let user_input = read_line () in
     let (x, y) = get_tuple (parse_user_input user_input) in
     if (y > 3 || y < 0 || x < 0 || x > 9)
@@ -98,14 +99,14 @@ let auto_setup () =
 let manual_setup () =
     let new_board = none_whole_board (empty_board ()) (make_position 0 0) in
     let full_pieces = get_list_all_pieces () in
-    let _ = display_board new_board in 
+    let _ = display_board new_board in
     let user_board = instantiate_user_board new_board full_pieces in
     let start_board = ai_setup user_board in
     let () = display_board start_board in
     start_board
 
 (**
- * [parse_user_input c] is a tuple containing the the string [c] split by the 
+ * [parse_user_input c] is a tuple containing the the string [c] split by the
  * character ' '. If no ' ' character exists, then the second value in the tuple
  * is the empty string "".
  *)
@@ -121,8 +122,8 @@ let parse_user_input c =
         (first_word, trim_second_half)
 
 (**
- * [tuple_from_string str] is the the tuple form of the string [str]. For 
- * proper user, requires [str] to be in the form 'xy' where x and y are 
+ * [tuple_from_string str] is the the tuple form of the string [str]. For
+ * proper user, requires [str] to be in the form 'xy' where x and y are
  * numbers between 0 and 9.
  *)
 let tuple_from_string str =
@@ -131,8 +132,8 @@ let tuple_from_string str =
     (x-48, y-48)
 
 (**
- * [append_to_cap lst] is unit but adds the pieces in lst to the corresponding 
- * pieces_lost array. 
+ * [append_to_cap lst] is unit but adds the pieces in lst to the corresponding
+ * pieces_lost array.
  * Raises:
  *  - Failure if (List.length lst) > 2
  *)
@@ -160,10 +161,10 @@ let append_to_cap lst =
     | _ -> failwith "Invalid captured pieces?"
 
 (**
- * [execute_movement board num1 num2] is the board [board] after moving the 
- * piece at from the position represented by the string [num1] to the 
+ * [execute_movement board num1 num2] is the board [board] after moving the
+ * piece at from the position represented by the string [num1] to the
  * position represented by the string [num2].
- * Raises: 
+ * Raises:
  *  - Illegal if the movement does not pass is_valid_move
  *)
 let execute_movement board num1 num2 =
@@ -181,8 +182,8 @@ let execute_movement board num1 num2 =
         raise Illegal
 
 (**
- * [is_num pos_one pos_two] is true iff the string pos_one and the string 
- * pos_two are of length 2 and consist of numbers only. False otherwise. 
+ * [is_num pos_one pos_two] is true iff the string pos_one and the string
+ * pos_two are of length 2 and consist of numbers only. False otherwise.
  *)
 let is_num pos_one pos_two =
     if (String.length pos_one) = 2 then
@@ -198,7 +199,7 @@ let is_num pos_one pos_two =
 (**
  * [handle_user_input cmd board] is a victory type after executing the user's
  * command [cmd] on board [board].
- * Raises: 
+ * Raises:
  *  - Illegal if the user's input is not valid
  *)
 let handle_user_input cmd board =
@@ -218,10 +219,10 @@ let handle_user_input cmd board =
         (Active (board), "")
     | ("quit", "") -> (print_message ("Did the 3110 students quit when their "
                         ^"final project was due in 9 days? Oh well, your choice."
-                        ^" You surrendered to the AI.")); 
+                        ^" You surrendered to the AI."));
                         (Victory (false), "")
-    | ("rules", "") -> 
-        let _ = display_rules () in 
+    | ("rules", "") ->
+        let _ = display_rules () in
         (Active (board), "")
     | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
     | _ -> raise Illegal
@@ -236,8 +237,8 @@ let check_winner b =
     | _ -> false
 
 (**
- * [strip_variant var] is the board stored in Active [var]. 
- * Raises: 
+ * [strip_variant var] is the board stored in Active [var].
+ * Raises:
  *  - Failure if [var] is a Victory.
  *)
 let strip_variant var =
@@ -248,10 +249,11 @@ let strip_variant var =
 (* See game.mli file *)
 let rec play (board:board) : board =
     let _ = print_message "It's your turn! What would you like to do?" in
+    print_string ">";
     let user_input = read_line () in
     let user_tuple = parse_user_input user_input in
     let user_board = try (handle_user_input user_tuple board) with
-                    | Illegal -> (Active (board), 
+                    | Illegal -> (Active (board),
                     "\n\nSorry, I don't quite understand your input.\n"
                     ^"Remember: To move, type the position of the piece you want"
                     ^" to move followed by the target location (ex. 00 01). At "
@@ -267,7 +269,7 @@ let rec play (board:board) : board =
     else
         if (equal_board (strip_variant (fst user_board)) board) then
             let _ = display_board board in
-            let _ = print_message (snd user_board) in 
+            let _ = print_message (snd user_board) in
             play (strip_variant (fst user_board))
         else
             let stripped_board = (strip_variant (fst user_board)) in
