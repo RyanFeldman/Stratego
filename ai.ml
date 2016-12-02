@@ -97,7 +97,7 @@ let get_ai_pieces () =
     match (get_rank p1), (get_rank p2) with
     | _, _ when (not (get_player p2)) -> failwith "ai shouldn't battle it's own piece"
     | 3,0 -> Some p1
-    | _ , 0 -> Some p2
+    | _ , 0 -> if get_been_seen p2 then Some p2 else Some p1
     | _ , 11 -> Some p1
     | 1, 10 -> Some p1
     | p1r, p2r when (get_been_seen p2) ->
@@ -274,7 +274,8 @@ let get_valid_boards board player =
  * TODO: get rid of prints in make_move
  *)
   let rec minimax board min depth =
-      let no_move = ((-1,-1), (-1,-1)) in
+      let invalid = make_position (-1) (-1) in
+      let no_move = (invalid, invalid) in
       let worst_min = (2000, no_move) in
       let worst_max = (-2000, no_move) in
       let tie = (0, no_move) in
@@ -293,7 +294,7 @@ let get_valid_boards board player =
     *)
   and get_max (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 true (depth - 1) in
-      if s1 > s2 then (s1, m1) else (s2, ((get_tuple (fst m2)), (get_tuple (snd m2))))
+      if s1 > s2 then (s1, m1) else (s2, m2)
 
   (* [get_min (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
    * tuple that is the move ([m1] or [m2]) that gives the lowest score ([s1] or
@@ -302,21 +303,20 @@ let get_valid_boards board player =
   *)
   and get_min (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 false (depth-1) in
-      if s1 < s2 then (s1, m1) else (s2, ((get_tuple (fst m2)), (get_tuple (snd m2))))
+      if s1 < s2 then (s1, m1) else (s2, m2)
 
   (* [choose_best_board] takes in a list of boards available to the AI
    * and picks the one with the highest score (relative to the AI)
    *)
   let choose_best_board board =
     let move = snd (minimax board false 3) in
-    if move = ((-1,-1),  (-1,-1)) then
+    let pos1 = fst move in
+    let pos2 = snd move in
+    if pos1 = (make_position (-1) (-1)) then
         (Victory true, [], "")
     else
-        let pos_one = make_position (fst (fst move)) (snd (fst move)) in
-        let pos_two = make_position (fst (snd move)) (snd (snd move)) in
-        match make_move board pos_one pos_two with
+        match make_move board pos1 pos2 with
         |(Active b, captured, str) -> (Active b, captured, str)
         |_ -> failwith "First element should be Active variant"
-        (*fst (make_move board (fst move) (snd move))*)
 
 end
