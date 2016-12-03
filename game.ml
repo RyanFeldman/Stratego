@@ -217,10 +217,11 @@ let handle_user_input cmd board =
         print_message "AI's Pieces Lost:";
         print_list (ai_lst);
         (Active (board), "")
-    | ("quit", "") -> (print_message ("Did the 3110 students quit when their "
-                        ^"final project was due in 9 days?\nOh well, your choice."
-                        ));
-                        (Victory (false), "")
+    | ("quit", "") -> 
+        (print_message ("Did the 3110 students quit when their "
+                        ^"final project was due in 9 days?\nOh well, "
+                        ^"your choice."));
+        (Victory (false), "")
     | ("rules", "") ->
         let _ = display_rules () in
         (Active (board), "")
@@ -246,6 +247,12 @@ let strip_variant var =
     | Victory b -> failwith "Shouldn't be passing Victory"
     | Active board -> board
 
+(**
+ * [determine_win_message victory board] is [board] after printing the correct 
+ * message to the user about who has won the game. 
+ * Raises:
+ *  - Failure if [victory] is Active
+ *)
 let determine_win_message victory board = 
     match victory with 
     | Active b -> failwith "Shouldn't be guessing victor of Active"
@@ -259,6 +266,20 @@ let determine_win_message victory board =
                                     ^" time use the power of the Caml.") in 
             board
 
+(**
+ * [check_moves_helper x y] is the next position that check_available_moves
+ * will check given its current corrdinates [x] and [y]
+ *)
+let check_moves_helper x y = 
+    if x=9 then 
+        (0, y+1)
+    else
+        (x+1, y)
+
+(**
+ * [check_available_moves board pos] is true iff the user has a move available 
+ * on [board] scanning starting at [pos]. False otherwise. 
+ *)
 let rec check_available_moves board (x, y) = 
     if (x=0) && (y=10) then 
         false 
@@ -266,25 +287,16 @@ let rec check_available_moves board (x, y) =
         let pos = make_position x y in 
         match (search pos board) with 
         | None -> 
-            if x=9 then 
-                (check_available_moves board (0, y+1))
-            else 
-                (check_available_moves board (x+1, y))
+            (check_available_moves board (check_moves_helper x y))
         | Some p -> 
             if (get_player p) then 
                 let lst = get_possible_moves board true p pos in 
                 if lst = [] then 
-                    if x=9 then 
-                        check_available_moves board (0, y+1)
-                    else 
-                        check_available_moves board (x+1, y)
+                    (check_available_moves board (check_moves_helper x y))
                 else
                     true 
             else 
-                if x=9 then 
-                    check_available_moves board (0, y+1)
-                else 
-                    check_available_moves board (x+1, y)
+                (check_available_moves board (check_moves_helper x y))
 
 (* See game.mli file *)
 let rec play (board:board) : board =
@@ -297,10 +309,10 @@ let rec play (board:board) : board =
         let user_board = try (handle_user_input user_tuple board) with
                     | Illegal -> (Active (board),
                     "\n\nSorry, that input is not valid.\n"
-                    ^"Remember: To move, type the position of the piece you want"
-                    ^" to move\nfollowed by the target location (ex. 00 01).\nAt "
-                    ^"any time, the following commands are available:\n"
-                    ^"\tTABLE - Displays a table linking the names of "
+                    ^"Remember: To move, type the position of the piece you "
+                    ^"want to move\nfollowed by the target location (ex. 00 "
+                    ^"01).\nAt any time, the following commands are available:"
+                    ^"\n\tTABLE - Displays a table linking the names of "
                     ^"Stratego pieces to their ranks\n\tCAPTURED - Displays"
                     ^" the pieces captured by each player\n\tRULES - "
                     ^"Displays the rules and commands available\n\tQUIT - "
@@ -315,14 +327,15 @@ let rec play (board:board) : board =
                 play (strip_variant (fst user_board))
             else
                 let stripped_board = (strip_variant (fst user_board)) in
-                let (ai_board, captured, msg) = choose_best_board stripped_board in
+                let (ai_board, lost, msg) = choose_best_board stripped_board in
                 let ai_win = check_winner ai_board in
                 if ai_win then
                     determine_win_message ai_board board
                 else
-                    let _ = append_to_cap captured in
+                    let _ = append_to_cap lost in
                     let _ = display_board (strip_variant ai_board) in
-                    let _ = print_message ("\n"^(snd user_board) ^ "\n" ^msg^"\n") in
+                    let _ = print_message 
+                                ("\n"^(snd user_board)^"\n"^msg^"\n") in
                     play (strip_variant ai_board)
     else 
         let _ = print_message 
