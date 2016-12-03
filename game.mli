@@ -20,16 +20,15 @@ val ai_pieces_lost : game_piece array
 val manual_setup : unit -> board
 
 (**
- * [auto_setup] creates the board that exists at the start of gameplay; it
- * randomizes the user's initial piece setup. Returns a board with both the 
- * user's pieces and the AI's pieces
- *)
-val auto_setup : unit -> board
-
-(**
  * [play] handles the gameplay of stratego. It takes in a board, prompts the
  * player to input a move, checks that the move is valid, executes that move,
  * prompts the AI to make a move, executes that move, and then returns the final
  * board.
  *)
 val play : board -> board
+
+(**
+ * [auto_setup] is a newly instantiated board with all of the AI's and player's
+ * pieces on it, ready to go.
+ *)
+val auto_setup : unit -> board

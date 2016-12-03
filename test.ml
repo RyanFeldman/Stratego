@@ -23,6 +23,9 @@ let pos_f = make_position 0 1
 let flag2 = make_piece 11 true false
 let pl2 = make_piece 2 false true 
 
+let spy_u = make_piece 1 true false 
+let marsh_ai = make_piece 10 false false
+
 
 (* let corner_board =
     add_mapping (0,0) (Some {rank=5; player=false; hasBeenSeen = false})
@@ -40,6 +43,17 @@ let flag_near2 =
     add_mapping pos_f (Some flag2) (empty_board ())
 let flag_near_scout2 = 
     add_mapping pos_p (Some pl2) (flag_near2)
+
+let spy_map = 
+    add_mapping pos_p (Some spy_u) (empty_board ())
+let marsh_near = 
+    add_mapping pos_f (Some marsh_ai) (spy_map)
+let spy_w = 
+    add_mapping pos_p (None) marsh_near
+let spy_win = 
+    add_mapping pos_f (Some spy_u) spy_w 
+
+let (vic, cap, str) = (make_move marsh_near pos_p pos_f)
 
 (* let cap_first_row =
     add_mapping (0, 3) (Some {bomb with rank=6}) (empty_board ())
@@ -181,6 +195,10 @@ let tests = "ai tests" >::: [
     "game_terminate2" >:: (fun _ -> assert_equal
         (Victory(false), [flag2], "The AI won the game! Better luck next time!")
         (make_move flag_near_scout2 pos_p pos_f));
+
+(*     "user_spy_beats_marsh" >:: (fun _ -> assert_equal
+        (Active(spy_win))
+        (vic)); *)
 
    (*  "AI setup test" >:: (fun _ -> assert_equal ()
         (display_board (setup_board (none_whole_board (empty_board ()) (0,0)))));

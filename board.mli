@@ -2,7 +2,20 @@
  * on tiles.
  *)
 module type Board = sig
-    (* For Reference:
+    (* AF: A board represents the following 10x10 grid with 80 pieces upon 
+     * instantiation. The box at the bottom left corner of the grid represents
+     * a position that can be represented by the tuple (0, 0) and the box at 
+     * the top right of the grid represents a position that can be represented
+     * by the tuple (9, 9). 
+     * Each filled box on the grid represents a piece which has a corresponding 
+     * rank, player,and stored value representing whether the AI has seen the 
+     * piece yet. If a piece does not occupy a box, the tile is still mapped to 
+     * a placeholder representing no piece occupancy.
+     * 
+     * RI: No piece will ever be mapped to a grid position outside of the board.
+     * Both player's flags must be on the board in order for the game to 
+     * continue play. The board conforms to the rules defined in a normal 
+     * game of Stratego. 
      *     _________________________________________________
      *    |    |    |    |    |    |    |    |    |    |    |
      *  9 | AI | AI | AI | AI | AI | AI | AI | AI | AI | AI |
@@ -180,10 +193,11 @@ module type Board = sig
     val make_move : t -> position -> position -> (victory * piece list * string)
 
     (*
-     * [get_list_all_pieces] returns a piece list containing every piece that
-     * the player starts with.
+     * [get_list_all_pieces player] returns a piece list containing every
+     * piece that is present when the game starts. The pieces in the list
+     * belong to the player iff [player].
      *)
-    val get_list_all_pieces: unit -> piece list
+    val get_list_all_pieces: bool -> piece list
 
     (**
      * [equal_board b1 b2] is true iff b1 maps the same positions to the same
@@ -197,6 +211,18 @@ module type Board = sig
     * [board], starting at position [pos] and moving rightward from there.
     *)
     val fill: t -> position list -> piece list -> position -> bool -> t
+
+    (**
+    * [do_setup board player] sets up one half of [board].
+    * If [player] then the player's pieces are set up on the
+    * bottom 4 rows of the board. If not [player] then the AI's pieces are
+    * set up on the top 4 rows of [board].
+    *
+    * The flags will go in the top and bottom rows for the AI and player,
+    * respectively. Three bombs will be placed next to the flag. The placement
+    * of the rest of the pieces is totally random.
+    *)
+    val do_setup: t -> bool -> t
 end
 
 module GameBoard : Board

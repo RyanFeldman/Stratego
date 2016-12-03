@@ -62,46 +62,41 @@ let rec get_user_input (board:board) (piece:piece) : board =
         | None -> (add_mapping (make_position x y) (Some piece) board)
         | Some p -> failwith "A piece is already there!"
 
+(*See game.mli file*)
+let auto_setup () =
+    let board = do_setup (do_setup (empty_board ()) true ) false in
+    let () = display_board board in
+    board
+
 (**
- * [instantiate_user_board board lst] is a board with all the pieces in [lst]
+ * [manual_setup_helper board lst] is a board with all the pieces in [lst]
  * placed in valid positions in [board].
  *)
-let rec instantiate_user_board board = function
+let rec manual_setup_helper board = function
     | [] -> board
     | h::t ->
         let new_board =
             (try (get_user_input board h) with
             | _ ->
                 let _ = print_message ("\nSorry, your input must be in the"
-                    ^" form 'xy' to place your piece at (x, y)! As a reminder,"
+                    ^" form 'xy' to place your piece at (x, y)!\nAs a reminder,"
                     ^" you must place your pieces in the first 4 rows and two "
                     ^"pieces cannot be placed on top of each other to start."
                     ^"\n\n") in
                     board) in
         if (equal_board new_board board) then
-            instantiate_user_board board (h::t)
+            manual_setup_helper board (h::t)
         else
             let () = display_board new_board in
-            instantiate_user_board new_board t
-
-(* See game.mli file *)
-let auto_setup () =
-    let () = Random.self_init () in
-    let all_pieces = get_list_all_pieces () in
-    let shuffled = List.sort (fun x y -> Random.int 2) all_pieces in
-    let init_board = none_whole_board (empty_board ()) (make_position 0 0) in
-    let player_brd = fill init_board [] shuffled (make_position 0 0) true in
-    let completed_board = ai_setup player_brd in
-    let () = display_board completed_board in
-    completed_board
+            manual_setup_helper new_board t
 
 (* See game.mli file *)
 let manual_setup () =
     let new_board = none_whole_board (empty_board ()) (make_position 0 0) in
-    let full_pieces = get_list_all_pieces () in
+    let full_pieces = get_list_all_pieces true in
     let _ = display_board new_board in
-    let user_board = instantiate_user_board new_board full_pieces in
-    let start_board = ai_setup user_board in
+    let user_board = manual_setup_helper new_board full_pieces in
+    let start_board = do_setup user_board false in
     let () = display_board start_board in
     start_board
 
@@ -217,10 +212,11 @@ let handle_user_input cmd board =
         print_message "AI's Pieces Lost:";
         print_list (ai_lst);
         (Active (board), "")
-    | ("quit", "") -> (print_message ("Did the 3110 students quit when their "
-                        ^"final project was due in 9 days? Oh well, your choice."
-                        ^" You surrendered to the AI."));
-                        (Victory (false), "")
+    | ("quit", "") ->
+        (print_message ("Did the 3110 students quit when their "
+                        ^"final project was due in 9 days?\nOh well, "
+                        ^"your choice."));
+        (Victory (false), "")
     | ("rules", "") ->
         let _ = display_rules () in
         (Active (board), "")
@@ -246,39 +242,97 @@ let strip_variant var =
     | Victory b -> failwith "Shouldn't be passing Victory"
     | Active board -> board
 
+(**
+ * [determine_win_message victory board] is [board] after printing the correct
+ * message to the user about who has won the game.
+ * Raises:
+ *  - Failure if [victory] is Active
+ *)
+let determine_win_message victory board =
+    match victory with
+    | Active b -> failwith "Shouldn't be guessing victor of Active"
+    | Victory v ->
+        if v then
+            let _ = print_message ("Congrats! You won the game!\n"
+                                  ^"May the Caml be with you") in
+            board
+        else
+            let _ = print_message ("The AI has won the game.\nNext"
+                                    ^" time use the power of the Caml.") in
+            board
+
+(**
+ * [check_moves_helper x y] is the next position that check_available_moves
+ * will check given its current corrdinates [x] and [y]
+ *)
+let check_moves_helper x y =
+    if x=9 then
+        (0, y+1)
+    else
+        (x+1, y)
+
+(**
+ * [check_available_moves board pos] is true iff the user has a move available
+ * on [board] scanning starting at [pos]. False otherwise.
+ *)
+let rec check_available_moves board (x, y) =
+    if (x=0) && (y=10) then
+        false
+    else
+        let pos = make_position x y in
+        match (search pos board) with
+        | None ->
+            (check_available_moves board (check_moves_helper x y))
+        | Some p ->
+            if (get_player p) then
+                let lst = get_possible_moves board true p pos in
+                if lst = [] then
+                    (check_available_moves board (check_moves_helper x y))
+                else
+                    true
+            else
+                (check_available_moves board (check_moves_helper x y))
+
 (* See game.mli file *)
 let rec play (board:board) : board =
-    let _ = print_message "It's your turn! What would you like to do?" in
-    print_string ">";
-    let user_input = read_line () in
-    let user_tuple = parse_user_input user_input in
-    let user_board = try (handle_user_input user_tuple board) with
+    let user_no_moves = check_available_moves board (0, 0) in
+    if user_no_moves then
+        let _ = print_message "It's your turn! What would you like to do?" in
+        print_string ">";
+        let user_input = read_line () in
+        let user_tuple = parse_user_input user_input in
+        let user_board = try (handle_user_input user_tuple board) with
                     | Illegal -> (Active (board),
-                    "\n\nSorry, that input is invalid.\n"
-                    ^"Remember: To move, type the position of the piece you want"
-                    ^" to move followed by the target location (ex. 00 01). At "
-                    ^"any time, the following commands will be available:\n"
-                    ^"\t\"table\" - Displays a table linking the names of "
-                    ^"Stratego pieces to their ranks\n\t\"captured\" - Displays"
-                    ^" the pieces captured by each player\n\t\"rules\" - "
-                    ^"Displays the rules and commands available\n\t\"quit\" - "
+                    "\n\nSorry, that input is not valid.\n"
+                    ^"Remember: To move, type the position of the piece you "
+                    ^"want to move\nfollowed by the target location (ex. 00 "
+                    ^"01).\nAt any time, the following commands are available:"
+                    ^"\n\tTABLE - Displays a table linking the names of "
+                    ^"Stratego pieces to their ranks\n\tCAPTURED - Displays"
+                    ^" the pieces captured by each player\n\tRULES - "
+                    ^"Displays the rules and commands available\n\tQUIT - "
                     ^"Exits the game\n") in
-    let win = check_winner (fst user_board) in
-    if win then
-        board
-    else
-        if (equal_board (strip_variant (fst user_board)) board) then
-            let _ = display_board board in
-            let _ = print_message (snd user_board) in
-            play (strip_variant (fst user_board))
+        let win = check_winner (fst user_board) in
+        if win then
+            determine_win_message (fst user_board) board
         else
-            let stripped_board = (strip_variant (fst user_board)) in
-            let (ai_board, captured, msg) = choose_best_board stripped_board in
-            let ai_win = check_winner ai_board in
-            if ai_win then
-                (strip_variant ai_board)
+            if (equal_board (strip_variant (fst user_board)) board) then
+                let _ = display_board board in
+                let _ = print_message (snd user_board) in
+                play (strip_variant (fst user_board))
             else
-                let _ = append_to_cap captured in
-                let _ = display_board (strip_variant ai_board) in
-                let _ = print_message ("\n"^(snd user_board) ^ "\n" ^msg^"\n") in
-                play (strip_variant ai_board)
+                let stripped_board = (strip_variant (fst user_board)) in
+                let (ai_board, lost, msg) = choose_best_board stripped_board in
+                let ai_win = check_winner ai_board in
+                if ai_win then
+                    determine_win_message ai_board board
+                else
+                    let _ = append_to_cap lost in
+                    let _ = display_board (strip_variant ai_board) in
+                    let _ = print_message
+                                ("\n"^(snd user_board)^"\n"^msg^"\n") in
+                    play (strip_variant ai_board)
+    else
+        let _ = print_message
+                "You're out of moves! The AI has won the game by default." in
+        board

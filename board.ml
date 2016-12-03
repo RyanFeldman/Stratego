@@ -35,9 +35,11 @@ module type Board = sig
     val get_possible_moves : t -> bool -> piece -> position -> position list
     val is_valid_move : t -> bool -> position -> position -> (bool * string)
     val make_move : t -> position -> position -> (victory * piece list * string)
-    val get_list_all_pieces: unit -> piece list
+    val get_list_all_pieces: bool -> piece list
     val equal_board : t -> t -> bool
     val fill: t -> position list -> piece list -> position -> bool -> t
+    val do_setup: t -> bool -> t
+
 end
 
 module BoardMap = Map.Make(IntTuple)
@@ -106,7 +108,7 @@ module GameBoard : Board = struct
                     in none_whole_board brd (x+1,y)
 
     (* See board.mli file *)
-    let empty_board () = BoardMap.empty
+    let empty_board () = none_whole_board BoardMap.empty (0, 0)
 
     (**
      * [string_from_piece piece] is the name of [piece] given its rank.
@@ -130,8 +132,8 @@ module GameBoard : Board = struct
         | _ -> failwith "Not a valid piece"
 
     (* See board.mli file *)
-    let get_list_all_pieces () =
-        let p       = {rank=0; player=true; hasBeenSeen=false} in
+    let get_list_all_pieces player =
+        let p       = {rank=0; player=player; hasBeenSeen=player} in
         let col     = {p with rank=8} in
         let major   = {p with rank=7} in
         let cap     = {p with rank=6} in
@@ -154,21 +156,6 @@ module GameBoard : Board = struct
         let flag_lst = [{p with rank=11}] in
         flag_lst @ bomb_list @ marsh_list @ gen_list @ col_list @ maj_list @
         cap_list @ lieut_list @ serg_list @ mine_list @ sco_list @ spy_list
-
-
-    (* See board.mli file *)
-    let rec fill board filled remaining pos player=
-        let next_pos = function
-        |(9,y) -> if player then (0, y+1) else (0, y-1)
-        |(x,y) -> (x+1, y) in
-        match remaining with
-        | [] -> board
-        | h::t ->
-            if List.mem pos filled then
-                fill board filled remaining (next_pos pos) player
-            else
-                let new_board = add_mapping pos (Some h) board in
-                fill new_board (pos::filled) t (next_pos pos) player
 
     (**
      * [step board b pos dir] is the list of positions a scout can move to on
@@ -381,7 +368,6 @@ module GameBoard : Board = struct
     (* See board.mli file *)
     let make_move (board:t) (pos_one:position) (pos_two:position)
             : (victory * piece list * string) =
-        (*let () = print_endline "called make_move" in*)
         let (new_board, captured) =
             (match (search pos_two board) with
             | None ->
@@ -413,5 +399,54 @@ module GameBoard : Board = struct
 
     (* See board.mli file *)
     let equal_board b1 b2 = BoardMap.equal (=) b1 b2
+
+(* See board.mli file *)
+    let rec fill board filled remaining pos player=
+        let next_pos = function
+        |(9,y) -> if player then (0, y+1) else (0, y-1)
+        |(x,y) -> (x+1, y) in
+        match remaining with
+        | [] -> board
+        | h::t ->
+            if List.mem pos filled then
+                fill board filled remaining (next_pos pos) player
+            else
+                let new_board = add_mapping pos (Some h) board in
+                fill new_board (pos::filled) t (next_pos pos) player
+
+(* See board.mli file*)
+  let do_setup board player =
+    let () = Random.self_init () in
+    let flag_x_pos = Random.int 10 in
+    let flag_pos = (flag_x_pos, (if player then 0 else 9)) in
+    let bomb_one_x = match flag_x_pos with
+                     |0 -> Random.int 8 + 1
+                     |n -> n-1 in
+    let bomb_two_x = match flag_x_pos with
+                     |9 -> Random.int 9
+                     |n -> n+1 in
+    let n = if player then 0 else 9 in
+    let flag_pos = make_position (fst flag_pos) (snd flag_pos) in
+    let bomb_one_pos = make_position bomb_one_x n in
+    let bomb_two_pos = make_position bomb_two_x n in
+    let bomb_three_pos = make_position flag_x_pos (if player then n+1 else n-1) in
+    let flag_board = add_mapping flag_pos
+        (Some(make_piece 11 player false)) board in
+    let one_bomb_board = add_mapping bomb_one_pos
+        (Some (make_piece 0 player false)) flag_board in
+    let two_bomb_board = add_mapping bomb_two_pos
+        (Some (make_piece 0 player false)) one_bomb_board in
+    let three_bombs_board = add_mapping bomb_three_pos
+        (Some (make_piece 0 player false)) two_bomb_board in
+    let filled = [flag_pos; bomb_one_pos; bomb_two_pos; bomb_three_pos] in
+    let remaining = match get_list_all_pieces player with
+                    (*The following line removes the flag and three bombs
+                     *from the list of pieces that need to be placed because
+                     *they have already been put on the board*)
+                    |f::b1::b2::b3::t -> t
+                    |_ -> failwith "the function should match the above" in
+    let shuffled = List.sort (fun x y -> Random.int 2) remaining in
+    let n2 = if player then 0 else 9 in
+    fill three_bombs_board filled shuffled (make_position 0 n2) player
 
 end

@@ -5,7 +5,7 @@ module type AI = sig
   type board = t
   type victory = Board.GameBoard.victory
   type piece = Board.GameBoard.piece
-  val ai_setup : board -> board
+  (*val ai_setup : board -> board*)
   val choose_best_board : board -> (victory * piece list * string)
 end
 
@@ -14,55 +14,6 @@ module GameAI : AI = struct
   type board = t
   type victory = Board.GameBoard.victory
   type piece = Board.GameBoard.piece
-
- (*
-  * [get_list_all_pieces] returns a piece list containing every piece that
-  * the ai starts with.
-  *)
-let get_ai_pieces () =
-  let pieces = get_list_all_pieces () in
-  List.map (fun p -> (make_piece (get_rank p) false (get_been_seen p))) pieces
-
-(* [ai_setup] takes in a board [board], on which the player has set up their
- * pieces, and sets up the AI's pieces. The AI will always put its flag in the
- * back row and place three bombs around it. Other than that, the placement
- * of every piece is totally random.
- *
- * Requires:
- * [board] : board
- * The player has set up their pieces on [board] already
- *)
-  let ai_setup board =
-    let () = Random.self_init () in
-    let flag_x_pos = Random.int 10 in
-    let flag_pos = (flag_x_pos, 9) in
-    let bomb_one_x = match flag_x_pos with
-                     |0 -> 4
-                     |n -> n-1 in
-    let bomb_two_x = match flag_x_pos with
-                     |9 -> 6
-                     |n -> n+1 in
-    let flag_p = make_position (fst flag_pos) (snd flag_pos) in
-    let bomb_one = make_position bomb_one_x 9 in
-    let bomb_two = make_position bomb_two_x 9 in
-    let bomb_three = make_position flag_x_pos 8 in
-    let flag_board = add_mapping flag_p
-        (Some(make_piece 11 false false)) board in
-    let one_bomb_board = add_mapping bomb_one
-        (Some (make_piece 0 false false)) flag_board in
-    let two_bomb_board = add_mapping bomb_two
-        (Some (make_piece 0 false false)) one_bomb_board in
-    let three_bombs_board = add_mapping bomb_three
-        (Some (make_piece 0 false false)) two_bomb_board in
-    let filled = [flag_p; bomb_one; bomb_two; bomb_three] in
-    let remaining = match get_ai_pieces () with
-                    (*The following line removes the flag and three bombs
-                     *from the list of pieces that need to be placed because
-                     *they have already been put on the board*)
-                    |f::b1::b2::b3::t -> t
-                    |_ -> failwith "the function should match the above" in
-    let shuffled = List.sort (fun x y -> Random.int 2) remaining in
-    fill three_bombs_board filled shuffled (make_position 0 9) false
 
   (* [replace_pos board lst] is a new board with replacements made according
    * to the (pos,piece option) association list [lst], where the first of every
@@ -97,7 +48,7 @@ let get_ai_pieces () =
     match (get_rank p1), (get_rank p2) with
     | _, _ when (not (get_player p2)) -> failwith "ai shouldn't battle it's own piece"
     | 3,0 -> Some p1
-    | _ , 0 -> Some p2
+    | _ , 0 -> if get_been_seen p2 then Some p2 else Some p1
     | _ , 11 -> Some p1
     | 1, 10 -> Some p1
     | p1r, p2r when (get_been_seen p2) ->
@@ -146,7 +97,7 @@ let get_ai_pieces () =
     |0 -> 5
     |1 -> 6
     |3 -> 5
-    |11 -> 1000
+    |11 -> 10000
     |n -> n
 
   (* [score board] returns the AI's net score on [board] by going through
@@ -252,7 +203,7 @@ let get_ai_pieces () =
 let get_valid_boards board player =
     let moveable = get_moveable_init board player in
     let moves = List.fold_left
-        (fun a x -> (*let () = print_endline "moveable" in*) ((get_moves_piece board x) @ a)) [] moveable in
+        (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
     if (not player) then List.fold_left
         (fun a (p1,p2) -> (ai_move board p1 p2, (p1,p2))::a) [] moves
     else
@@ -271,10 +222,10 @@ let get_valid_boards board player =
  *    min : bool,true when you want the minimum score (player = user)
  *    board: board
  *    depth : int
- * TODO: get rid of prints in make_move
  *)
   let rec minimax board min depth =
-      let no_move = ((-1,-1), (-1,-1)) in
+      let invalid = make_position (-1) (-1) in
+      let no_move = (invalid, invalid) in
       let worst_min = (2000, no_move) in
       let worst_max = (-2000, no_move) in
       let tie = (0, no_move) in
@@ -293,7 +244,12 @@ let get_valid_boards board player =
     *)
   and get_max (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 true (depth - 1) in
-      if s1 > s2 then (s1, m1) else (s2, ((get_tuple (fst m2)), (get_tuple (snd m2))))
+      if s1 > s2 then
+        (s1, m1)
+      else if s1=s2 then
+        if (Random.bool ()) then (s1,m1) else (s2,m2) (*If tied, pick randomly*)
+      else
+        (s2, m2)
 
   (* [get_min (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
    * tuple that is the move ([m1] or [m2]) that gives the lowest score ([s1] or
@@ -302,21 +258,24 @@ let get_valid_boards board player =
   *)
   and get_min (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 false (depth-1) in
-      if s1 < s2 then (s1, m1) else (s2, ((get_tuple (fst m2)), (get_tuple (snd m2))))
+      if s1 < s2 then
+        (s1, m1)
+      else if s1=s2 then
+        if (Random.bool ()) then (s1,m1) else (s2,m2) (*If tied, pick randomly*)
+      else (s2, m2)
 
   (* [choose_best_board] takes in a list of boards available to the AI
    * and picks the one with the highest score (relative to the AI)
    *)
   let choose_best_board board =
     let move = snd (minimax board false 3) in
-    if move = ((-1,-1),  (-1,-1)) then
+    let pos1 = fst move in
+    let pos2 = snd move in
+    if pos1 = (make_position (-1) (-1)) then
         (Victory true, [], "")
     else
-        let pos_one = make_position (fst (fst move)) (snd (fst move)) in
-        let pos_two = make_position (fst (snd move)) (snd (snd move)) in
-        match make_move board pos_one pos_two with
+        match make_move board pos1 pos2 with
         |(Active b, captured, str) -> (Active b, captured, str)
-        |_ -> failwith "First element should be Active variant"
-        (*fst (make_move board (fst move) (snd move))*)
+        |(Victory b, captured, str) -> (Victory b, captured, str)
 
 end

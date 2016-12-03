@@ -17,7 +17,13 @@ module TextDisplay : Display = struct
 
   let print_message s = print_endline s
 
-  let string_of_piece p = match (get_rank p) with
+  let string_of_piece_ai p = match (get_rank p) with
+  |x when x = 0 -> "B"
+  |x when x < 10 -> ""^(string_of_int x)
+  |x when x = 11 -> "F"
+  |x -> string_of_int x
+
+  let string_of_piece_user p = match (get_rank p) with
   |x when x = 0 -> " B"
   |x when x < 10 -> " "^(string_of_int x)
   |x when x = 11 -> " F"
@@ -29,8 +35,12 @@ module TextDisplay : Display = struct
       let p = (search pos board) in ();
       (match p with
       |None -> print_string "  ";
-      |Some x -> if not (get_player x) then print_string "AI"
-        else (print_string (string_of_piece x)));
+      |Some x -> 
+        if not (get_player x) then 
+            if (get_been_seen x) then 
+                print_string ("A"^(string_of_piece_ai x))
+            else print_string "AI"
+        else (print_string (string_of_piece_user x)));
       print_string " | "
     done;
     print_endline ""
@@ -49,34 +59,39 @@ module TextDisplay : Display = struct
   let display_rules () =
     print_endline
     "
-    Stratego is a game in which you need to capture the flag of your opponent
-    while defending your own flag.
+    Stratego is a turn based strategy game. A player wins if they capture their
+    opponent's flag or if their opponent can't make any moves.
+
     To capture the flag you use your army of 40 pieces.
     Pieces have a rank and represent individual officers and soldiers in an army.
     In addition to those ranked pieces you can use bombs to protect your flag.
 
-    Pieces move 1 square per turn, horizontally or vertically.
-    Only the scout can move over multiple empty squares per turn.
-    Pieces cannot jump over another piece.
+    Pieces move 1 tile per turn, horizontally or vertically.
+    Only the scout can move over multiple empty tiles per turn (like a rook in chess).
+    Pieces cannot jump over other pieces.
 
-    If a piece is moved onto a square occupied by an opposing piece,
-    The weaker piece is removed from the board,
-    and the stronger piece is moved into the place formerly occupied by the weaker piece.
+    If a piece is moved onto a tile that is occupied by an opposing piece,
+    the weaker piece is removed from the board. If the attacking piece wins the
+    battle, it occupies the tile formerly occupied by the defeated piece.
+
     If the engaging pieces are of equal rank, they are both removed.
-    Pieces may not move onto a square already occupied by another piece without attacking.
-    Exception to the rule of the higher rank winning is the spy.
-    When the spy attacks the marshal, the spy defeats the higher ranked marshal.
-    However, when the marshal attacks the spy, the spy loses.
-    Bombs lose when they are defused by a miner.
+    Pieces may not move onto a tile already occupied by another piece without attacking.
+
+    The exception to the rule of the higher rank winning is the spy.
+    If a spy (rank 1) attacks the marshal (rank 10), the spy wins.
+    However, if the marshal initiates the battle, then the spy does not
+    have the element of surprise and is defeated.
+
+    If an opponent piece attacks a bomb, the player is removed but the bomb remains.
+    Bombs are removed only when they are attacked by a miner (rank 3).
 
     The bombs and the flag cannot be moved.
-    A bomb defeats every piece that tries to attack it, except the miner.
-    The flag loses from every other piece.
+    The flag can be captured by an opponent piece of any rank.
     When you capture the flag of your opponent you win the game.
 
     To move, type the position of the piece you want to move followed by the target
     location (ex. 00 01).";
-    print_endline 
+    print_endline
     "
     Once the game begins, the following commands will be available:
     \t\"table\" - Displays a table linking the names of Stratego pieces to their ranks
@@ -86,7 +101,7 @@ module TextDisplay : Display = struct
 
   let print_list (l:piece list) =
     print_string "Pieces: ";
-    List.iter (fun x -> print_string ((string_of_piece x)^" | ")) l;
+    List.iter (fun x -> print_string ((string_of_piece_user x)^" | ")) l;
     print_endline ""
 
   let display_table () =
