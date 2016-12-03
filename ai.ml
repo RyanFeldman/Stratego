@@ -326,6 +326,5 @@ let get_valid_boards board player =
         match make_move board pos1 pos2 with
         |(Active b, captured, str) -> (Active b, captured, str)
         |(Victory b, captured, str) -> (Victory b, captured, str)
-        |_ -> failwith "Must return one of the Board Variants"
 
 end
