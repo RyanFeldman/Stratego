@@ -92,7 +92,7 @@ let rec manual_setup_helper board = function
 
 (* See game.mli file *)
 let manual_setup () =
-    let new_board = none_whole_board (empty_board ()) (make_position 0 0) in
+    let new_board = empty_board () in
     let full_pieces = get_list_all_pieces true in
     let _ = display_board new_board in
     let user_board = manual_setup_helper new_board full_pieces in
