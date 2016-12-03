@@ -201,7 +201,7 @@ let handle_user_input cmd board =
     match cmd with
     | ("table", "") ->
         let _ = display_table () in
-        (Active (board), "")
+        (Active (board), "Table displayed above board. Scroll up to view.")
     | ("captured", "") ->
         let user_lst = List.filter (fun x -> get_rank x <> 12)
                         (Array.to_list user_pieces_lost) in
@@ -211,7 +211,7 @@ let handle_user_input cmd board =
         (print_list (user_lst));
         print_message "AI's Pieces Lost:";
         print_list (ai_lst);
-        (Active (board), "")
+        (Active (board), "Lists displayed above board. Scroll up to view.")
     | ("quit", "") ->
         (print_message ("Did the 3110 students quit when their "
                         ^"final project was due in 9 days?\nOh well, "
@@ -219,7 +219,7 @@ let handle_user_input cmd board =
         (Victory (false), "")
     | ("rules", "") ->
         let _ = display_rules () in
-        (Active (board), "")
+        (Active (board), "Rules displayed above board. Scroll up to view.")
     | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
     | _ -> raise Illegal
 
