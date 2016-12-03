@@ -173,8 +173,7 @@ let execute_movement board num1 num2 =
         let _ = append_to_cap (captured) in
         (new_board, str)
     else
-        let _ = print_message (snd valid_move) in
-        raise Illegal
+        (Active board, (snd valid_move))
 
 (**
  * [is_num pos_one pos_two] is true iff the string pos_one and the string
