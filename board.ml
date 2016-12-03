@@ -144,7 +144,7 @@ module GameBoard : Board = struct
 
     (* See board.mli file *)
     let get_list_all_pieces player =
-        let p       = {rank=0; player=player; hasBeenSeen=player} in
+        let p       = {rank=0; player=player; hasBeenSeen=false} in
         let col     = {p with rank=8} in
         let major   = {p with rank=7} in
         let cap     = {p with rank=6} in
