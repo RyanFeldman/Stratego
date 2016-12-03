@@ -173,8 +173,7 @@ let execute_movement board num1 num2 =
         let _ = append_to_cap (captured) in
         (new_board, str)
     else
-        let _ = print_message (snd valid_move) in
-        raise Illegal
+        (Active board, (snd valid_move))
 
 (**
  * [is_num pos_one pos_two] is true iff the string pos_one and the string
@@ -201,7 +200,7 @@ let handle_user_input cmd board =
     match cmd with
     | ("table", "") ->
         let _ = display_table () in
-        (Active (board), "")
+        (Active (board), "Table displayed above board. Scroll up to view.")
     | ("captured", "") ->
         let user_lst = List.filter (fun x -> get_rank x <> 12)
                         (Array.to_list user_pieces_lost) in
@@ -211,7 +210,7 @@ let handle_user_input cmd board =
         (print_list (user_lst));
         print_message "AI's Pieces Lost:";
         print_list (ai_lst);
-        (Active (board), "")
+        (Active (board), "Lists displayed above board. Scroll up to view.")
     | ("quit", "") ->
         (print_message ("Did the 3110 students quit when their "
                         ^"final project was due in 9 days?\nOh well, "
@@ -219,7 +218,7 @@ let handle_user_input cmd board =
         (Victory (false), "")
     | ("rules", "") ->
         let _ = display_rules () in
-        (Active (board), "")
+        (Active (board), "Rules displayed above board. Scroll up to view.")
     | (p1, p2) when (is_num p1 p2) -> execute_movement board p1 p2
     | _ -> raise Illegal
 
@@ -303,10 +302,11 @@ let rec play (board:board) : board =
         let user_tuple = parse_user_input user_input in
         let user_board = try (handle_user_input user_tuple board) with
                     | Illegal -> (Active (board),
-                    "\n\nSorry, that input is not valid.\n"
+                    "\nSorry, that input is not valid.\n"
                     ^"Remember: To move, type the position of the piece you "
                     ^"want to move\nfollowed by the target location (ex. 00 "
-                    ^"01).\nAt any time, the following commands are available:"
+                    ^"01 would move a piece from (0, 0) to (0, 1))."
+                    ^"\nAt any time, the following commands are available:"
                     ^"\n\tTABLE - Displays a table linking the names of "
                     ^"Stratego pieces to their ranks\n\tCAPTURED - Displays"
                     ^" the pieces captured by each player\n\tRULES - "

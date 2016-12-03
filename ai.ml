@@ -169,7 +169,7 @@ module GameAI : AI = struct
         (can_up || can_down || can_left || can_right)
 
 
-  (* [get_moveable_init board] returns the list of positions in [board] that
+  (* [get_moveable board] returns the list of positions in [board] that
    * contain a piece that can make 1 or more valid moves. Note that positions
    * in this list are represented as (int*int).
    *
@@ -177,7 +177,7 @@ module GameAI : AI = struct
    * [board] : Board
    * [player] : bool
    *)
-  let get_moveable_init board player =
+  let get_moveable board player =
     let lst = ref [] in
     let f k = function
       | Some p when (get_player p) = player -> has_move board k player
@@ -197,11 +197,15 @@ module GameAI : AI = struct
     List.fold_left (fun a x -> (pos, x)::a) [] moves
 
 (**
-   * [get_valid_boards board player] is all the possible boards that are valid
-   * from the current board [board] when [player] moves.
+   * [get_valid_boards board player] is a (board, move) association list that
+   * represents all of the moves [player] can take given board [board] and the
+   * board after that move has been made.
+   *  Requires:
+   *      board : board
+   *      player: bool (true when user, false when ai)
    *)
 let get_valid_boards board player =
-    let moveable = get_moveable_init board player in
+    let moveable = get_moveable board player in
     let moves = List.fold_left
         (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
     if (not player) then List.fold_left
@@ -214,10 +218,46 @@ let get_valid_boards board player =
         (fun a (p1,p2) -> (new_board p1 p2,(p1,p2))::a) [] moves
 
 
+  (* [break_tie move1 move2 player] is a move chosen assuming a forward move is
+   * better than a sideways move which is better than a backwards move.
+   * More specifically, we chose move by looking at [move1] and [move2]:
+   *      - if both move [player] backwards, a random move is chosen
+   *      - if both move [player] forward, a random move is chosen
+   *      - if only one moves [player] backward, the other move is chosen
+   *      - if only one moves [player] sideways, the other move is chosen
+  *)
+  let break_tie move1 move2 player =
+    let (from1_x,from1_y) = get_tuple (fst move1) in
+    let (to1_x, to1_y) = get_tuple (snd move1) in
+    let (from2_x, from2_y) = get_tuple (fst move2) in
+    let (to2_x, to2_y) = get_tuple (snd move2) in
+    let backward2 = if player then to2_y < from2_y else to2_y > from2_y in
+    let backward1 = if player then to1_y < from1_y else to1_y > from1_y in
+    let sideway2 = from2_x <> to2_x in
+    let sideway1 = from1_x <> to1_x in
+    let random = if Random.bool () then move1 else move2 in
+    match backward1, backward2 with
+    | true, true -> random
+    | true, false -> move2
+    | false, true -> move1
+    | _ -> if sideway1 = sideway2 then random
+           else if sideway1 then move2
+           else move1
 
-(* [minimax board min depth] (:int*(position*position)) is the resulting
- *(score, move) from the minimax algorithm. The move is either the move
- * that minimaxes the board or ((-1,-1),(-1,-1)) if there are no valid moves
+
+(* [minimax board min depth] is the resulting (score, move) from the
+ * minimax algorithm, which looks at future moves until depth [depth].  When
+ * [min] the move that produces the smallest score is chosen, when not [min] the
+ * move that produces the largest score is chosen.
+ * Score is:
+ *    - (score board) when there is a valid move resulting in normal game play
+ *    - (2000) when the user has no moves left but the ai does
+ *    - (-2000) when the ai has no moves left but the user does
+ *    - (0) when both players are out of moves or [depth] = 0
+ * Move is a (pos1, pos2) tuple where:
+ *    - pos1, pos2 are valid board positions when [player] has a move
+ *    - pos2,pos2 = (-1,-1) when one or more players is out of moves or
+ *        [depth] = 0
  * Requires:
  *    min : bool,true when you want the minimum score (player = user)
  *    board: board
@@ -237,35 +277,52 @@ let get_valid_boards board player =
       | lst,false -> List.fold_left (fun a x -> get_max a x depth) worst_max lst
 
 
-  (* [get_max (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
-   * tuple that is the move ([m1] or [m2]) that gives the highest score ([s1] or
-   * the score from minimax of [b2] at depth [depth] -1)
-   * in the case of a tie, [m2] is chosen
-    *)
+  (* [get_max (s1, m1) (b2, m2) depth] chooses the tuple that represents the
+   * (score, move) that maximizes the board score.  In the case of a tie, the
+   * result is random.
+   *      Score: [s1] or the score from (minimax [b2] true  [depth - 1])
+   *      Move: [m1] or [m2] where [m1] produces score [s1]
+   *            when minimaxed at depth [depth - 1] and [m2] produces board [b2]
+   *            when [m2] is played on some board that represents a game state
+   *      Requires:
+   *            (s1,m1) : int*(position*position)
+   *            (b2,m2) : board*(position*position)
+   *)
   and get_max (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 true (depth - 1) in
       if s1 > s2 then
         (s1, m1)
-      else if s1=s2 then
-        if (Random.bool ()) then (s1,m1) else (s2,m2) (*If tied, pick randomly*)
+      else if (s1=s2 && (break_tie m1 m2 false) = m1) then (s1,m1)
       else
         (s2, m2)
 
-  (* [get_min (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
-   * tuple that is the move ([m1] or [m2]) that gives the lowest score ([s1] or
-   * the score from minimax of [b2] at depth [depth] -1)
-   * in the case of a tie, [m2] is chosen
-  *)
+
+  (* [get_min (s1, m1) (b2, m2) depth] chooses the tuple that represents the
+   * (score, move) that minimizes the board score.  In the case of a tie, the
+   * result is random.
+   *      Score: [s1] or the score from (minimax [b2] false [depth - 1])
+   *      Move: [m1] or [m2] where [m1] produces score [s1]
+   *            when minimaxed at depth [depth - 1] and [m2] produces board [b2]
+   *            when [m2] is played on some board that represents a game state
+   *      Requires:
+   *            (s1,m1) : int*(position*position)
+   *            (b2,m2) : board*(position*position)
+   *)
   and get_min (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 false (depth-1) in
       if s1 < s2 then
         (s1, m1)
-      else if s1=s2 then
-        if (Random.bool ()) then (s1,m1) else (s2,m2) (*If tied, pick randomly*)
+      else if (s1=s2 && (break_tie m1 m2 true) = m1) then (s1,m1)
       else (s2, m2)
 
-  (* [choose_best_board] takes in a list of boards available to the AI
-   * and picks the one with the highest score (relative to the AI)
+  (* [choose_best_board board] is a victory variant that represents the game
+   * after ai has made a move. The vitory variant is:
+   *      - Victory(true) if either player has run out of moves
+   *      - Victory(false) if the ai has captured the user's flag
+   *      - Active(board) if the game is ongoing
+   * and is calculated based on the move ai decides is most optimal for the ai,
+   * according to the minimax algorithm.
+   * Requires: [board] : board
    *)
   let choose_best_board board =
     let move = snd (minimax board false 3) in
@@ -279,3 +336,4 @@ let get_valid_boards board player =
         |(Victory b, captured, str) -> (Victory b, captured, str)
 
 end
+
