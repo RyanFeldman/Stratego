@@ -6,10 +6,10 @@ end
 
 (* IntTuple is a Tuple that has type int * int and implemented compare *)
 module IntTuple : (Tuple with type t = (int * int)) = struct
-    
+
     type t = (int * int)
 
-    (* [compare t1 t2] is a positive integer if t1 > t2, zero if t1 = t2, and 
+    (* [compare t1 t2] is a positive integer if t1 > t2, zero if t1 = t2, and
      * a negative integer if t1 < t2. *)
     let compare (t1:t) (t2:t) =
         match Pervasives.compare (fst t1) (fst t2) with
@@ -23,7 +23,7 @@ module type Board = sig
     val get_tuple : position -> int * int
     type piece
     val user_pieces_lost : piece array
-    val ai_pieces_lost : piece array 
+    val ai_pieces_lost : piece array
     val make_piece : int -> bool -> bool -> piece
     val get_rank : piece -> int
     val get_player : piece -> bool
@@ -45,14 +45,14 @@ module type Board = sig
     val do_setup: t -> bool -> t
 end
 
-(* BoardMap contains all the necessary functions to make changes to a Map.S, 
+(* BoardMap contains all the necessary functions to make changes to a Map.S,
  * the type of Map.Make(IntTuple) *)
 module BoardMap = Map.Make(IntTuple)
 
 module GameBoard : Board = struct
     (* See Board sig in board.mli for AF and rep invariant *)
 
-    
+
 
     (* See board.mli file *)
     type position = int * int
@@ -144,7 +144,7 @@ module GameBoard : Board = struct
 
     (* See board.mli file *)
     let get_list_all_pieces player =
-        let p       = {rank=0; player=player; hasBeenSeen=player} in
+        let p       = {rank=0; player=player; hasBeenSeen=false} in
         let col     = {p with rank=8} in
         let major   = {p with rank=7} in
         let cap     = {p with rank=6} in
@@ -265,7 +265,7 @@ module GameBoard : Board = struct
             let pos_one_p = match (search pos_one board) with
                         | None -> failwith "Nothing at pos_one for some reason"
                         | Some x -> x in
-            let possible_moves_list = 
+            let possible_moves_list =
                                 get_possible_moves board b pos_one_p pos_one in
             if (List.mem pos_two possible_moves_list) = false then
                 (false, "That piece can't move there!")
@@ -441,7 +441,7 @@ module GameBoard : Board = struct
         let flag_pos = make_position (fst flag_pos) (snd flag_pos) in
         let bomb_one_pos = make_position bomb_one_x n in
         let bomb_two_pos = make_position bomb_two_x n in
-        let three_pos = if player then n+1 else n-1 in 
+        let three_pos = if player then n+1 else n-1 in
         let bomb_three_pos = make_position flag_x_pos three_pos in
         let flag_board = add_mapping flag_pos
                 (Some(make_piece 11 player false)) board in
