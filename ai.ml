@@ -252,7 +252,7 @@ let get_ai_pieces () =
 let get_valid_boards board player =
     let moveable = get_moveable_init board player in
     let moves = List.fold_left
-        (fun a x -> (*let () = print_endline "moveable" in*) ((get_moves_piece board x) @ a)) [] moveable in
+        (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
     if (not player) then List.fold_left
         (fun a (p1,p2) -> (ai_move board p1 p2, (p1,p2))::a) [] moves
     else
@@ -271,7 +271,6 @@ let get_valid_boards board player =
  *    min : bool,true when you want the minimum score (player = user)
  *    board: board
  *    depth : int
- * TODO: get rid of prints in make_move
  *)
   let rec minimax board min depth =
       let invalid = make_position (-1) (-1) in
@@ -294,7 +293,12 @@ let get_valid_boards board player =
     *)
   and get_max (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 true (depth - 1) in
-      if s1 > s2 then (s1, m1) else (s2, m2)
+      if s1 > s2 then
+        (s1, m1)
+      else if s1=s2 then
+        if (Random.bool ()) then (s1,m1) else (s2,m2) (*If tied, pick randomly*)
+      else
+        (s2, m2)
 
   (* [get_min (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
    * tuple that is the move ([m1] or [m2]) that gives the lowest score ([s1] or
@@ -303,7 +307,11 @@ let get_valid_boards board player =
   *)
   and get_min (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 false (depth-1) in
-      if s1 < s2 then (s1, m1) else (s2, m2)
+      if s1 < s2 then
+        (s1, m1)
+      else if s1=s2 then
+        if (Random.bool ()) then (s1,m1) else (s2,m2) (*If tied, pick randomly*)
+      else (s2, m2)
 
   (* [choose_best_board] takes in a list of boards available to the AI
    * and picks the one with the highest score (relative to the AI)
@@ -318,6 +326,6 @@ let get_valid_boards board player =
         match make_move board pos1 pos2 with
         |(Active b, captured, str) -> (Active b, captured, str)
         |(Victory b, captured, str) -> (Victory b, captured, str)
-        |_ -> failwith "First element should be Active variant"
+        |_ -> failwith "Must return one of the Board Variants"
 
 end
