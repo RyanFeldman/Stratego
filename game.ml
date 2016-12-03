@@ -254,7 +254,7 @@ let rec play (board:board) : board =
     let user_tuple = parse_user_input user_input in
     let user_board = try (handle_user_input user_tuple board) with
                     | Illegal -> (Active (board),
-                    "\n\nSorry, I don't quite understand your input.\n"
+                    "\n\nSorry, that input is invalid.\n"
                     ^"Remember: To move, type the position of the piece you want"
                     ^" to move followed by the target location (ex. 00 01). At "
                     ^"any time, the following commands will be available:\n"
