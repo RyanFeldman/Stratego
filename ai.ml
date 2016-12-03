@@ -246,8 +246,12 @@ let get_ai_pieces () =
     List.fold_left (fun a x -> (pos, x)::a) [] moves
 
 (**
-   * [get_valid_boards board player] is all the possible boards that are valid
-   * from the current board [board] when [player] moves.
+   * [get_valid_boards board player] is a (board, move) association list that
+   * represents all of the moves [player] can take given board [board] and the
+   * board after that move has been made.
+   *  Requires:
+   *      board : board
+   *      player: bool (true when user, false when ai)
    *)
 let get_valid_boards board player =
     let moveable = get_moveable_init board player in
@@ -264,14 +268,20 @@ let get_valid_boards board player =
 
 
 
-(* [minimax board min depth] (:int*(position*position)) is the resulting
- *(score, move) from the minimax algorithm. The move is either the move
- * that minimaxes the board or ((-1,-1),(-1,-1)) if there are no valid moves
+(* [minimax board min depth] is the resulting (score, move) from the
+ * minimax algorithm.
+ * Scores takes the form:
+ *    - (score board) when there is a valid move resulting in normal game play
+ *    - (2000) when the user has no moves left but the ai does
+ *    - (-2000) when the ai has no moves left but the user does
+ *    - (0) when both olayers are out of moves
+ * Moves take the form (pos1, pos2) where:
+ *    - pos1, pos2 are valid board positions when [player] has a move
+ *    - pos2,pos2 = (-1,-1) when one or more players is out of moves
  * Requires:
  *    min : bool,true when you want the minimum score (player = user)
  *    board: board
  *    depth : int
- * TODO: get rid of prints in make_move
  *)
   let rec minimax board min depth =
       let invalid = make_position (-1) (-1) in
@@ -287,7 +297,9 @@ let get_valid_boards board player =
       | lst,false -> List.fold_left (fun a x -> get_max a x depth) worst_max lst
 
 
-  (* [get_max (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
+  (* [get_max (s1, m1) (b2, m2) depth] compares the position*position tuples
+   * move [m1] and move [m2] to find the move that and returns the (score,move)
+   * that is the highest is the (score, move) that w (score:int,move:(postion*position)
    * tuple that is the move ([m1] or [m2]) that gives the highest score ([s1] or
    * the score from minimax of [b2] at depth [depth] -1)
    * in the case of a tie, [m2] is chosen
@@ -300,12 +312,15 @@ let get_valid_boards board player =
    * tuple that is the move ([m1] or [m2]) that gives the lowest score ([s1] or
    * the score from minimax of [b2] at depth [depth] -1)
    * in the case of a tie, [m2] is chosen
+   * Requires:
+   *      (s1,m1) : int*(position*position)
+   *      (b2,m2): board*(position*position)
   *)
   and get_min (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 false (depth-1) in
       if s1 < s2 then (s1, m1) else (s2, m2)
 
-  (* [choose_best_board] takes in a list of boards available to the AI
+  (* [choose_best_board board] is the board takes in a list of boards available to the AI
    * and picks the one with the highest score (relative to the AI)
    *)
   let choose_best_board board =
