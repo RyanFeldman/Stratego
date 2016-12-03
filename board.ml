@@ -254,14 +254,15 @@ module GameBoard : Board = struct
             let pos_one_p = match (search pos_one board) with
                         | None -> failwith "Nothing at pos_one for some reason"
                         | Some x -> x in
-            let possible_moves_list = get_possible_moves board b pos_one_p pos_one in
+            let possible_moves_list = 
+                                get_possible_moves board b pos_one_p pos_one in
             if (List.mem pos_two possible_moves_list) = false then
                 (false, "That piece can't move there!")
             else
                 match (search pos_two board) with
                 | None -> (true, "")
                 | Some x ->
-                    if (x.player = b) then (false, "Don't attack your own team!")
+                    if (x.player = b) then (false,"Don't attack your own team!")
                     else
                         (true, "")
 
@@ -429,7 +430,8 @@ module GameBoard : Board = struct
     let flag_pos = make_position (fst flag_pos) (snd flag_pos) in
     let bomb_one_pos = make_position bomb_one_x n in
     let bomb_two_pos = make_position bomb_two_x n in
-    let bomb_three_pos = make_position flag_x_pos (if player then n+1 else n-1) in
+    let three_pos = if player then n+1 else n-1 in 
+    let bomb_three_pos = make_position flag_x_pos three_pos in
     let flag_board = add_mapping flag_pos
         (Some(make_piece 11 player false)) board in
     let one_bomb_board = add_mapping bomb_one_pos

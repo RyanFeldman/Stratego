@@ -2,20 +2,20 @@
  * on tiles.
  *)
 module type Board = sig
-    (* AF: A board represents the following 10x10 grid with 80 pieces upon 
+    (* AF: A board represents the following 10x10 grid with 80 pieces upon
      * instantiation. The box at the bottom left corner of the grid represents
-     * a position that can be represented by the tuple (0, 0) and the box at 
+     * a position that can be represented by the tuple (0, 0) and the box at
      * the top right of the grid represents a position that can be represented
-     * by the tuple (9, 9). 
-     * Each filled box on the grid represents a piece which has a corresponding 
-     * rank, player,and stored value representing whether the AI has seen the 
-     * piece yet. If a piece does not occupy a box, the tile is still mapped to 
+     * by the tuple (9, 9).
+     * Each filled box on the grid represents a piece which has a corresponding
+     * rank, player,and stored value representing whether the AI has seen the
+     * piece yet. If a piece does not occupy a box, the tile is still mapped to
      * a placeholder representing no piece occupancy.
-     * 
+     *
      * RI: No piece will ever be mapped to a grid position outside of the board.
-     * Both player's flags must be on the board in order for the game to 
-     * continue play. The board conforms to the rules defined in a normal 
-     * game of Stratego. 
+     * Both player's flags must be on the board in order for the game to
+     * continue play. The board conforms to the rules defined in a normal
+     * game of Stratego.
      *     _________________________________________________
      *    |    |    |    |    |    |    |    |    |    |    |
      *  9 | AI | AI | AI | AI | AI | AI | AI | AI | AI | AI |
@@ -195,7 +195,8 @@ module type Board = sig
     (*
      * [get_list_all_pieces player] returns a piece list containing every
      * piece that is present when the game starts. The pieces in the list
-     * belong to the player iff [player].
+     * belong to the player iff [player]. Otherwise, the
+     * pieces belong to the AI.
      *)
     val get_list_all_pieces: bool -> piece list
 

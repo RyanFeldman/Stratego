@@ -28,6 +28,32 @@ module GameAI : AI = struct
     let () = board_iter (fun k v -> f k v) board in
     !newb
 
+  let can_defeat_init = function
+  | 0 -> 35  | 1 -> 2  | 2 -> 10  | 3 -> 21  | 4 -> 19  | 5 -> 23  |6 -> 27
+  | 7 -> 30  | 8 -> 32 | 9 -> 33  | 10  -> 33  |11 -> 0
+  | n -> failwith "rank should be in [0,11]"
+
+  (* if [player] then return the number of pieces on the board that the player's [rank]
+   * piece can defeat.*)
+  let get_probability rank player =
+    let captured_array = if player then Game.ai_pieces_lost else Game.user_pieces_lost in
+    let captured_list = captured_array |> Array.to_list in
+    let filtered = List.filter (fun p -> get_rank p <> 12) captured_list in
+    let f = match rank with
+            | 3 -> (fun p -> get_rank p <= 3)
+            | 1 -> (fun p -> get_rank p = 10)
+            | n -> (fun p -> get_rank p <= rank && get_rank p <> 0) in
+    let can_beat_captured = List.filter f filtered in
+    let can_beat_uncap = (can_defeat_init rank) - (List.length can_beat_captured) in
+    (float can_beat_uncap) /. float(40 - List.length filtered)
+
+
+  (*let get_probability rank = (*function
+  | 0 -> 0.875  | 1 -> 0.025  | 2 -> 0.8  | 3 -> 0.525  | 4 -> 0.475
+  | 5 -> 0.575   | 6 -> 0.675 | 7 -> 0.75  | 8 -> 0.8 | 9 -> 0.825  | 10 -> 0.85
+  | 11 -> 0.0  | n -> failwith "rank should be in [0,11]"*)
+  num_pieces_can_defeat*)
+
   (* [ai_battle p1 p2] is a piece option representing the piece that ai assumes
    * will win if the AI's piece, p1, battles the player's piece, p2. AI assumes
    * p1 will win under the following circumstances:
@@ -46,13 +72,17 @@ module GameAI : AI = struct
   let ai_battle p1 p2 =
     match (get_rank p1), (get_rank p2) with
     | _, _ when (not (get_player p2)) -> failwith "ai shouldn't battle it's own piece"
-    | 3,0 -> Some p1
-    | _ , 0 -> if get_been_seen p2 then Some p2 else Some p1
-    | _ , 11 -> Some p1
-    | 1, 10 -> Some p1
+    | 3,0 when get_been_seen p2-> Some p1
+    | _ , 0 when get_been_seen p2-> Some p2
+    | _ , 11 when get_been_seen p2 -> Some p1
+    | 1, 10 when get_been_seen p2 -> Some p1
     | p1r, p2r when (get_been_seen p2) ->
-          if p1r > p2r then Some p1 else if p1r < p2r then Some p2 else None
-    | p1r, p2r when p1r >= p2r - 2 -> Some p1
+        if p1r > p2r then Some p1 else if p1r < p2r then Some p2 else None
+    | p1r, p2r ->
+        let () = Random.self_init () in
+        let n = Random.int 101 |> float in
+        let b = not(get_player p1) in
+        if (100. *. get_probability p1r b) > n then Some p1 else Some p2
     | _,_ -> Some p2
 
 
@@ -217,6 +247,30 @@ let get_valid_boards board player =
         (fun a (p1,p2) -> (new_board p1 p2,(p1,p2))::a) [] moves
 
 
+  (* [break_tie move1 move2 player] is a move chosen according to
+   * the following rules:
+   *      - if both moves move [player] backwards, a random move is chosen
+   *      - if both moves move [player] forward, a random move is chosen
+   *      - if only one move moves [player] backward, the other move is chosen
+   *      - if only one moves [player] sideways, the other move is chosen
+  *)
+  let break_tie move1 move2 player =
+    let (from1_x,from1_y) = get_tuple (fst move1) in
+    let (to1_x, to1_y) = get_tuple (snd move1) in
+    let (from2_x, from2_y) = get_tuple (fst move2) in
+    let (to2_x, to2_y) = get_tuple (snd move2) in
+    let backward2 = if player then to2_y < from2_y else to2_y > from2_y in
+    let backward1 = if player then to1_y < from1_y else to1_y > from1_y in
+    let sideway2 = from2_x <> to2_x in
+    let sideway1 = from1_x <> to1_x in
+    let random = if Random.bool () then move1 else move2 in
+    match backward1, backward2 with
+    | true, true -> random
+    | true, false -> move2
+    | false, true -> move1
+    | _ -> if sideway1 = sideway2 then random
+           else if sideway1 then move2
+           else move1
 
 (* [minimax board min depth] is the resulting (score, move) from the
  * minimax algorithm, which looks at future moves until depth [depth].  When
@@ -265,8 +319,7 @@ let get_valid_boards board player =
       let (s2, _) = minimax b2 true (depth - 1) in
       if s1 > s2 then
         (s1, m1)
-      else if s1=s2 then
-        if (Random.bool ()) then (s1,m1) else (s2,m2) (*If tied, pick randomly*)
+      else if (s1=s2 && (break_tie m1 m2 false) = m1) then (s1,m1)
       else
         (s2, m2)
 
@@ -286,8 +339,7 @@ let get_valid_boards board player =
       let (s2, _) = minimax b2 false (depth-1) in
       if s1 < s2 then
         (s1, m1)
-      else if s1=s2 then
-        if (Random.bool ()) then (s1,m1) else (s2,m2) (*If tied, pick randomly*)
+      else if (s1=s2 && (break_tie m1 m2 true) = m1) then (s1,m1)
       else (s2, m2)
 
   (* [choose_best_board board] is a victory variant that represents the game
@@ -300,7 +352,7 @@ let get_valid_boards board player =
    * Requires: [board] : board
    *)
   let choose_best_board board =
-    let move = snd (minimax board false 4) in
+    let move = snd (minimax board false 3) in
     let pos1 = fst move in
     let pos2 = snd move in
     if pos1 = (make_position (-1) (-1)) then
