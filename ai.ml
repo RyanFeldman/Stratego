@@ -5,7 +5,7 @@ module type AI = sig
   type board = t
   type victory = Board.GameBoard.victory
   type piece = Board.GameBoard.piece
-  val ai_setup : board -> board
+  (*val ai_setup : board -> board*)
   val choose_best_board : board -> (victory * piece list * string)
 end
 
@@ -14,55 +14,6 @@ module GameAI : AI = struct
   type board = t
   type victory = Board.GameBoard.victory
   type piece = Board.GameBoard.piece
-
- (*
-  * [get_list_all_pieces] returns a piece list containing every piece that
-  * the ai starts with.
-  *)
-let get_ai_pieces () =
-  let pieces = get_list_all_pieces () in
-  List.map (fun p -> (make_piece (get_rank p) false (get_been_seen p))) pieces
-
-(* [ai_setup] takes in a board [board], on which the player has set up their
- * pieces, and sets up the AI's pieces. The AI will always put its flag in the
- * back row and place three bombs around it. Other than that, the placement
- * of every piece is totally random.
- *
- * Requires:
- * [board] : board
- * The player has set up their pieces on [board] already
- *)
-  let ai_setup board =
-    let () = Random.self_init () in
-    let flag_x_pos = Random.int 10 in
-    let flag_pos = (flag_x_pos, 9) in
-    let bomb_one_x = match flag_x_pos with
-                     |0 -> 4
-                     |n -> n-1 in
-    let bomb_two_x = match flag_x_pos with
-                     |9 -> 6
-                     |n -> n+1 in
-    let flag_p = make_position (fst flag_pos) (snd flag_pos) in
-    let bomb_one = make_position bomb_one_x 9 in
-    let bomb_two = make_position bomb_two_x 9 in
-    let bomb_three = make_position flag_x_pos 8 in
-    let flag_board = add_mapping flag_p
-        (Some(make_piece 11 false false)) board in
-    let one_bomb_board = add_mapping bomb_one
-        (Some (make_piece 0 false false)) flag_board in
-    let two_bomb_board = add_mapping bomb_two
-        (Some (make_piece 0 false false)) one_bomb_board in
-    let three_bombs_board = add_mapping bomb_three
-        (Some (make_piece 0 false false)) two_bomb_board in
-    let filled = [flag_p; bomb_one; bomb_two; bomb_three] in
-    let remaining = match get_ai_pieces () with
-                    (*The following line removes the flag and three bombs
-                     *from the list of pieces that need to be placed because
-                     *they have already been put on the board*)
-                    |f::b1::b2::b3::t -> t
-                    |_ -> failwith "the function should match the above" in
-    let shuffled = List.sort (fun x y -> Random.int 2) remaining in
-    fill three_bombs_board filled shuffled (make_position 0 9) false
 
   (* [replace_pos board lst] is a new board with replacements made according
    * to the (pos,piece option) association list [lst], where the first of every
