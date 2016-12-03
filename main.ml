@@ -1,7 +1,7 @@
 open Game
 
 (* See main.mli *)
-let () =
+let rec main () =
   print_endline("\n\nWelcome to Stratego.\n");
   print_endline("Please make your terminal full screen for the best experience.\n");
   print_endline("Type RULES to learn how to play. Type anything else to start.\n");
@@ -25,4 +25,12 @@ let () =
       else
           manual_setup () in
   let _ = play initial_board in
+  print_endline "Type \"play\" to play again, or anything else to quit.";
+  print_string ">";
+  let ans = read_line () in
+  let new_ans = ans |> String.trim |> String.lowercase_ascii in
+  if new_ans = "play" then main () else
   ()
+
+
+let () = main ()
