@@ -4,13 +4,13 @@ type board = Board.GameBoard.t
 (* [game_piece] is the type of a Stratego piece *)
 type game_piece = Board.GameBoard.piece
 
-(* [user_pieces_lost] is an array containing all the stratego pieces the user
+(* (* [user_pieces_lost] is an array containing all the stratego pieces the user
  * has lost *)
 val user_pieces_lost : game_piece array
 
 (* [ai_pieces_lost] is an array containing all the stratego pieces the ai
  * has lost *)
-val ai_pieces_lost : game_piece array
+val ai_pieces_lost : game_piece array *)
 
 (**
  * [manual_setup] creates the board that exists at the start of gameplay; it

@@ -27,16 +27,29 @@ module GameAI : AI = struct
         newb := (add_mapping k (try List.assoc k lst with _ -> v) !newb) in
     let () = board_iter (fun k v -> f k v) board in
     !newb
-
+  (* [can_defeat init rank] is the number of pieces during the initial setup of
+   * the game that a piece of rank [rank] could tie or defeat.
+   * For example, at the beginning of the game, there are 10 pieces that a
+   * scout (rank 2) can defeat -- the enemies bomb, flag and 8 scouts.
+   *
+   * Requires: [rank] : int
+   *
+   *)
   let can_defeat_init = function
   | 0 -> 35  | 1 -> 2  | 2 -> 10  | 3 -> 21  | 4 -> 19  | 5 -> 23  |6 -> 27
   | 7 -> 30  | 8 -> 32 | 9 -> 33  | 10  -> 33  |11 -> 0
   | n -> failwith "rank should be in [0,11]"
 
-  (* if [player] then return the number of pieces on the board that the player's [rank]
-   * piece can defeat.*)
-  let get_probability rank player =
-    let captured_array = if player then Game.ai_pieces_lost else Game.user_pieces_lost in
+  (* [get_probability rank player] is the probability that an AI piece of [rank]
+   * can defeat a randomly selected piece belonging to the player that is
+   * still on the board.
+   *
+   * Requires: [rank] : int
+   *
+   *
+   *)
+  let get_probability rank =
+    let captured_array = user_pieces_lost in
     let captured_list = captured_array |> Array.to_list in
     let filtered = List.filter (fun p -> get_rank p <> 12) captured_list in
     let f = match rank with
@@ -45,14 +58,9 @@ module GameAI : AI = struct
             | n -> (fun p -> get_rank p <= rank && get_rank p <> 0) in
     let can_beat_captured = List.filter f filtered in
     let can_beat_uncap = (can_defeat_init rank) - (List.length can_beat_captured) in
-    (float can_beat_uncap) /. float(40 - List.length filtered)
-
-
-  (*let get_probability rank = (*function
-  | 0 -> 0.875  | 1 -> 0.025  | 2 -> 0.8  | 3 -> 0.525  | 4 -> 0.475
-  | 5 -> 0.575   | 6 -> 0.675 | 7 -> 0.75  | 8 -> 0.8 | 9 -> 0.825  | 10 -> 0.85
-  | 11 -> 0.0  | n -> failwith "rank should be in [0,11]"*)
-  num_pieces_can_defeat*)
+    let prob = (float can_beat_uncap) /. float(40 - List.length filtered) in
+    let () = print_float prob in
+    prob
 
   (* [ai_battle p1 p2] is a piece option representing the piece that ai assumes
    * will win if the AI's piece, p1, battles the player's piece, p2. AI assumes
@@ -70,6 +78,7 @@ module GameAI : AI = struct
    * [p1] and [p2] : piece
    *)
   let ai_battle p1 p2 =
+    let () = if (get_player p2) then print_endline "aww shit" else print_endline "nah" in
     match (get_rank p1), (get_rank p2) with
     | _, _ when (not (get_player p2)) -> failwith "ai shouldn't battle it's own piece"
     | 3,0 when get_been_seen p2-> Some p1
@@ -77,11 +86,13 @@ module GameAI : AI = struct
     | _ , 11 when get_been_seen p2 -> Some p1
     | 1, 10 when get_been_seen p2 -> Some p1
     | p1r, p2r when (get_been_seen p2) ->
+        let () = print_endline "in first match" in
         if p1r > p2r then Some p1 else if p1r < p2r then Some p2 else None
     | p1r, p2r ->
+        let () = print_endline "in second match" in
         let () = Random.self_init () in
         let n = Random.int 101 |> float in
-        let b = not(get_player p1) in
+        let b = get_player p1 in
         if (100. *. get_probability p1r b) > n then Some p1 else Some p2
     | _,_ -> Some p2
 
@@ -198,7 +209,7 @@ module GameAI : AI = struct
         (can_up || can_down || can_left || can_right)
 
 
-  (* [get_moveable_init board] returns the list of positions in [board] that
+  (* [get_moveable board] returns the list of positions in [board] that
    * contain a piece that can make 1 or more valid moves. Note that positions
    * in this list are represented as (int*int).
    *
@@ -206,7 +217,7 @@ module GameAI : AI = struct
    * [board] : Board
    * [player] : bool
    *)
-  let get_moveable_init board player =
+  let get_moveable board player =
     let lst = ref [] in
     let f k = function
       | Some p when (get_player p) = player -> has_move board k player
@@ -234,7 +245,7 @@ module GameAI : AI = struct
    *      player: bool (true when user, false when ai)
    *)
 let get_valid_boards board player =
-    let moveable = get_moveable_init board player in
+    let moveable = get_moveable board player in
     let moves = List.fold_left
         (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
     if (not player) then List.fold_left
@@ -247,11 +258,12 @@ let get_valid_boards board player =
         (fun a (p1,p2) -> (new_board p1 p2,(p1,p2))::a) [] moves
 
 
-  (* [break_tie move1 move2 player] is a move chosen according to
-   * the following rules:
-   *      - if both moves move [player] backwards, a random move is chosen
-   *      - if both moves move [player] forward, a random move is chosen
-   *      - if only one move moves [player] backward, the other move is chosen
+  (* [break_tie move1 move2 player] is a move chosen assuming a forward move is
+   * better than a sideways move which is better than a backwards move.
+   * More specifically, we chose move by looking at [move1] and [move2]:
+   *      - if both move [player] backwards, a random move is chosen
+   *      - if both move [player] forward, a random move is chosen
+   *      - if only one moves [player] backward, the other move is chosen
    *      - if only one moves [player] sideways, the other move is chosen
   *)
   let break_tie move1 move2 player =
@@ -284,7 +296,7 @@ let get_valid_boards board player =
  * Move is a (pos1, pos2) tuple where:
  *    - pos1, pos2 are valid board positions when [player] has a move
  *    - pos2,pos2 = (-1,-1) when one or more players is out of moves or
-*        [depth] = 0
+ *        [depth] = 0
  * Requires:
  *    min : bool,true when you want the minimum score (player = user)
  *    board: board
