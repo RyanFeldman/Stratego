@@ -62,28 +62,6 @@ let rec get_user_input (board:board) (piece:piece) : board =
         | None -> (add_mapping (make_position x y) (Some piece) board)
         | Some p -> failwith "A piece is already there!"
 
-(**
- * [instantiate_user_board board lst] is a board with all the pieces in [lst]
- * placed in valid positions in [board].
- *)
-let rec instantiate_user_board board = function
-    | [] -> board
-    | h::t ->
-        let new_board =
-            (try (get_user_input board h) with
-            | _ ->
-                let _ = print_message ("\nSorry, your input must be in the"
-                    ^" form 'xy' to place your piece at (x, y)! As a reminder,"
-                    ^" you must place your pieces in the first 4 rows and two "
-                    ^"pieces cannot be placed on top of each other to start."
-                    ^"\n\n") in
-                    board) in
-        if (equal_board new_board board) then
-            instantiate_user_board board (h::t)
-        else
-            let () = display_board new_board in
-            instantiate_user_board new_board t
-
 (* See game.mli file *)
 let auto_setup () =
     let () = Random.self_init () in
@@ -95,12 +73,34 @@ let auto_setup () =
     let () = display_board completed_board in
     completed_board
 
+(**
+ * [manual_setup_helper board lst] is a board with all the pieces in [lst]
+ * placed in valid positions in [board].
+ *)
+let rec manual_setup_helper board = function
+    | [] -> board
+    | h::t ->
+        let new_board =
+            (try (get_user_input board h) with
+            | _ ->
+                let _ = print_message ("\nSorry, your input must be in the"
+                    ^" form 'xy' to place your piece at (x, y)!\nAs a reminder,"
+                    ^" you must place your pieces in the first 4 rows and two "
+                    ^"pieces cannot be placed on top of each other to start."
+                    ^"\n\n") in
+                    board) in
+        if (equal_board new_board board) then
+            manual_setup_helper board (h::t)
+        else
+            let () = display_board new_board in
+            manual_setup_helper new_board t
+
 (* See game.mli file *)
 let manual_setup () =
     let new_board = none_whole_board (empty_board ()) (make_position 0 0) in
     let full_pieces = get_list_all_pieces () in
     let _ = display_board new_board in
-    let user_board = instantiate_user_board new_board full_pieces in
+    let user_board = manual_setup_helper new_board full_pieces in
     let start_board = ai_setup user_board in
     let () = display_board start_board in
     start_board
@@ -218,7 +218,7 @@ let handle_user_input cmd board =
         print_list (ai_lst);
         (Active (board), "")
     | ("quit", "") -> (print_message ("Did the 3110 students quit when their "
-                        ^"final project was due in 9 days? Oh well, your choice."
+                        ^"final project was due in 9 days?\nOh well, your choice."
                         ^" You surrendered to the AI."));
                         (Victory (false), "")
     | ("rules", "") ->
@@ -283,17 +283,19 @@ let rec play (board:board) : board =
         let user_tuple = parse_user_input user_input in
         let user_board = try (handle_user_input user_tuple board) with
                     | Illegal -> (Active (board),
-                    "\n\nSorry, I don't quite understand your input.\n"
+                    "\n\nSorry, that input is not valid.\n"
                     ^"Remember: To move, type the position of the piece you want"
-                    ^" to move followed by the target location (ex. 00 01). At "
-                    ^"any time, the following commands will be available:\n"
-                    ^"\t\"table\" - Displays a table linking the names of "
-                    ^"Stratego pieces to their ranks\n\t\"captured\" - Displays"
-                    ^" the pieces captured by each player\n\t\"rules\" - "
-                    ^"Displays the rules and commands available\n\t\"quit\" - "
+                    ^" to move\nfollowed by the target location (ex. 00 01).\nAt "
+                    ^"any time, the following commands are available:\n"
+                    ^"\tTABLE - Displays a table linking the names of "
+                    ^"Stratego pieces to their ranks\n\tCAPTURED - Displays"
+                    ^" the pieces captured by each player\n\tRULES - "
+                    ^"Displays the rules and commands available\n\tQUIT - "
                     ^"Exits the game\n") in
         let win = check_winner (fst user_board) in
         if win then
+            let _ = print_message ("Congrats! You won the game!\n"
+                                  ^"May the Caml be with you") in 
             board
         else
             if (equal_board (strip_variant (fst user_board)) board) then
@@ -305,6 +307,9 @@ let rec play (board:board) : board =
                 let (ai_board, captured, msg) = choose_best_board stripped_board in
                 let ai_win = check_winner ai_board in
                 if ai_win then
+                    let _ = print_message ("Sorry, the AI captured your flag\n"
+                                            ^"Next time, use the power of the"
+                                            ^" Caml.") in 
                     board
                 else
                     let _ = append_to_cap captured in
