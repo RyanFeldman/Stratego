@@ -219,7 +219,7 @@ let handle_user_input cmd board =
         (Active (board), "")
     | ("quit", "") -> (print_message ("Did the 3110 students quit when their "
                         ^"final project was due in 9 days?\nOh well, your choice."
-                        ^" You surrendered to the AI."));
+                        ));
                         (Victory (false), "")
     | ("rules", "") ->
         let _ = display_rules () in
@@ -245,6 +245,19 @@ let strip_variant var =
     match var with
     | Victory b -> failwith "Shouldn't be passing Victory"
     | Active board -> board
+
+let determine_win_message victory board = 
+    match victory with 
+    | Active b -> failwith "Shouldn't be guessing victor of Active"
+    | Victory v -> 
+        if v then 
+            let _ = print_message ("Congrats! You won the game!\n"
+                                  ^"May the Caml be with you") in 
+            board
+        else 
+            let _ = print_message ("The AI has won the game.\nNext"
+                                    ^" time use the power of the Caml.") in 
+            board
 
 let rec check_available_moves board (x, y) = 
     if (x=0) && (y=10) then 
@@ -294,9 +307,7 @@ let rec play (board:board) : board =
                     ^"Exits the game\n") in
         let win = check_winner (fst user_board) in
         if win then
-            let _ = print_message ("Congrats! You won the game!\n"
-                                  ^"May the Caml be with you") in 
-            board
+            determine_win_message (fst user_board) board
         else
             if (equal_board (strip_variant (fst user_board)) board) then
                 let _ = display_board board in
@@ -307,10 +318,7 @@ let rec play (board:board) : board =
                 let (ai_board, captured, msg) = choose_best_board stripped_board in
                 let ai_win = check_winner ai_board in
                 if ai_win then
-                    let _ = print_message ("Sorry, the AI captured your flag\n"
-                                            ^"Next time, use the power of the"
-                                            ^" Caml.") in 
-                    board
+                    determine_win_message ai_board board
                 else
                     let _ = append_to_cap captured in
                     let _ = display_board (strip_variant ai_board) in

@@ -106,7 +106,7 @@ module GameBoard : Board = struct
                     in none_whole_board brd (x+1,y)
 
     (* See board.mli file *)
-    let empty_board () = BoardMap.empty
+    let empty_board () = none_whole_board BoardMap.empty (0, 0) 
 
     (**
      * [string_from_piece piece] is the name of [piece] given its rank.
@@ -381,7 +381,6 @@ module GameBoard : Board = struct
     (* See board.mli file *)
     let make_move (board:t) (pos_one:position) (pos_two:position)
             : (victory * piece list * string) =
-        (*let () = print_endline "called make_move" in*)
         let (new_board, captured) =
             (match (search pos_two board) with
             | None ->
