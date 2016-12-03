@@ -304,8 +304,9 @@ let rec play (board:board) : board =
                     | Illegal -> (Active (board),
                     "\n\nSorry, that input is not valid.\n"
                     ^"Remember: To move, type the position of the piece you "
-                    ^"want to move\nfollowed by the target location (ex. 00 "
-                    ^"01).\nAt any time, the following commands are available:"
+                    ^"want to move\nfollowed by the target location (ex. type 00 "
+                    ^"01 to move from (0,0) to (0,1)).\nAt any time, the "
+                    ^"following commands are available:"
                     ^"\n\tTABLE - Displays a table linking the names of "
                     ^"Stratego pieces to their ranks\n\tCAPTURED - Displays"
                     ^" the pieces captured by each player\n\tRULES - "

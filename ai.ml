@@ -1,5 +1,4 @@
 open Board.GameBoard
-open Display.TextDisplay
 
 module type AI = sig
   type board = t
@@ -301,15 +300,16 @@ let get_valid_boards board player =
    * Requires: [board] : board
    *)
   let choose_best_board board =
-    let move = snd (minimax board false 3) in
+    let move = snd (minimax board false 4) in
     let pos1 = fst move in
     let pos2 = snd move in
     if pos1 = (make_position (-1) (-1)) then
         (Victory true, [], "")
     else
-        match make_move board pos1 pos2 with
+        make_move board pos1 pos2
+        (*match make_move board pos1 pos2 with
         |(Active b, captured, str) -> (Active b, captured, str)
-        |(Victory b, captured, str) -> (Victory b, captured, str)
+        |(Victory b, captured, str) -> (Victory b, captured, str)*)
 
 end
 
