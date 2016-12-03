@@ -169,7 +169,7 @@ module GameAI : AI = struct
         (can_up || can_down || can_left || can_right)
 
 
-  (* [get_moveable_init board] returns the list of positions in [board] that
+  (* [get_moveable board] returns the list of positions in [board] that
    * contain a piece that can make 1 or more valid moves. Note that positions
    * in this list are represented as (int*int).
    *
@@ -177,7 +177,7 @@ module GameAI : AI = struct
    * [board] : Board
    * [player] : bool
    *)
-  let get_moveable_init board player =
+  let get_moveable board player =
     let lst = ref [] in
     let f k = function
       | Some p when (get_player p) = player -> has_move board k player
@@ -205,7 +205,7 @@ module GameAI : AI = struct
    *      player: bool (true when user, false when ai)
    *)
 let get_valid_boards board player =
-    let moveable = get_moveable_init board player in
+    let moveable = get_moveable board player in
     let moves = List.fold_left
         (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
     if (not player) then List.fold_left
