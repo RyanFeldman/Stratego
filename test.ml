@@ -1,19 +1,8 @@
 open OUnit2
 open Board.GameBoard
 open Game
-open Ai
-open GameAI
-open Display
-open TextDisplay
-
-type piece = {
-    rank : int;
-    player : bool;
-    hasBeenSeen : bool;
-}
-
-type position = int * int
-
+open Ai.GameAI
+open Display.TextDisplay
 
 let flag = make_piece 11 false false 
 let pl = make_piece 2 true true 

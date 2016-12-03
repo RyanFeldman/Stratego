@@ -19,12 +19,6 @@ let ai_counter =
     let c = ref (-1) in
     fun () -> c := !c+1; !c
 
-(* See game.mli file *)
-let user_pieces_lost = Array.make 40 (make_piece 12 true false)
-
-(* See game.mli file *)
-let ai_pieces_lost = Array.make 40 (make_piece 12 true false)
-
 (**
  * [parse_user_input c] is the position from the user's input string [c]
  * Raises:

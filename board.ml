@@ -22,6 +22,8 @@ module type Board = sig
     val make_position : int -> int -> position
     val get_tuple : position -> int * int
     type piece
+    val user_pieces_lost : piece array
+    val ai_pieces_lost : piece array 
     val make_piece : int -> bool -> bool -> piece
     val get_rank : piece -> int
     val get_player : piece -> bool
@@ -50,6 +52,8 @@ module BoardMap = Map.Make(IntTuple)
 module GameBoard : Board = struct
     (* See Board sig in board.mli for AF and rep invariant *)
 
+    
+
     (* See board.mli file *)
     type position = int * int
 
@@ -72,6 +76,12 @@ module GameBoard : Board = struct
 
     (* See board.mli file *)
     let get_rank (p:piece) : int = p.rank
+
+    (* See game.mli file *)
+    let user_pieces_lost = Array.make 40 (make_piece 12 true false)
+
+    (* See game.mli file *)
+    let ai_pieces_lost = Array.make 40 (make_piece 12 true false)
 
     (* See board.mli file *)
     let get_player (p:piece) : bool = p.player

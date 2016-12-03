@@ -52,6 +52,8 @@ module type Board = sig
      * This is the board upon instantiation.
      *)
 
+    
+
     (* Type representing a location on the stratego board *)
     type position
 
@@ -68,6 +70,9 @@ module type Board = sig
 
     (* Type representing a stratego piece on the board *)
     type piece
+
+    val user_pieces_lost : piece array
+    val ai_pieces_lost : piece array 
 
     (**
      * [make_piece rank player hasBeenSeen] takes in an int [rank], the 
