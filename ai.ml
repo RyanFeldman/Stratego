@@ -1,5 +1,4 @@
 open Board.GameBoard
-open Display.TextDisplay
 
 module type AI = sig
   type board = t
@@ -28,6 +27,40 @@ module GameAI : AI = struct
         newb := (add_mapping k (try List.assoc k lst with _ -> v) !newb) in
     let () = board_iter (fun k v -> f k v) board in
     !newb
+  (* [can_defeat init rank] is the number of pieces during the initial setup of
+   * the game that a piece of rank [rank] could tie or defeat.
+   * For example, at the beginning of the game, there are 10 pieces that a
+   * scout (rank 2) can defeat -- the enemies bomb, flag and 8 scouts.
+   *
+   * Requires: [rank] : int
+   *
+   *)
+  let can_defeat_init = function
+  | 0 -> 35  | 1 -> 2  | 2 -> 10  | 3 -> 21  | 4 -> 19  | 5 -> 23  |6 -> 27
+  | 7 -> 30  | 8 -> 32 | 9 -> 33  | 10  -> 33  |11 -> 0
+  | n -> failwith "rank should be in [0,11]"
+
+  (* [get_probability rank player] is the probability that an AI piece of [rank]
+   * can defeat a randomly selected piece belonging to the player that is
+   * still on the board.
+   *
+   * Requires: [rank] : int
+   *
+   *
+   *)
+  let get_probability rank =
+    let captured_array = user_pieces_lost in
+    let captured_list = captured_array |> Array.to_list in
+    let filtered = List.filter (fun p -> get_rank p <> 12) captured_list in
+    let f = match rank with
+            | 3 -> (fun p -> get_rank p <= 3)
+            | 1 -> (fun p -> get_rank p = 10)
+            | n -> (fun p -> get_rank p <= rank && get_rank p <> 0) in
+    let can_beat_captured = List.filter f filtered in
+    let can_beat_uncap = (can_defeat_init rank) - (List.length can_beat_captured) in
+    let prob = (float can_beat_uncap) /. float(40 - List.length filtered) in
+    let () = print_float prob in
+    prob
 
   (* [ai_battle p1 p2] is a piece option representing the piece that ai assumes
    * will win if the AI's piece, p1, battles the player's piece, p2. AI assumes
@@ -47,13 +80,19 @@ module GameAI : AI = struct
   let ai_battle p1 p2 =
     match (get_rank p1), (get_rank p2) with
     | _, _ when (not (get_player p2)) -> failwith "ai shouldn't battle it's own piece"
-    | 3,0 -> Some p1
-    | _ , 0 -> if get_been_seen p2 then Some p2 else Some p1
-    | _ , 11 -> Some p1
-    | 1, 10 -> Some p1
+    | 3,0 when get_been_seen p2-> Some p1
+    | _ , 0 when get_been_seen p2-> Some p2
+    | _ , 11 when get_been_seen p2 -> Some p1
+    | 1, 10 when get_been_seen p2 -> Some p1
     | p1r, p2r when (get_been_seen p2) ->
-          if p1r > p2r then Some p1 else if p1r < p2r then Some p2 else None
-    | p1r, p2r when p1r >= p2r - 2 -> Some p1
+        let () = print_endline "in first match" in
+        if p1r > p2r then Some p1 else if p1r < p2r then Some p2 else None
+    | p1r, p2r ->
+        let () = print_endline "in second match" in
+        let () = Random.self_init () in
+        let n = Random.int 101 |> float in
+        let b = get_player p1 in
+        if (100. *. get_probability p1r) > n then Some p1 else Some p2
     | _,_ -> Some p2
 
 
@@ -244,7 +283,6 @@ let get_valid_boards board player =
            else if sideway1 then move2
            else move1
 
-
 (* [minimax board min depth] is the resulting (score, move) from the
  * minimax algorithm, which looks at future moves until depth [depth].  When
  * [min] the move that produces the smallest score is chosen, when not [min] the
@@ -331,9 +369,10 @@ let get_valid_boards board player =
     if pos1 = (make_position (-1) (-1)) then
         (Victory true, [], "")
     else
-        match make_move board pos1 pos2 with
+        make_move board pos1 pos2
+        (*match make_move board pos1 pos2 with
         |(Active b, captured, str) -> (Active b, captured, str)
-        |(Victory b, captured, str) -> (Victory b, captured, str)
+        |(Victory b, captured, str) -> (Victory b, captured, str)*)
 
 end
 

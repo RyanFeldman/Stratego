@@ -81,7 +81,7 @@ module TextDisplay : Display = struct
     In addition to those ranked pieces you can use bombs to protect your flag.
 
     Pieces move 1 tile per turn, horizontally or vertically.
-    Only the scout can move over multiple empty tiles per turn (like a rook in chess).
+    Only the scout (rank 2) can move over multiple empty tiles per turn (like a rook in chess).
     Pieces cannot jump over other pieces.
 
     If a piece is moved onto a tile that is occupied by an opposing piece,
@@ -103,8 +103,9 @@ module TextDisplay : Display = struct
     The flag can be captured by an opponent piece of any rank.
     When you capture the flag of your opponent you win the game.
 
-    To move, type the position of the piece you want to move followed by the target
-    location (ex. 00 01).";
+    To move, type the (x,y) position of the piece you want to move as xy followed
+    by the (x,y) position of the tile you want to move to in the same format.
+    i.e. to move a piece from (1,1) to (1,2), enter 11 12";
     print_endline
     "
     Once the game begins, the following commands will be available:
