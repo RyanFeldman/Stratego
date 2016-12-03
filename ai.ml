@@ -218,6 +218,33 @@ let get_valid_boards board player =
         (fun a (p1,p2) -> (new_board p1 p2,(p1,p2))::a) [] moves
 
 
+  (* [break_tie move1 move2 player] is a move chosen according to
+   * the following rules:
+   *      - if both moves move [player] backwards, a random move is chosen
+   *      - if both moves move [player] forward, a random move is chosen
+   *      - if only one move moves [player] backward, the other move is chosen
+   *      - if only one moves [player] sideways, the other move is chosen
+  *)
+  let break_tie move1 move2 player =
+    let (from1_x,from1_y) = get_tuple (fst move1) in
+    let (to1_x, to1_y) = get_tuple (snd move1) in
+    let (from2_x, from2_y) = get_tuple (fst move2) in
+    let (to2_x, to2_y) = get_tuple (snd move2) in
+    let backward2 = if player then to2_y < from2_y else to2_y > from2_y in
+    let backward1 = if player then to1_y < from1_y else to1_y > from1_y in
+    let sideway2 = from2_x <> to2_x in
+    let sideway1 = from1_x <> to1_x in
+    let random = if Random.bool () then move1 else move2 in
+    match backward1, backward2 with
+    | true, true -> random
+    | true, false -> move2
+    | false, true -> move1
+    | _ -> if sideway1 = sideway2 then random
+           else if sideway1 then move2
+           else move1
+
+
+
 
 (* [minimax board min depth] is the resulting (score, move) from the
  * minimax algorithm, which looks at future moves until depth [depth].  When
@@ -266,8 +293,7 @@ let get_valid_boards board player =
       let (s2, _) = minimax b2 true (depth - 1) in
       if s1 > s2 then
         (s1, m1)
-      else if s1=s2 then
-        if (Random.bool ()) then (s1,m1) else (s2,m2) (*If tied, pick randomly*)
+      else if (s1=s2 && (break_tie m1 m2 false) = m1) then (s1,m1)
       else
         (s2, m2)
 
@@ -287,8 +313,7 @@ let get_valid_boards board player =
       let (s2, _) = minimax b2 false (depth-1) in
       if s1 < s2 then
         (s1, m1)
-      else if s1=s2 then
-        if (Random.bool ()) then (s1,m1) else (s2,m2) (*If tied, pick randomly*)
+      else if (s1=s2 && (break_tie m1 m2 true) = m1) then (s1,m1)
       else (s2, m2)
 
   (* [choose_best_board board] is a victory variant that represents the game
