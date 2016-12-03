@@ -15,36 +15,45 @@ module TextDisplay : Display = struct
   type board = t
   type piece = Board.GameBoard.piece
 
+  (*[print_message s] prints s to the console*)
   let print_message s = print_endline s
 
+  (*[string_of_piece_user p] returns the string to be displayed of the given
+   *AI piece p*)
   let string_of_piece_ai p = match (get_rank p) with
-  |x when x = 0 -> "B"
-  |x when x < 10 -> ""^(string_of_int x)
-  |x when x = 11 -> "F"
+  |x when x = 0 -> "B "
+  |x when x = 1 -> "S "
+  |x when x < 10 -> (string_of_int x)^" "
+  |x when x = 11 -> "F "
   |x -> string_of_int x
 
+  (*[string_of_piece_user p] returns the string to be displayed of the given
+   *user piece p*)
   let string_of_piece_user p = match (get_rank p) with
-  |x when x = 0 -> " B"
-  |x when x < 10 -> " "^(string_of_int x)
-  |x when x = 11 -> " F"
-  |x -> string_of_int x
+  |x when x = 0 -> " B "
+  |x when x = 1 -> " S "
+  |x when x < 10 -> " "^(string_of_int x)^" "
+  |x when x = 11 -> " F "
+  |x -> (string_of_int x)^" "
 
+  (*[print_row b r] prints the current row r of board b to the console.*)
   let print_row (board:board) (row:int) =
     for col = 0 to 9 do
       let pos = make_position col row in
       let p = (search pos board) in ();
       (match p with
-      |None -> print_string "  ";
-      |Some x -> 
-        if not (get_player x) then 
-            if (get_been_seen x) then 
+      |None -> print_string "   ";
+      |Some x ->
+        if not (get_player x) then
+            if (get_been_seen x) then
                 print_string ("A"^(string_of_piece_ai x))
-            else print_string "AI"
+            else print_string "AI "
         else (print_string (string_of_piece_user x)));
-      print_string " | "
+      print_string "| "
     done;
     print_endline ""
 
+  (*See display.mli*)
   let display_board (b:board) =
     print_endline "";
     print_endline "     _________________________________________________";
@@ -56,6 +65,7 @@ module TextDisplay : Display = struct
     done;
     print_endline "       0    1    2    3    4    5    6    7    8    9"
 
+  (*See display.mli*)
   let display_rules () =
     print_endline
     "
@@ -99,11 +109,13 @@ module TextDisplay : Display = struct
     \t\"rules\" - Displays the rules and commands available
     \t\"quit\" - Exits the game"
 
+  (*See display.mli*)
   let print_list (l:piece list) =
     print_string "Pieces: ";
     List.iter (fun x -> print_string ((string_of_piece_user x)^" | ")) l;
     print_endline ""
 
+  (*See display.mli*)
   let display_table () =
     print_endline "   __________________";
     print_endline "  |                  |";
