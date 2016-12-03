@@ -17,7 +17,13 @@ module TextDisplay : Display = struct
 
   let print_message s = print_endline s
 
-  let string_of_piece p = match (get_rank p) with
+  let string_of_piece_ai p = match (get_rank p) with
+  |x when x = 0 -> "B"
+  |x when x < 10 -> ""^(string_of_int x)
+  |x when x = 11 -> "F"
+  |x -> string_of_int x
+
+  let string_of_piece_user p = match (get_rank p) with
   |x when x = 0 -> " B"
   |x when x < 10 -> " "^(string_of_int x)
   |x when x = 11 -> " F"
@@ -29,8 +35,12 @@ module TextDisplay : Display = struct
       let p = (search pos board) in ();
       (match p with
       |None -> print_string "  ";
-      |Some x -> if not (get_player x) then print_string "AI"
-        else (print_string (string_of_piece x)));
+      |Some x -> 
+        if not (get_player x) then 
+            if (get_been_seen x) then 
+                print_string ("A"^(string_of_piece_ai x))
+            else print_string "AI"
+        else (print_string (string_of_piece_user x)));
       print_string " | "
     done;
     print_endline ""
@@ -91,7 +101,7 @@ module TextDisplay : Display = struct
 
   let print_list (l:piece list) =
     print_string "Pieces: ";
-    List.iter (fun x -> print_string ((string_of_piece x)^" | ")) l;
+    List.iter (fun x -> print_string ((string_of_piece_user x)^" | ")) l;
     print_endline ""
 
   let display_table () =
