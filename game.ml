@@ -246,13 +246,42 @@ let strip_variant var =
     | Victory b -> failwith "Shouldn't be passing Victory"
     | Active board -> board
 
+let rec check_available_moves board (x, y) = 
+    if (x=0) && (y=10) then 
+        false 
+    else
+        let pos = make_position x y in 
+        match (search pos board) with 
+        | None -> 
+            if x=9 then 
+                (check_available_moves board (0, y+1))
+            else 
+                (check_available_moves board (x+1, y))
+        | Some p -> 
+            if (get_player p) then 
+                let lst = get_possible_moves board true p pos in 
+                if lst = [] then 
+                    if x=9 then 
+                        check_available_moves board (0, y+1)
+                    else 
+                        check_available_moves board (x+1, y)
+                else
+                    true 
+            else 
+                if x=9 then 
+                    check_available_moves board (0, y+1)
+                else 
+                    check_available_moves board (x+1, y)
+
 (* See game.mli file *)
 let rec play (board:board) : board =
-    let _ = print_message "It's your turn! What would you like to do?" in
-    print_string ">";
-    let user_input = read_line () in
-    let user_tuple = parse_user_input user_input in
-    let user_board = try (handle_user_input user_tuple board) with
+    let user_no_moves = check_available_moves board (0, 0) in 
+    if user_no_moves then 
+        let _ = print_message "It's your turn! What would you like to do?" in
+        print_string ">";
+        let user_input = read_line () in
+        let user_tuple = parse_user_input user_input in
+        let user_board = try (handle_user_input user_tuple board) with
                     | Illegal -> (Active (board),
                     "\n\nSorry, I don't quite understand your input.\n"
                     ^"Remember: To move, type the position of the piece you want"
@@ -263,22 +292,27 @@ let rec play (board:board) : board =
                     ^" the pieces captured by each player\n\t\"rules\" - "
                     ^"Displays the rules and commands available\n\t\"quit\" - "
                     ^"Exits the game\n") in
-    let win = check_winner (fst user_board) in
-    if win then
-        board
-    else
-        if (equal_board (strip_variant (fst user_board)) board) then
-            let _ = display_board board in
-            let _ = print_message (snd user_board) in
-            play (strip_variant (fst user_board))
+        let win = check_winner (fst user_board) in
+        if win then
+            board
         else
-            let stripped_board = (strip_variant (fst user_board)) in
-            let (ai_board, captured, msg) = choose_best_board stripped_board in
-            let ai_win = check_winner ai_board in
-            if ai_win then
-                (strip_variant ai_board)
+            if (equal_board (strip_variant (fst user_board)) board) then
+                let _ = display_board board in
+                let _ = print_message (snd user_board) in
+                play (strip_variant (fst user_board))
             else
-                let _ = append_to_cap captured in
-                let _ = display_board (strip_variant ai_board) in
-                let _ = print_message ("\n"^(snd user_board) ^ "\n" ^msg^"\n") in
-                play (strip_variant ai_board)
+                let stripped_board = (strip_variant (fst user_board)) in
+                let (ai_board, captured, msg) = choose_best_board stripped_board in
+                let ai_win = check_winner ai_board in
+                if ai_win then
+                    board
+                else
+                    let _ = append_to_cap captured in
+                    let _ = display_board (strip_variant ai_board) in
+                    let _ = print_message ("\n"^(snd user_board) ^ "\n" ^msg^"\n") in
+                    play (strip_variant ai_board)
+    else 
+        let _ = print_message 
+                "You're out of moves! The AI has won the game by default." in 
+        board
+
