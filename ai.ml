@@ -218,11 +218,12 @@ let get_valid_boards board player =
         (fun a (p1,p2) -> (new_board p1 p2,(p1,p2))::a) [] moves
 
 
-  (* [break_tie move1 move2 player] is a move chosen according to
-   * the following rules:
-   *      - if both moves move [player] backwards, a random move is chosen
-   *      - if both moves move [player] forward, a random move is chosen
-   *      - if only one move moves [player] backward, the other move is chosen
+  (* [break_tie move1 move2 player] is a move chosen assuming a forward move is
+   * better than a sideways move which is better than a backwards move.
+   * More specifically, we chose move by looking at [move1] and [move2]:
+   *      - if both move [player] backwards, a random move is chosen
+   *      - if both move [player] forward, a random move is chosen
+   *      - if only one moves [player] backward, the other move is chosen
    *      - if only one moves [player] sideways, the other move is chosen
   *)
   let break_tie move1 move2 player =
@@ -244,8 +245,6 @@ let get_valid_boards board player =
            else move1
 
 
-
-
 (* [minimax board min depth] is the resulting (score, move) from the
  * minimax algorithm, which looks at future moves until depth [depth].  When
  * [min] the move that produces the smallest score is chosen, when not [min] the
@@ -258,7 +257,7 @@ let get_valid_boards board player =
  * Move is a (pos1, pos2) tuple where:
  *    - pos1, pos2 are valid board positions when [player] has a move
  *    - pos2,pos2 = (-1,-1) when one or more players is out of moves or
-*        [depth] = 0
+ *        [depth] = 0
  * Requires:
  *    min : bool,true when you want the minimum score (player = user)
  *    board: board
