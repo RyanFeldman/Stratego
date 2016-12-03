@@ -78,7 +78,6 @@ module GameAI : AI = struct
    * [p1] and [p2] : piece
    *)
   let ai_battle p1 p2 =
-    let () = if (get_player p2) then print_endline "aww shit" else print_endline "nah" in
     match (get_rank p1), (get_rank p2) with
     | _, _ when (not (get_player p2)) -> failwith "ai shouldn't battle it's own piece"
     | 3,0 when get_been_seen p2-> Some p1
