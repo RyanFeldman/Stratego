@@ -220,15 +220,18 @@ let get_valid_boards board player =
 
 
 (* [minimax board min depth] is the resulting (score, move) from the
- * minimax algorithm.
- * Scores takes the form:
+ * minimax algorithm, which looks at future moves until depth [depth].  When
+ * [min] the move that produces the smallest score is chosen, when not [min] the
+ * move that produces the largest score is chosen.
+ * Score is:
  *    - (score board) when there is a valid move resulting in normal game play
  *    - (2000) when the user has no moves left but the ai does
  *    - (-2000) when the ai has no moves left but the user does
- *    - (0) when both olayers are out of moves
- * Moves take the form (pos1, pos2) where:
+ *    - (0) when both players are out of moves or [depth] = 0
+ * Move is a (pos1, pos2) tuple where:
  *    - pos1, pos2 are valid board positions when [player] has a move
- *    - pos2,pos2 = (-1,-1) when one or more players is out of moves
+ *    - pos2,pos2 = (-1,-1) when one or more players is out of moves or
+*        [depth] = 0
  * Requires:
  *    min : bool,true when you want the minimum score (player = user)
  *    board: board
@@ -248,13 +251,17 @@ let get_valid_boards board player =
       | lst,false -> List.fold_left (fun a x -> get_max a x depth) worst_max lst
 
 
-  (* [get_max (s1, m1) (b2, m2) depth] compares the position*position tuples
-   * move [m1] and move [m2] to find the move that and returns the (score,move)
-   * that is the highest is the (score, move) that w (score:int,move:(postion*position)
-   * tuple that is the move ([m1] or [m2]) that gives the highest score ([s1] or
-   * the score from minimax of [b2] at depth [depth] -1)
-   * in the case of a tie, [m2] is chosen
-    *)
+  (* [get_max (s1, m1) (b2, m2) depth] chooses the tuple that represents the
+   * (score, move) that maximizes the board score.  In the case of a tie, the
+   * result is random.
+   *      Score: [s1] or the score from (minimax [b2] true  [depth - 1])
+   *      Move: [m1] or [m2] where [m1] produces score [s1]
+   *            when minimaxed at depth [depth - 1] and [m2] produces board [b2]
+   *            when [m2] is played on some board that represents a game state
+   *      Requires:
+   *            (s1,m1) : int*(position*position)
+   *            (b2,m2) : board*(position*position)
+   *)
   and get_max (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 true (depth - 1) in
       if s1 > s2 then
@@ -264,14 +271,18 @@ let get_valid_boards board player =
       else
         (s2, m2)
 
-  (* [get_min (s1, m1) (b2, m2) depth] is a (score:int,move:(postion*position)
-   * tuple that is the move ([m1] or [m2]) that gives the lowest score ([s1] or
-   * the score from minimax of [b2] at depth [depth] -1)
-   * in the case of a tie, [m2] is chosen
-   * Requires:
-   *      (s1,m1) : int*(position*position)
-   *      (b2,m2): board*(position*position)
-  *)
+
+  (* [get_min (s1, m1) (b2, m2) depth] chooses the tuple that represents the
+   * (score, move) that minimizes the board score.  In the case of a tie, the
+   * result is random.
+   *      Score: [s1] or the score from (minimax [b2] false [depth - 1])
+   *      Move: [m1] or [m2] where [m1] produces score [s1]
+   *            when minimaxed at depth [depth - 1] and [m2] produces board [b2]
+   *            when [m2] is played on some board that represents a game state
+   *      Requires:
+   *            (s1,m1) : int*(position*position)
+   *            (b2,m2) : board*(position*position)
+   *)
   and get_min (s1, m1) (b2, m2) depth =
       let (s2, _) = minimax b2 false (depth-1) in
       if s1 < s2 then
@@ -280,8 +291,14 @@ let get_valid_boards board player =
         if (Random.bool ()) then (s1,m1) else (s2,m2) (*If tied, pick randomly*)
       else (s2, m2)
 
-  (* [choose_best_board board] is the board takes in a list of boards available to the AI
-   * and picks the one with the highest score (relative to the AI)
+  (* [choose_best_board board] is a victory variant that represents the game
+   * after ai has made a move. The vitory variant is:
+   *      - Victory(true) if either player has run out of moves
+   *      - Victory(false) if the ai has captured the user's flag
+   *      - Active(board) if the game is ongoing
+   * and is calculated based on the move ai decides is most optimal for the ai,
+   * according to the minimax algorithm.
+   * Requires: [board] : board
    *)
   let choose_best_board board =
     let move = snd (minimax board false 3) in
@@ -295,3 +312,4 @@ let get_valid_boards board player =
         |(Victory b, captured, str) -> (Victory b, captured, str)
 
 end
+
