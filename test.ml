@@ -4,206 +4,116 @@ open Game
 open Ai.GameAI
 open Display.TextDisplay
 
-let flag = make_piece 11 false false 
-let pl = make_piece 2 true true 
-let pos_p = make_position 0 0 
-let pos_f = make_position 0 1
+let pos_00 = make_position 0 0 
+let pos_01 = make_position 0 1
+let pos_02 = make_position 0 2
+let pos_51 = make_position 5 1
 
-let flag2 = make_piece 11 true false
-let pl2 = make_piece 2 false true 
+let flag_ai = make_piece 11 false false 
+let flag_u = make_piece 11 true false
+let scout_ai = make_piece 2 false true 
 
 let spy_u = make_piece 1 true false 
+let scout_u = make_piece 2 true false
 let marsh_ai = make_piece 10 false false
 
+let spy_u2 = make_piece 1 true false
 
-(* let corner_board =
-    add_mapping (0,0) (Some {rank=5; player=false; hasBeenSeen = false})
-        (empty_board ())
+let corner_board = 
+    add_mapping pos_00 (Some scout_u) (empty_board ())
 
-let flag_top_row =
-    add_mapping (3, 5) (Some {bomb with rank=11}) (empty_board ()) *)
+let spy_scout = 
+    add_mapping pos_00 (Some spy_u) (empty_board ())
+let spy_scout_map = 
+    add_mapping pos_01 (Some scout_u) (spy_scout)
 
 let flag_near = 
-    add_mapping pos_f (Some flag) (empty_board ())
+    add_mapping pos_01 (Some flag_ai) (empty_board ())
 let flag_near_scout = 
-    add_mapping pos_p (Some pl) (flag_near)
+    add_mapping pos_00 (Some scout_u) (flag_near)
 
 let flag_near2 = 
-    add_mapping pos_f (Some flag2) (empty_board ())
+    add_mapping pos_01 (Some flag_u) (empty_board ())
 let flag_near_scout2 = 
-    add_mapping pos_p (Some pl2) (flag_near2)
+    add_mapping pos_00 (Some scout_ai) (flag_near2)
 
 let spy_map = 
-    add_mapping pos_p (Some spy_u) (empty_board ())
+    add_mapping pos_00 (Some spy_u) (empty_board ())
 let marsh_near = 
-    add_mapping pos_f (Some marsh_ai) (spy_map)
+    add_mapping pos_01 (Some marsh_ai) (spy_map)
 let spy_w = 
-    add_mapping pos_p (None) marsh_near
+    add_mapping pos_00 (None) marsh_near
 let spy_win = 
-    add_mapping pos_f (Some spy_u) spy_w 
+    add_mapping pos_01 (Some spy_u) spy_w 
 
-let (vic, cap, str) = (make_move marsh_near pos_p pos_f)
-
-(* let cap_first_row =
-    add_mapping (0, 3) (Some {bomb with rank=6}) (empty_board ())
-let cap_first_row_none =
-    add_mapping (0, 4) (None) cap_first_row
-let cap_first_row_ally =
-    add_mapping (0, 4) (Some {bomb with rank=6}) cap_first_row_none
-let cap_first_row_enemy =
-    add_mapping (0, 4) (Some {bomb with player=true}) cap_first_row_none
-let cap_first_row_far =
-    add_mapping (0, 5) (None) cap_first_row_none
-
-let scout_first_row =
-    add_mapping (9, 3) (Some {bomb with rank=2}) (empty_board ())
-let scout_first_row_none =
-    add_mapping (9, 4) (None) scout_first_row
-let scout_first_row_nonetwo =
-    add_mapping (9, 5) None scout_first_row_none
-let scout_first_row_topp =
-    add_mapping (9, 6) (Some {bomb with rank=4}) scout_first_row_nonetwo
-let scout_first_row_leftp =
-    add_mapping (8, 3) (Some {bomb with rank=4}) scout_first_row_topp
-let scout_first_row_botp =
-    add_mapping (9, 2) (Some {bomb with rank=4}) scout_first_row_leftp *)
-
-(* let can_move_to board (x,y) player =
-    try
-      match search (x,y) board with
-      |None -> true
-      |Some piece -> player <> piece.player
-    with
-    |_ -> false *)
-
-  (* [has_move piece] returns true iff there is 1 or more valid move that the
-   * piece at position [pos] can make on [board].
-   *)
-  (*Needs to be fixed...this would return true even if a piece is surrounded
-   *by friendly pieces.*)
-(*   let has_move board pos player=
-    let piece = match search pos board with
-               |Some p -> p
-               | _ -> failwith "Should be a piece here" in
-    if (piece.rank = 0 || piece.rank = 11) then
-      false
-    else
-    let (x,y) = pos in
-      let can_up = (match (x,y+1) with
-                 |(x',y') when y' > 10 -> false
-                 |(x',y') -> can_move_to board (x',y') player) in
-      let can_down = (match (x,y-1) with
-                   |(x',y') when y' < 0 -> false
-                   |(x',y') -> can_move_to board (x',y') player) in
-      let can_left = (match (x-1,y) with
-                   |(x',y') when x < 0 -> false
-                   |(x',y') -> can_move_to board (x',y') player) in
-      let can_right = (match (x+1,y) with
-                    |(x',y') when x > 10 -> false
-                    |(x',y') -> can_move_to board (x',y') player) in
-      (can_up || can_down || can_left || can_right)
-
-
-  (* [get_moveable_init board] returns the list of positions in [board] that
-   * contain a piece that can make 1 or more valid moves.
-   *)
-  let get_moveable_init board player =
-    let lst = ref [] in
-    let f k = function
-      | Some p when p.player = player -> has_move board k player
-      | _ -> false in
-    let () = board_iter
-      (fun k v -> if f k v then (lst := k::(!lst)) else ()) board in
-    !lst
-
-let rec none_whole_board board pos=
-    match pos with
-    |(9,9) -> board
-    |(10,y) -> none_whole_board board (0, y+1)
-    |(x,y) -> let brd = add_mapping (x,y) None board
-                in none_whole_board brd (x+1,y)
-
-let map_one =
-    add_mapping (0, 0) (Some bomb) (empty_board ())
-let map_two =
-    add_mapping (1, 0) (None) (map_one)
-
-let map_a =
-    add_mapping (1, 0) (None) (empty_board ())
-let map_b =
-    add_mapping (0, 0) (Some bomb) (map_a) *)
 
 let tests = "ai tests" >::: [
 
     "sample test" >:: (fun _ -> assert_equal 1 1);
 
-    (* "making board 1" >:: (fun _ -> assert_equal
-        (Some {rank=5; player=false; hasBeenSeen = false})
-        (search (0,0) corner_board)); *)
+    "making board 1" >:: (fun _ -> assert_equal
+        (Some scout_u)
+        (search pos_00 corner_board)); 
 
-    (* "is_valid_move_flag" >:: (fun _ -> assert_equal
+     "is_valid_move_flag" >:: (fun _ -> assert_equal
         (false, "That piece can't move there!")
-        (is_valid_move flag_top_row false (3, 5) (3, 6)));
+        (is_valid_move flag_near false pos_01 pos_00));
 
     "is_valid_move_valid" >:: (fun _ -> assert_equal
         (true, "")
-        (is_valid_move cap_first_row_none false (0, 3) (0, 4)));
+        (is_valid_move spy_map true pos_00 pos_01));
 
     "is_valid_move_ally" >:: (fun _ -> assert_equal
-        (false, "Don't attack your own team!")
-        (is_valid_move cap_first_row_ally false (0, 3) (0, 4)));
+        (false, "That piece can't move there!")
+        (is_valid_move spy_scout_map true pos_00 pos_01));
 
     "is_valid_move_enemy" >:: (fun _ -> assert_equal
         (true, "")
-        (is_valid_move cap_first_row_enemy false (0, 3) (0, 4)));
+        (is_valid_move marsh_near true pos_00 pos_01));
 
     "is_valid_move_off_left" >:: (fun _ -> assert_equal
         (false, "Position outside of board")
-        (is_valid_move cap_first_row_none false (0, 3) (-1, 3)));
+        (is_valid_move spy_scout_map true pos_00 (make_position 0 (-1))));
 
     "is_valid_move_too_far" >:: (fun _ -> assert_equal
         (false, "That piece can't move there!")
-        (is_valid_move cap_first_row_far false (0, 3) (0, 5)));
+        (is_valid_move spy_map true pos_00 pos_02));
 
     "is_valid_move_scout_right" >:: (fun _ -> assert_equal
         (false, "Position outside of board")
-        (is_valid_move scout_first_row false (9, 3) (10, 3)));
+        (is_valid_move spy_scout_map true pos_01 (make_position 10 1)));
 
     "is_valid_move_scout_one" >:: (fun _ -> assert_equal
         (true, "")
-        (is_valid_move scout_first_row_botp false (9, 3) (9, 4)));
+        (is_valid_move spy_scout_map true pos_01 pos_51));
 
     "is_valid_move_scout_two" >:: (fun _ -> assert_equal
         (true, "")
-        (is_valid_move scout_first_row_botp false (9, 3) (9, 5))); *)
+        (is_valid_move spy_scout_map true pos_01 pos_02)); 
 
     "game_terminate" >:: (fun _ -> assert_equal
-        (Victory(true), [flag], "Congrats! You won the game!")
-        (make_move flag_near_scout pos_p pos_f));
+        (Victory(true), [flag_ai], "Congrats! You won the game!")
+        (make_move flag_near_scout pos_00 pos_01));
 
     "game_terminate2" >:: (fun _ -> assert_equal
-        (Victory(false), [flag2], "The AI won the game! Better luck next time!")
-        (make_move flag_near_scout2 pos_p pos_f));
-
-(*     "user_spy_beats_marsh" >:: (fun _ -> assert_equal
-        (Active(spy_win))
-        (vic)); *)
-
-   (*  "AI setup test" >:: (fun _ -> assert_equal ()
-        (display_board (setup_board (none_whole_board (empty_board ()) (0,0)))));
-
-    (*"Empty 10 by 10 None display" >:: (fun _ -> assert_equal ()
-        (display_board (none_whole_board (empty_board ()) (0,0))));*)
+        (Victory(false), [flag_u], "The AI won the game! Better luck next time!")
+        (make_move flag_near_scout2 pos_00 pos_01));
 
     "equal_boards" >:: (fun _ -> assert_equal
-        true
-        (equal_board map_two map_b));
+        (true)
+        (equal_board spy_map 
+                    (add_mapping pos_00 (Some spy_u2) (empty_board ()))));
 
     "No_equal_boards" >:: (fun _ -> assert_equal
         (false)
-        (equal_board map_a map_one));
+        (equal_board spy_map spy_scout_map));
 
-    "AI get_moveable_init 1" >:: (fun _ -> assert_equal
+    (* Note: The following test cases were run by adding specific functions to 
+     * ai.mli purely for testing purposes. Since said functions are not needed 
+     * in the mli file, they have since been deleted, making the following test 
+     * cases not compile. Thus, they have been commented out. *)
+
+    (* "AI get_moveable_init 1" >:: (fun _ -> assert_equal
         ([])
         (get_moveable_init (empty_board ()) true));
 
@@ -225,7 +135,7 @@ let tests = "ai tests" >::: [
 
     "AI get_moveable_init 6" >:: (fun _ -> assert_equal
         []
-        (get_moveable_init cap_first_row_enemy true)); *)
+        (get_moveable_init cap_first_row_enemy true));  *)
     ]
 
 
