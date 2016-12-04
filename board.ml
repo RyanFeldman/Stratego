@@ -33,16 +33,16 @@ module type Board = sig
     val empty_board : unit -> t
     val search : position -> t -> (piece option)
     val add_mapping : position -> (piece option) -> t -> t
+    val equal_board : t -> t -> bool
     val board_fold : (position -> piece option -> 'a -> 'a) -> t -> 'a -> 'a
     val board_iter : (position -> piece option -> unit) -> t -> unit
+    val get_list_all_pieces: bool -> piece list
+    val fill: t -> position list -> piece list -> position -> bool -> t
+    val do_setup: t -> bool -> t
     val string_from_piece : piece -> string
     val get_possible_moves : t -> bool -> piece -> position -> position list
     val is_valid_move : t -> bool -> position -> position -> (bool * string)
     val make_move : t -> position -> position -> (victory * piece list * string)
-    val get_list_all_pieces: bool -> piece list
-    val equal_board : t -> t -> bool
-    val fill: t -> position list -> piece list -> position -> bool -> t
-    val do_setup: t -> bool -> t
 end
 
 (* BoardMap contains all the necessary functions to make changes to a Map.S,
@@ -94,10 +94,10 @@ module GameBoard : Board = struct
     (* See board.mli file *)
     let get_been_seen (p:piece) : bool = p.hasBeenSeen
 
-    (* See game.mli file *)
+    (* See board.mli file *)
     let user_pieces_lost = Array.make 40 (make_piece 12 true false)
 
-    (* See game.mli file *)
+    (* See board.mli file *)
     let ai_pieces_lost = Array.make 40 (make_piece 12 true false)
 
     (* See board.mli file *)
@@ -114,6 +114,9 @@ module GameBoard : Board = struct
 
     (* See board.mli file *)
     let add_mapping pos piece board = BoardMap.add pos piece board
+
+    (* See board.mli file *)
+    let equal_board b1 b2 = BoardMap.equal (=) b1 b2
 
     (* See board.mli file *)
     let board_fold f board acc = BoardMap.fold f board acc
@@ -422,9 +425,6 @@ module GameBoard : Board = struct
             (Victory (not(List.hd captured).player), captured, congrats)
         else
             (Active (new_board), captured, move_msg^"\n"^msg)
-
-    (* See board.mli file *)
-    let equal_board b1 b2 = BoardMap.equal (=) b1 b2
 
     (* See board.mli file *)
     let rec fill board filled remaining pos player =

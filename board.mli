@@ -8,14 +8,15 @@ module type Board = sig
      * the top right of the grid represents a position that can be represented
      * by the tuple (9, 9).
      * Each filled box on the grid represents a piece which has a corresponding
-     * rank, player,and stored value representing whether the AI has seen the
+     * rank, player, and stored value representing whether the AI has seen the
      * piece yet. If a piece does not occupy a box, the tile is still mapped to
      * a placeholder representing no piece occupancy.
      *
      * RI: No piece will ever be mapped to a grid position outside of the board.
      * Both player's flags must be on the board in order for the game to
-     * continue play. The board conforms to the rules defined in a normal
-     * game of Stratego.
+     * continue play. Every tile in the 10x10 board must contain a mapping of
+     * some kind: either to a piece or the lack of an option. The board 
+     * conforms to the rules defined in a normal game of Stratego.
      *     _________________________________________________
      *    |    |    |    |    |    |    |    |    |    |    |
      *  9 | AI | AI | AI | AI | AI | AI | AI | AI | AI | AI |
@@ -52,8 +53,6 @@ module type Board = sig
      * This is the board upon instantiation.
      *)
 
-    
-
     (* Type representing a location on the stratego board *)
     type position
 
@@ -71,7 +70,12 @@ module type Board = sig
     (* Type representing a stratego piece on the board *)
     type piece
 
+    (* [user_pieces_lost] is an array containing all the stratego pieces the user
+     * has lost *)
     val user_pieces_lost : piece array
+
+    (* [ai_pieces_lost] is an array containing all the stratego pieces the ai
+     * has lost *)
     val ai_pieces_lost : piece array 
 
     (**
@@ -148,6 +152,12 @@ module type Board = sig
     val add_mapping : position -> (piece option) -> t -> t
 
     (**
+     * [equal_board b1 b2] is true iff b1 maps the same positions to the same
+     * piece options as b2. False otherwise.
+     *)
+    val equal_board: t -> t -> bool
+
+    (**
      * [board_fold f board acc] computes (f kN dN ... (f k1 d1 a)... ) where
      * k1 ... kN are the positions of all the bindings in [board] in increasing
      * order, and d1 ... dN are the associated piece options
@@ -160,6 +170,34 @@ module type Board = sig
      * the second argument.
      *)
     val board_iter : (position -> piece option -> unit) -> t -> unit
+
+    (*
+     * [get_list_all_pieces player] returns a piece list containing every
+     * piece that is present when the game starts. The pieces in the list
+     * belong to the player iff [player]. Otherwise, the
+     * pieces belong to the AI.
+     *)
+    val get_list_all_pieces: bool -> piece list
+
+    (**
+     * [fill board filled remaining pos player] takes in [board], on which 
+     * the tiles in [filled] are present. Then, it adds all of the pieces in 
+     * [remaining] to [board], starting at position [pos] and moving rightward 
+     * from there.
+     *)
+    val fill: t -> position list -> piece list -> position -> bool -> t
+
+    (**
+     * [do_setup board player] sets up one half of [board].
+     * If [player] then the player's pieces are set up on the
+     * bottom 4 rows of the board. If not [player] then the AI's pieces are
+     * set up on the top 4 rows of [board].
+     *
+     * The flags will go in the top and bottom rows for the AI and player,
+     * respectively. Three bombs will be placed next to the flag. The placement
+     * of the rest of the pieces is totally random.
+     *)
+    val do_setup: t -> bool -> t
 
     (**
      * [string_from_piece p] is the corresponding name for the given piece [p]
@@ -200,40 +238,6 @@ module type Board = sig
      *  - position1 contains a piece that can execute the movement
      *)
     val make_move : t -> position -> position -> (victory * piece list * string)
-
-    (*
-     * [get_list_all_pieces player] returns a piece list containing every
-     * piece that is present when the game starts. The pieces in the list
-     * belong to the player iff [player]. Otherwise, the
-     * pieces belong to the AI.
-     *)
-    val get_list_all_pieces: bool -> piece list
-
-    (**
-     * [equal_board b1 b2] is true iff b1 maps the same positions to the same
-     * piece options as b2. False otherwise.
-     *)
-    val equal_board: t -> t -> bool
-
-    (**
-    * [fill board filled remaining pos player] takes in [board], on which 
-    * the tiles in [filled] are present. Then, it adds all of the pieces in 
-    * [remaining] to [board], starting at position [pos] and moving rightward 
-    * from there.
-    *)
-    val fill: t -> position list -> piece list -> position -> bool -> t
-
-    (**
-     * [do_setup board player] sets up one half of [board].
-     * If [player] then the player's pieces are set up on the
-     * bottom 4 rows of the board. If not [player] then the AI's pieces are
-     * set up on the top 4 rows of [board].
-     *
-     * The flags will go in the top and bottom rows for the AI and player,
-     * respectively. Three bombs will be placed next to the flag. The placement
-     * of the rest of the pieces is totally random.
-     *)
-    val do_setup: t -> bool -> t
 end
 
 module GameBoard : Board

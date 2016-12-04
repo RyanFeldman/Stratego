@@ -6,9 +6,6 @@ exception Illegal
 (* See game.mli file *)
 type board = t
 
-(* See game.mli file *)
-type game_piece = piece
-
 (* [user_counter] is the next free index in user_pieces_lost array *)
 let user_counter =
     let c = ref (-1) in
