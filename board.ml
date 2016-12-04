@@ -50,7 +50,20 @@ end
 module BoardMap = Map.Make(IntTuple)
 
 module GameBoard : Board = struct
-    (* See Board sig in board.mli for AF and rep invariant *)
+    (* AF: an (int*int) to piece option map represents a 10 by 10 stratego board
+     *     where the int tuple represents an (x,y) coordinate on the board
+     *     where (0,0 )is in the bottom left corner.  The piece option is None
+     *     if there is no piece on that spot and Some p if p (: piece) is at
+     *     at that spot
+     * RI: the (int*int) tuple represents (x,y) where 0 <= x,y < 10
+     *     Some p (:piece) such that:
+     *        - a max of 80 pieces are on the board
+     *        - each player has a max of 40 pieces on the board
+     *        - each player has at most the number of each rank as
+     *          specified in the rules of Stratego
+     *
+     *
+     *)
 
     (* See board.mli file *)
     type position = int * int
