@@ -91,7 +91,6 @@ module GameAI : AI = struct
         let () = print_endline "in second match" in
         let () = Random.self_init () in
         let n = Random.int 101 |> float in
-        let b = get_player p1 in
         if (100. *. get_probability p1r) > n then Some p1 else Some p2
     | _,_ -> Some p2
 
