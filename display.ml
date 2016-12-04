@@ -4,6 +4,7 @@ module type Display = sig
   type board = t
   type piece = Board.GameBoard.piece
   val print_message : string -> unit
+  val print_str : string -> unit
   val display_board : board -> unit
   val print_list : piece list -> unit
   val display_table : unit -> unit
@@ -15,8 +16,11 @@ module TextDisplay : Display = struct
   type board = t
   type piece = Board.GameBoard.piece
 
-  (*[print_message s] prints s to the console*)
+  (*[print_message s] prints s to the console followd by a line break*)
   let print_message s = print_endline s
+
+  (*[print_str s] prints s to the console*)
+  let print_str s = print_string s
 
   (*[string_of_piece_user p] returns the string to be displayed of the given
    *AI piece p*)

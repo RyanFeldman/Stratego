@@ -46,7 +46,7 @@ let parse_user_input (c:string) : position =
 let rec get_user_input (board:board) (piece:piece) : board =
     print_message ("Where would you like to place your "
                             ^(string_from_piece piece)^ "? (ex. 00)");
-    print_string ">";
+    print_str ">";
     let user_input = read_line () in
     let (x, y) = get_tuple (parse_user_input user_input) in
     if (y > 3 || y < 0 || x < 0 || x > 9)
@@ -291,7 +291,7 @@ let rec play (board:board) : board =
     let user_no_moves = check_available_moves board (0, 0) in
     if user_no_moves then
         let _ = print_message "It's your turn! What would you like to do?" in
-        print_string ">";
+        print_str ">";
         let user_input = read_line () in
         let user_tuple = parse_user_input user_input in
         let user_board = try (handle_user_input user_tuple board) with
