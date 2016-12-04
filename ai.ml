@@ -4,12 +4,12 @@ module type AI = sig
   type board = t
   type victory = Board.GameBoard.victory
   type piece = Board.GameBoard.piece
-  (*val ai_setup : board -> board*)
   val choose_best_board : board -> (victory * piece list * string)
 end
 
 module GameAI : AI = struct
 
+  (* See board.mli for detailed information about board, piece, and victory *)
   type board = t
   type victory = Board.GameBoard.victory
   type piece = Board.GameBoard.piece
@@ -18,22 +18,20 @@ module GameAI : AI = struct
    * to the (pos,piece option) association list [lst], where the first of every
    * tuple is the pos that needs to be overwritten and the second is the piece
    * that goes in that position
-    *)
-  (*I made this beacuse I wasn't sure if add_mapping created a new board or just
-  * updated the one given *)
+   *)
   let replace_pos board lst =
     let newb = ref (empty_board ()) in
     let f k v =
         newb := (add_mapping k (try List.assoc k lst with _ -> v) !newb) in
     let () = board_iter (fun k v -> f k v) board in
     !newb
+
   (* [can_defeat init rank] is the number of pieces during the initial setup of
    * the game that a piece of rank [rank] could tie or defeat.
    * For example, at the beginning of the game, there are 10 pieces that a
    * scout (rank 2) can defeat -- the enemies bomb, flag and 8 scouts.
    *
    * Requires: [rank] : int
-   *
    *)
   let can_defeat_init = function
   | 0 -> 35  | 1 -> 2  | 2 -> 10  | 3 -> 21  | 4 -> 19  | 5 -> 23  |6 -> 27
@@ -45,8 +43,6 @@ module GameAI : AI = struct
    * still on the board.
    *
    * Requires: [rank] : int
-   *
-   *
    *)
   let get_probability rank =
     let captured_array = user_pieces_lost in
@@ -57,9 +53,9 @@ module GameAI : AI = struct
             | 1 -> (fun p -> get_rank p = 10)
             | n -> (fun p -> get_rank p <= rank && get_rank p <> 0) in
     let can_beat_captured = List.filter f filtered in
-    let can_beat_uncap = (can_defeat_init rank) - (List.length can_beat_captured) in
+    let can_beat_uncap = (can_defeat_init rank) - 
+                                            (List.length can_beat_captured) in
     let prob = (float can_beat_uncap) /. float(40 - List.length filtered) in
-    let () = print_float prob in
     prob
 
   (* [ai_battle p1 p2] is a piece option representing the piece that ai assumes
@@ -79,20 +75,17 @@ module GameAI : AI = struct
    *)
   let ai_battle p1 p2 =
     match (get_rank p1), (get_rank p2) with
-    | _, _ when (not (get_player p2)) -> failwith "ai shouldn't battle it's own piece"
+    | _, _ when (not (get_player p2)) -> failwith "ai shouldn't battle itself"
     | 3,0 when get_been_seen p2-> Some p1
     | _ , 0 when get_been_seen p2-> Some p2
     | _ , 11 when get_been_seen p2 -> Some p1
     | 1, 10 when get_been_seen p2 -> Some p1
     | p1r, p2r when (get_been_seen p2) ->
-        let () = print_endline "in first match" in
         if p1r > p2r then Some p1 else if p1r < p2r then Some p2 else None
     | p1r, p2r ->
-        let () = print_endline "in second match" in
         let () = Random.self_init () in
         let n = Random.int 101 |> float in
         if (100. *. get_probability p1r) > n then Some p1 else Some p2
-    | _,_ -> Some p2
 
 
   (* [ai_move board pos1 pos2] is the board that the AI assumes will result when
@@ -125,8 +118,9 @@ module GameAI : AI = struct
    * value than 1. Similar arguments apply for the flag (obviously the most
    * important piece because its capture ends the game), bombs, and miners.
    *
-   * Note that this function takes in an int, which is the integer representation
-   * of rank described in the [get_rank] function of the Board module.
+   * Note that this function takes in an int, which is the integer 
+   * representation of rank described in the [get_rank] function of the Board 
+   * module.
    *
    * Requires:
    * [rank] : int
@@ -139,11 +133,12 @@ module GameAI : AI = struct
     |n -> n
 
   (* [score board] returns the AI's net score on [board] by going through
-   * the AI's pieces, summing their values, doing the same for the player's pieces,
-   * and subtracting player's score from the AI's score to find the net score.
+   * the AI's pieces, summing their values, doing the same for the player's 
+   * pieces,and subtracting player's score from the AI's score to find the net 
+   * score.
    *
-   * The scoring heuristic assigns each piece an integer value based on its rank.
-   * The value of each rank is as described in [get_value]
+   * The scoring heuristic assigns each piece an integer value based on its 
+   * rank. The value of each rank is as described in [get_value]
    *
    * Requires: [board] : board
    *)
@@ -163,7 +158,6 @@ module GameAI : AI = struct
    * [(x,y)] : (int*int)
    * [board] : Board
    * player : bool
-   *
    *)
   let can_move_to board (x,y) player =
     try
@@ -174,7 +168,7 @@ module GameAI : AI = struct
     |_ -> false
 
   (* [has_move piece] returns true iff there is 1 or more valid move that the
-   * piece at position [pos] can make on [board] when it is the turn of [player].
+   * piece at position [pos] can make on [board] when it is the turn of [player]
    * i.e. [player] = true means it is the player's turn; [player] = false means
    * it is the AI's turn.
    *
@@ -222,7 +216,7 @@ module GameAI : AI = struct
       | _ -> false in
     let () = board_iter
       (fun k v -> if f k v then (lst := k::(!lst)) else ()) board in
-   !lst
+    !lst
 
   (* [get_moves_piece board pos] is an (pos1,pos2) association list that
    * represents all of the posistions the piece at [pos] can move to. The
@@ -234,7 +228,7 @@ module GameAI : AI = struct
     | Some p -> get_possible_moves board (get_player p) p pos) in
     List.fold_left (fun a x -> (pos, x)::a) [] moves
 
-(**
+  (**
    * [get_valid_boards board player] is a (board, move) association list that
    * represents all of the moves [player] can take given board [board] and the
    * board after that move has been made.
@@ -242,7 +236,7 @@ module GameAI : AI = struct
    *      board : board
    *      player: bool (true when user, false when ai)
    *)
-let get_valid_boards board player =
+  let get_valid_boards board player =
     let moveable = get_moveable board player in
     let moves = List.fold_left
         (fun a x -> ((get_moves_piece board x) @ a)) [] moveable in
@@ -282,24 +276,24 @@ let get_valid_boards board player =
            else if sideway1 then move2
            else move1
 
-(* [minimax board min depth] is the resulting (score, move) from the
- * minimax algorithm, which looks at future moves until depth [depth].  When
- * [min] the move that produces the smallest score is chosen, when not [min] the
- * move that produces the largest score is chosen.
- * Score is:
- *    - (score board) when there is a valid move resulting in normal game play
- *    - (2000) when the user has no moves left but the ai does
- *    - (-2000) when the ai has no moves left but the user does
- *    - (0) when both players are out of moves or [depth] = 0
- * Move is a (pos1, pos2) tuple where:
- *    - pos1, pos2 are valid board positions when [player] has a move
- *    - pos2,pos2 = (-1,-1) when one or more players is out of moves or
- *        [depth] = 0
- * Requires:
- *    min : bool,true when you want the minimum score (player = user)
- *    board: board
- *    depth : int
- *)
+  (* [minimax board min depth] is the resulting (score, move) from the
+   * minimax algorithm, which looks at future moves until depth [depth].  When
+   * [min] the move that produces the smallest score is chosen, when not [min] 
+   * the move that produces the largest score is chosen.
+   * Score is:
+   *    - (score board) when there is a valid move resulting in normal game play
+   *    - (2000) when the user has no moves left but the ai does
+   *    - (-2000) when the ai has no moves left but the user does
+   *    - (0) when both players are out of moves or [depth] = 0
+   * Move is a (pos1, pos2) tuple where:
+   *    - pos1, pos2 are valid board positions when [player] has a move
+   *    - pos2,pos2 = (-1,-1) when one or more players is out of moves or
+   *        [depth] = 0
+   * Requires:
+   *    min : bool,true when you want the minimum score (player = user)
+   *    board: board
+   *    depth : int
+   *)
   let rec minimax board min depth =
       let invalid = make_position (-1) (-1) in
       let no_move = (invalid, invalid) in
@@ -369,9 +363,5 @@ let get_valid_boards board player =
         (Victory true, [], "")
     else
         make_move board pos1 pos2
-        (*match make_move board pos1 pos2 with
-        |(Active b, captured, str) -> (Active b, captured, str)
-        |(Victory b, captured, str) -> (Victory b, captured, str)*)
-
 end
 

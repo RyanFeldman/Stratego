@@ -33,16 +33,16 @@ module type Board = sig
     val empty_board : unit -> t
     val search : position -> t -> (piece option)
     val add_mapping : position -> (piece option) -> t -> t
+    val equal_board : t -> t -> bool
     val board_fold : (position -> piece option -> 'a -> 'a) -> t -> 'a -> 'a
     val board_iter : (position -> piece option -> unit) -> t -> unit
+    val get_list_all_pieces: bool -> piece list
+    val fill: t -> position list -> piece list -> position -> bool -> t
+    val do_setup: t -> bool -> t
     val string_from_piece : piece -> string
     val get_possible_moves : t -> bool -> piece -> position -> position list
     val is_valid_move : t -> bool -> position -> position -> (bool * string)
     val make_move : t -> position -> position -> (victory * piece list * string)
-    val get_list_all_pieces: bool -> piece list
-    val equal_board : t -> t -> bool
-    val fill: t -> position list -> piece list -> position -> bool -> t
-    val do_setup: t -> bool -> t
 end
 
 (* BoardMap contains all the necessary functions to make changes to a Map.S,
@@ -50,9 +50,20 @@ end
 module BoardMap = Map.Make(IntTuple)
 
 module GameBoard : Board = struct
-    (* See Board sig in board.mli for AF and rep invariant *)
-
-
+    (* AF: an (int*int) to piece option map represents a 10 by 10 stratego board
+     *     where the int tuple represents an (x,y) coordinate on the board
+     *     where (0,0 )is in the bottom left corner.  The piece option is None
+     *     if there is no piece on that spot and Some p if p (: piece) is at
+     *     at that spot
+     * RI: the (int*int) tuple represents (x,y) where 0 <= x,y < 10
+     *     Some p (:piece) such that:
+     *        - a max of 80 pieces are on the board
+     *        - each player has a max of 40 pieces on the board
+     *        - each player has at most the number of each rank as
+     *          specified in the rules of Stratego
+     *
+     *
+     *)
 
     (* See board.mli file *)
     type position = int * int
@@ -77,17 +88,17 @@ module GameBoard : Board = struct
     (* See board.mli file *)
     let get_rank (p:piece) : int = p.rank
 
-    (* See game.mli file *)
-    let user_pieces_lost = Array.make 40 (make_piece 12 true false)
-
-    (* See game.mli file *)
-    let ai_pieces_lost = Array.make 40 (make_piece 12 true false)
-
     (* See board.mli file *)
     let get_player (p:piece) : bool = p.player
 
     (* See board.mli file *)
     let get_been_seen (p:piece) : bool = p.hasBeenSeen
+
+    (* See board.mli file *)
+    let user_pieces_lost = Array.make 40 (make_piece 12 true false)
+
+    (* See board.mli file *)
+    let ai_pieces_lost = Array.make 40 (make_piece 12 true false)
 
     (* See board.mli file *)
     type t = (piece option) BoardMap.t
@@ -105,13 +116,19 @@ module GameBoard : Board = struct
     let add_mapping pos piece board = BoardMap.add pos piece board
 
     (* See board.mli file *)
+    let equal_board b1 b2 = BoardMap.equal (=) b1 b2
+
+    (* See board.mli file *)
     let board_fold f board acc = BoardMap.fold f board acc
 
     (* See board.mli file *)
     let board_iter f board = BoardMap.iter f board
 
-    (* See board.mli file *)
-    let rec none_whole_board board pos=
+    (**
+     * [none_whole_board board pos] is [board] with all tiles in the 10x10 grid
+     * filled with None starting from [pos]
+     *)
+    let rec none_whole_board board pos =
         match pos with
         |(10,9) -> board
         |(10,y) -> none_whole_board board (0, y+1)
@@ -408,9 +425,6 @@ module GameBoard : Board = struct
             (Victory (not(List.hd captured).player), captured, congrats)
         else
             (Active (new_board), captured, move_msg^"\n"^msg)
-
-    (* See board.mli file *)
-    let equal_board b1 b2 = BoardMap.equal (=) b1 b2
 
     (* See board.mli file *)
     let rec fill board filled remaining pos player =

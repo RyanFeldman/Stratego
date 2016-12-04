@@ -4,6 +4,7 @@ module type Display = sig
   type board = t
   type piece = Board.GameBoard.piece
   val print_message : string -> unit
+  val print_str : string -> unit
   val display_board : board -> unit
   val print_list : piece list -> unit
   val display_table : unit -> unit
@@ -12,13 +13,17 @@ end
 
 module TextDisplay : Display = struct
 
-  type board = t
+  (* See board.mli for detailed information about board and piece *)
+  type board = Board.GameBoard.t
   type piece = Board.GameBoard.piece
 
-  (*[print_message s] prints s to the console*)
+  (*[print_message s] prints s to the console followd by a line break*)
   let print_message s = print_endline s
 
-  (*[string_of_piece_user p] returns the string to be displayed of the given
+  (*[print_str s] prints s to the console*)
+  let print_str s = print_string s
+
+  (*[string_of_piece_ai p] returns the string to be displayed of the given
    *AI piece p*)
   let string_of_piece_ai p = match (get_rank p) with
   |x when x = 0 -> "B "
@@ -77,7 +82,8 @@ module TextDisplay : Display = struct
     In addition to those ranked pieces you can use bombs to protect your flag.
 
     Pieces move 1 tile per turn, horizontally or vertically.
-    Only the scout (rank 2) can move over multiple empty tiles per turn (like a rook in chess).
+    Only the scout (rank 2) can move over multiple empty tiles per turn 
+    (like a rook in chess).
     Pieces cannot jump over other pieces.
 
     If a piece is moved onto a tile that is occupied by an opposing piece,
@@ -85,30 +91,32 @@ module TextDisplay : Display = struct
     battle, it occupies the tile formerly occupied by the defeated piece.
 
     If the engaging pieces are of equal rank, they are both removed.
-    Pieces may not move onto a tile already occupied by another piece without attacking.
+    Pieces may not move onto a tile already occupied by another piece without 
+    attacking.
 
     The exception to the rule of the higher rank winning is the spy.
     If a spy (rank 1) attacks the marshal (rank 10), the spy wins.
     However, if the marshal initiates the battle, then the spy does not
     have the element of surprise and is defeated.
 
-    If an opponent piece attacks a bomb, the player is removed but the bomb remains.
+    If an opponent piece attacks a bomb, the player is removed but the bomb 
+    remains.
     Bombs are removed only when they are attacked by a miner (rank 3).
 
     The bombs and the flag cannot be moved.
     The flag can be captured by an opponent piece of any rank.
     When you capture the flag of your opponent you win the game.
 
-    To move, type the (x,y) position of the piece you want to move as xy followed
-    by the (x,y) position of the tile you want to move to in the same format.
-    i.e. to move a piece from (1,1) to (1,2), enter 11 12";
+    To move, type the (x,y) position of the piece you want to move as xy 
+    followed by the (x,y) position of the tile you want to move to in the same 
+    format i.e. to move a piece from (1,1) to (1,2), enter 11 12";
     print_endline
     "
     Once the game begins, the following commands will be available:
-    \t\"table\" - Displays a table linking the names of Stratego pieces to their ranks
-    \t\"captured\" - Displays the pieces captured by each player
-    \t\"rules\" - Displays the rules and commands available
-    \t\"quit\" - Exits the game"
+    \tTABLE - Displays a table linking the names of pieces to their ranks
+    \tCAPTURED - Displays the pieces captured by each player
+    \tRULES - Displays the rules and commands available
+    \tQUIT - Exits the game"
 
   (*See display.mli*)
   let print_list (l:piece list) =
