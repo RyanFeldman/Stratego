@@ -9,7 +9,6 @@ Our Team:
 - Chris Sciavolino (cds253)
 
 Setup:
-The setup and gameplay is relatively simple.
 
 1. Download the stratego folder to your local machine.
 2. Open Terminal or Command Line.
