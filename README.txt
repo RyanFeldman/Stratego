@@ -1,14 +1,14 @@
-# Stratego
+Stratego
 
 Our team created a text-based Terminal version of the game Stratego where the user plays against our AI. 
 
-###**Our Team:**
+Our Team:
 - Daniel Laine (dll88)
 - Ryan Feldman (rpf53)
 - Katie Gioioso (krg48)
 - Chris Sciavolino (cds253)
 
-###**Setup**
+Setup:
 The setup and gameplay is relatively simple.
 
 1. Download the stratego folder to your local machine.
