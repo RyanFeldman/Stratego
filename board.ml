@@ -52,8 +52,6 @@ module BoardMap = Map.Make(IntTuple)
 module GameBoard : Board = struct
     (* See Board sig in board.mli for AF and rep invariant *)
 
-
-
     (* See board.mli file *)
     type position = int * int
 
@@ -77,17 +75,17 @@ module GameBoard : Board = struct
     (* See board.mli file *)
     let get_rank (p:piece) : int = p.rank
 
-    (* See game.mli file *)
-    let user_pieces_lost = Array.make 40 (make_piece 12 true false)
-
-    (* See game.mli file *)
-    let ai_pieces_lost = Array.make 40 (make_piece 12 true false)
-
     (* See board.mli file *)
     let get_player (p:piece) : bool = p.player
 
     (* See board.mli file *)
     let get_been_seen (p:piece) : bool = p.hasBeenSeen
+
+    (* See game.mli file *)
+    let user_pieces_lost = Array.make 40 (make_piece 12 true false)
+
+    (* See game.mli file *)
+    let ai_pieces_lost = Array.make 40 (make_piece 12 true false)
 
     (* See board.mli file *)
     type t = (piece option) BoardMap.t
@@ -110,8 +108,11 @@ module GameBoard : Board = struct
     (* See board.mli file *)
     let board_iter f board = BoardMap.iter f board
 
-    (* See board.mli file *)
-    let rec none_whole_board board pos=
+    (**
+     * [none_whole_board board pos] is [board] with all tiles in the 10x10 grid
+     * filled with None starting from [pos]
+     *)
+    let rec none_whole_board board pos =
         match pos with
         |(10,9) -> board
         |(10,y) -> none_whole_board board (0, y+1)
