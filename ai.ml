@@ -246,7 +246,9 @@ module GameAI : AI = struct
   (**
    * [get_valid_boards board player] is a (board, move) association list that
    * represents all of the moves [player] can take given board [board] and the
-   * board after that move has been made.
+   * board after that move has been made.  In the case that a move creates a
+   * board where the user wins, a board is returned with two pieces on it:
+   * the user's flag and a moveable user piece.
    *  Requires:
    *      board : board
    *      player: bool (true when user, false when ai)
