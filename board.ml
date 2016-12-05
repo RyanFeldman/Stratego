@@ -446,10 +446,10 @@ module GameBoard : Board = struct
         let flag_x_pos = Random.int 10 in
         let flag_pos = (flag_x_pos, (if player then 0 else 9)) in
         let bomb_one_x = match flag_x_pos with
-                        |0 -> (Random.int 8) + 1
+                        |0 -> (Random.int 8) + 2
                         |n -> n-1 in
         let bomb_two_x = match flag_x_pos with
-                        |9 -> 3
+                        |9 -> (Random.int 8)
                         |n -> n+1 in
         let n = if player then 0 else 9 in
         let flag_pos = make_position (fst flag_pos) (snd flag_pos) in
