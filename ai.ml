@@ -53,7 +53,7 @@ module GameAI : AI = struct
             | 1 -> (fun p -> get_rank p = 10)
             | n -> (fun p -> get_rank p <= rank && get_rank p <> 0) in
     let can_beat_captured = List.filter f filtered in
-    let can_beat_uncap = (can_defeat_init rank) - 
+    let can_beat_uncap = (can_defeat_init rank) -
                                             (List.length can_beat_captured) in
     let prob = (float can_beat_uncap) /. float(40 - List.length filtered) in
     prob
@@ -118,8 +118,8 @@ module GameAI : AI = struct
    * value than 1. Similar arguments apply for the flag (obviously the most
    * important piece because its capture ends the game), bombs, and miners.
    *
-   * Note that this function takes in an int, which is the integer 
-   * representation of rank described in the [get_rank] function of the Board 
+   * Note that this function takes in an int, which is the integer
+   * representation of rank described in the [get_rank] function of the Board
    * module.
    *
    * Requires:
@@ -133,11 +133,11 @@ module GameAI : AI = struct
     |n -> n
 
   (* [score board] returns the AI's net score on [board] by going through
-   * the AI's pieces, summing their values, doing the same for the player's 
-   * pieces,and subtracting player's score from the AI's score to find the net 
+   * the AI's pieces, summing their values, doing the same for the player's
+   * pieces,and subtracting player's score from the AI's score to find the net
    * score.
    *
-   * The scoring heuristic assigns each piece an integer value based on its 
+   * The scoring heuristic assigns each piece an integer value based on its
    * rank. The value of each rank is as described in [get_value]
    *
    * Requires: [board] : board
@@ -228,6 +228,21 @@ module GameAI : AI = struct
     | Some p -> get_possible_moves board (get_player p) p pos) in
     List.fold_left (fun a x -> (pos, x)::a) [] moves
 
+  (* [make_winning_board player] is a board with only two pieces on it,
+   *    [player]'s flag and a moveable piece of [player].  This board is used
+   *    so the ai can score a victory as very high (or low, depending on
+   *    [player]).  If there were only a flag, ai would perceive the board as
+   *    a draw.
+  *)
+  let make_winning_board player =
+        let flag = make_piece 11 player false in
+        let moveable = make_piece 3 player false in
+        let pos0 = make_position 0 0 in
+        let pos1 = make_position 0 1 in
+        empty_board () |> add_mapping pos0 (Some flag)
+          |> add_mapping pos1 (Some moveable)
+
+
   (**
    * [get_valid_boards board player] is a (board, move) association list that
    * represents all of the moves [player] can take given board [board] and the
@@ -244,7 +259,8 @@ module GameAI : AI = struct
         (fun a (p1,p2) -> (ai_move board p1 p2, (p1,p2))::a) [] moves
     else
         let new_board pos1 pos2 = match make_move board pos1 pos2 with
-                        |(Active brd, _, _) -> brd
+                        | (Active brd, _, _) -> brd
+                        | (Victory b, _ ,_) -> make_winning_board b
                         |_ -> failwith "make_move should return Active" in
         List.fold_left
         (fun a (p1,p2) -> (new_board p1 p2,(p1,p2))::a) [] moves
@@ -278,7 +294,7 @@ module GameAI : AI = struct
 
   (* [minimax board min depth] is the resulting (score, move) from the
    * minimax algorithm, which looks at future moves until depth [depth].  When
-   * [min] the move that produces the smallest score is chosen, when not [min] 
+   * [min] the move that produces the smallest score is chosen, when not [min]
    * the move that produces the largest score is chosen.
    * Score is:
    *    - (score board) when there is a valid move resulting in normal game play
