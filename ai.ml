@@ -31,7 +31,7 @@ module GameAI : AI = struct
    * For example, at the beginning of the game, there are 10 pieces that a
    * scout (rank 2) can defeat -- the enemies bomb, flag and 8 scouts.
    *
-   * Requires: [rank] : int
+   * Requires: [rank] : int in [0,11]
    *)
   let can_defeat_init = function
   | 0 -> 35  | 1 -> 2  | 2 -> 10  | 3 -> 21  | 4 -> 19  | 5 -> 23  |6 -> 27
@@ -53,7 +53,7 @@ module GameAI : AI = struct
             | 1 -> (fun p -> get_rank p = 10)
             | n -> (fun p -> get_rank p <= rank && get_rank p <> 0) in
     let can_beat_captured = List.filter f filtered in
-    let can_beat_uncap = (can_defeat_init rank) - 
+    let can_beat_uncap = (can_defeat_init rank) -
                                             (List.length can_beat_captured) in
     let prob = (float can_beat_uncap) /. float(40 - List.length filtered) in
     prob
@@ -72,6 +72,7 @@ module GameAI : AI = struct
    *
    * Requires:
    * [p1] and [p2] : piece
+   * [p2] is the player's piece
    *)
   let ai_battle p1 p2 =
     match (get_rank p1), (get_rank p2) with
@@ -97,6 +98,8 @@ module GameAI : AI = struct
    * Requires:
    * [board] : Board
    * [pos1], [pos2] : Board.position
+   * [pos1] <> [pos2]
+   * There is a piece at [pos1] on [board]
    *)
   let ai_move board pos1 pos2 =
     if pos1 = pos2 then failwith "can't move to same position" else
@@ -118,8 +121,8 @@ module GameAI : AI = struct
    * value than 1. Similar arguments apply for the flag (obviously the most
    * important piece because its capture ends the game), bombs, and miners.
    *
-   * Note that this function takes in an int, which is the integer 
-   * representation of rank described in the [get_rank] function of the Board 
+   * Note that this function takes in an int, which is the integer
+   * representation of rank described in the [get_rank] function of the Board
    * module.
    *
    * Requires:
@@ -133,11 +136,11 @@ module GameAI : AI = struct
     |n -> n
 
   (* [score board] returns the AI's net score on [board] by going through
-   * the AI's pieces, summing their values, doing the same for the player's 
-   * pieces,and subtracting player's score from the AI's score to find the net 
+   * the AI's pieces, summing their values, doing the same for the player's
+   * pieces,and subtracting player's score from the AI's score to find the net
    * score.
    *
-   * The scoring heuristic assigns each piece an integer value based on its 
+   * The scoring heuristic assigns each piece an integer value based on its
    * rank. The value of each rank is as described in [get_value]
    *
    * Requires: [board] : board
@@ -176,6 +179,7 @@ module GameAI : AI = struct
    * [board] : Board
    * [pos] : (int*int)
    * [player] : bool
+   * [search pos board] = Some [Board.piece]
    *
    *)
   let has_move board pos player=
@@ -221,10 +225,15 @@ module GameAI : AI = struct
   (* [get_moves_piece board pos] is an (pos1,pos2) association list that
    * represents all of the posistions the piece at [pos] can move to. The
    * starting move is the first in the association list.
+   *
+   * Requires:
+   * [search board pos] <> None
+   * [board] : Board
+   * [pos] : Board.position
    *)
   let get_moves_piece board pos  =
     let moves = (match search pos board with
-    | None -> failwith "there's no piece here"
+    | None -> [] (*You shouldn't be calling this on an empty position*)
     | Some p -> get_possible_moves board (get_player p) p pos) in
     List.fold_left (fun a x -> (pos, x)::a) [] moves
 
@@ -245,7 +254,7 @@ module GameAI : AI = struct
     else
         let new_board pos1 pos2 = match make_move board pos1 pos2 with
                         |(Active brd, _, _) -> brd
-                        |_ -> failwith "make_move should return Active" in
+                        |(Victory b, _, _) -> board in
         List.fold_left
         (fun a (p1,p2) -> (new_board p1 p2,(p1,p2))::a) [] moves
 
@@ -257,7 +266,12 @@ module GameAI : AI = struct
    *      - if both move [player] forward, a random move is chosen
    *      - if only one moves [player] backward, the other move is chosen
    *      - if only one moves [player] sideways, the other move is chosen
-  *)
+   *
+   * Requires:
+   * [move1], [move2] : (position*position)
+   * [player] : bool, true when the player is making the move
+   *
+   *)
   let break_tie move1 move2 player =
     let (from1_x,from1_y) = get_tuple (fst move1) in
     let (to1_x, to1_y) = get_tuple (snd move1) in
@@ -278,7 +292,7 @@ module GameAI : AI = struct
 
   (* [minimax board min depth] is the resulting (score, move) from the
    * minimax algorithm, which looks at future moves until depth [depth].  When
-   * [min] the move that produces the smallest score is chosen, when not [min] 
+   * [min] the move that produces the smallest score is chosen, when not [min]
    * the move that produces the largest score is chosen.
    * Score is:
    *    - (score board) when there is a valid move resulting in normal game play
