@@ -237,10 +237,27 @@ module GameAI : AI = struct
     | Some p -> get_possible_moves board (get_player p) p pos) in
     List.fold_left (fun a x -> (pos, x)::a) [] moves
 
+  (* [make_winning_board player] is a board with only two pieces on it,
+   *    [player]'s flag and a moveable piece of [player].  This board is used
+   *    so the ai can score a victory as very high (or low, depending on
+   *    [player]).  If there were only a flag, ai would perceive the board as
+   *    a draw.
+  *)
+  let make_winning_board player =
+        let flag = make_piece 11 player false in
+        let moveable = make_piece 3 player false in
+        let pos0 = make_position 0 0 in
+        let pos1 = make_position 0 1 in
+        empty_board () |> add_mapping pos0 (Some flag)
+          |> add_mapping pos1 (Some moveable)
+
+
   (**
    * [get_valid_boards board player] is a (board, move) association list that
    * represents all of the moves [player] can take given board [board] and the
-   * board after that move has been made.
+   * board after that move has been made.  In the case that a move creates a
+   * board where the user wins, a board is returned with two pieces on it:
+   * the user's flag and a moveable user piece.
    *  Requires:
    *      board : board
    *      player: bool (true when user, false when ai)
@@ -253,8 +270,9 @@ module GameAI : AI = struct
         (fun a (p1,p2) -> (ai_move board p1 p2, (p1,p2))::a) [] moves
     else
         let new_board pos1 pos2 = match make_move board pos1 pos2 with
-                        |(Active brd, _, _) -> brd
-                        |(Victory b, _, _) -> board in
+                        | (Active brd, _, _) -> brd
+                        | (Victory b, _ ,_) -> make_winning_board b
+                        |_ -> failwith "make_move should return Active" in
         List.fold_left
         (fun a (p1,p2) -> (new_board p1 p2,(p1,p2))::a) [] moves
 
